@@ -46,25 +46,25 @@ Task-macro means from the paper. Coverage is descriptive, not a quality score.
 |---|---|---:|---:|---:|---:|
 | 1-step S1 | Gemini 2.5 Live | 6.19 | 27.6 | 10.53 | 8.85 |
 | 1-step S1 | Gemini 3.8 | 9.47 | 1.2 | 10.08 | **1.72** |
-| 1-step S1 | Gemini 3.8 Think (Low) | **1.07** | 20.1 | 11.47 | 4.31 |
+| 1-step S1 | Gemini 3.8 Live Extended Thinking (Low) | **1.07** | 20.1 | 11.47 | 4.31 |
 | 1-step S1 | GPT-Realtime 2.1 | 1.10 | 43.3 | 6.20 | 2.46 |
 | 1-step S1 | GPT-Realtime 2.1 Mini | 1.28 | 50.3 | **6.00** | 5.05 |
 | 2-step S1 | Gemini 2.5 Live | 6.07 | 23.5 | 8.69 | - |
 | 2-step S1 | Gemini 3.8 | 17.15 | 0.0 | 8.50 | - |
-| 2-step S1 | Gemini 3.8 Think (Low) | 1.13 | 22.9 | 8.06 | - |
+| 2-step S1 | Gemini 3.8 Live Extended Thinking (Low) | 1.13 | 22.9 | 8.06 | - |
 | 2-step S1 | GPT-Realtime 2.1 | **1.07** | 53.0 | 4.42 | - |
 | 2-step S1 | GPT-Realtime 2.1 Mini | 1.08 | 54.0 | **4.08** | - |
 | 2-step S2 | Gemini 2.5 Live | - | 46.9 | **7.19** | 6.62 |
 | 2-step S2 | Gemini 3.8 | - | 2.9 | 9.25 | **1.93** |
-| 2-step S2 | Gemini 3.8 Think (Low) | - | 13.6 | 11.28 | 8.00 |
+| 2-step S2 | Gemini 3.8 Live Extended Thinking (Low) | - | 13.6 | 11.28 | 8.00 |
 | 2-step S2 | GPT-Realtime 2.1 | - | 14.6 | 9.10 | 2.70 |
 | 2-step S2 | GPT-Realtime 2.1 Mini | - | 49.4 | 7.79 | 11.68 |
 
 ### Native waiting: correctness
 
-| Metric | Gemini 2.5 Live | Gemini 3.8 | Gemini 3.8 Think (Low) | GPT-RT 2.1 | GPT-RT 2.1 Mini |
+| Metric | Gemini 2.5 Live | Gemini 3.8 | Gemini 3.8 Live Extended Thinking (Low) | GPT-RT 2.1 | GPT-RT 2.1 Mini |
 |---|---:|---:|---:|---:|---:|
-| Answer accuracy (%) | 79.3 | 97.3 | **98.3** | 95.5 | 56.2 |
+| Answer accuracy (%) | 78.5 | 97.3 | **98.3** | 95.5 | 56.1 |
 | Premature hallucination (%) | 3.5 | **0.0** | **0.0** | **0.0** | **0.0** |
 
 Answer accuracy uses the v17 minimal-required answer specifications and the strict interaction-level consistency criterion. Supporting details marked optional are not required for correctness.
