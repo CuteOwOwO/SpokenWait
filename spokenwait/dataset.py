@@ -79,11 +79,27 @@ def validate_dataset(root: Path = TASK_ROOT) -> dict[str, Any]:
         raise ValueError(f"Expected 100 unique tasks, found {len(ids)}")
 
     spec_ids: list[str] = []
+    required_slot_count = 0
+    optional_slot_count = 0
     for path in sorted((ROOT / "judge" / "answer_specs").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
-        spec_ids.extend(entry["task_id"] for entry in document.get("tasks", []))
+        if document.get("schema_version") != "spokenwait-minimal-final-answer-spec-v17":
+            raise ValueError(f"Unexpected answer-spec version: {path}")
+        for entry in document.get("tasks", []):
+            spec_ids.append(entry["task_id"])
+            spec = entry.get("final_answer_spec", {})
+            required = spec.get("required_slots", [])
+            optional = spec.get("optional_slots", [])
+            if not required or any(slot.get("name") == "complete_task_answer" for slot in required):
+                raise ValueError(f"Answer spec is not minimally decomposed: {entry['task_id']}")
+            if any(slot.get("requirement_basis") != "explicit_user_question" for slot in required):
+                raise ValueError(f"Invalid required-slot basis: {entry['task_id']}")
+            required_slot_count += len(required)
+            optional_slot_count += len(optional)
     if len(spec_ids) != 100 or len(set(spec_ids)) != 100 or set(spec_ids) != ids:
         raise ValueError("Judge answer specifications must match the 100 frozen tasks exactly")
+    if (required_slot_count, optional_slot_count) != (175, 97):
+        raise ValueError("Unexpected v17 answer-slot counts")
 
     manifest_path = root.parent / "manifest.json"
     if manifest_path.exists():
@@ -99,5 +115,7 @@ def validate_dataset(root: Path = TASK_ROOT) -> dict[str, Any]:
         "one_step": sum(value[1] for value in domain_counts.values()),
         "two_step": sum(value[2] for value in domain_counts.values()),
         "answer_specs": len(spec_ids),
+        "required_slots": required_slot_count,
+        "optional_slots": optional_slot_count,
         "domains": sorted(domain_counts),
     }

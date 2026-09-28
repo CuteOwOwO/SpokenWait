@@ -1,0 +1,4454 @@
+{
+  "schema_version": "spokenwait-minimal-final-answer-spec-v17",
+  "policy": {
+    "required": "Only facts needed to answer the user's explicit question; all required slots must be correct.",
+    "optional": "Useful supporting calculations, explanations, alternatives, or verification; omission never makes an answer incorrect.",
+    "reference_answer": "Evaluator-only documentation; never sent to the Judge and never used as a checklist."
+  },
+  "tasks": [
+    {
+      "task_id": "airline_travel_1step_baggage_fee_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "total_baggage_fee",
+            "description": "State the total fee for the two checked bags.",
+            "expected_answer": "120 USD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/bag_base_fees/0",
+              "/steps/0/mocked_result/bag_base_fees/1",
+              "/steps/0/mocked_result/standard_weight_limit_kg",
+              "/steps/0/mocked_result/overweight_fee_per_bag",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "fee_breakdown",
+            "description": "May explain the second-bag base fee and overweight fee.",
+            "expected_answer": "45 USD second-bag fee plus 75 USD overweight fee.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/bag_base_fees/1/fee",
+              "/steps/0/mocked_result/overweight_fee_per_bag"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You will pay 120 USD in total.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_budget_arrival_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "qualifying_flight",
+            "description": "Identify the flight that satisfies the route, arrival deadline, and budget.",
+            "expected_answer": "AW218",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/flights/2/flight_number"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "constraint_verification",
+            "description": "May state that AW218 arrives at 14:40 and costs 215 USD including taxes.",
+            "expected_answer": "Arrives 14:40 local; total price 215 USD including taxes.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/flights/2/arrival_local",
+              "/steps/0/mocked_result/flights/2/total_price_including_taxes",
+              "/steps/0/mocked_result/flights/2/currency"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "AW218 works.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_gate_context_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "departure_gate",
+            "description": "State the gate for the user's flight to Osaka tomorrow.",
+            "expected_answer": "B7",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/gate"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "departure_terminal",
+            "description": "May also state the departure terminal.",
+            "expected_answer": "Terminal 1",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/departure_terminal"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Your gate is B7.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_meeting_buffer_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "travel_time_available",
+            "description": "State the time available between landing and the 2:30 PM meeting.",
+            "expected_answer": "1 hour 20 minutes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/arrival_local_time",
+              "/steps/0/mocked_result/arrival_time_zone"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "arrival_time",
+            "description": "May state the scheduled 13:10 arrival used in the calculation.",
+            "expected_answer": "13:10 local time",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/arrival_local_time"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You will have 1 hour 20 minutes to travel from the airport to the venue.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_timezone_arrival_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "destination_local_arrival_time",
+            "description": "State the arrival time in Tokyo local time.",
+            "expected_answer": "14:30 Tokyo local time",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/departure_local_time",
+              "/steps/0/mocked_result/duration_minutes",
+              "/steps/0/mocked_result/origin_utc_offset",
+              "/steps/0/mocked_result/destination_utc_offset"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You will arrive at 2:30 PM local time in Tokyo.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_baggage_plan_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "current_total_fee",
+            "description": "State the current total checked-baggage fee.",
+            "expected_answer": "120 USD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/bag_base_fees",
+              "/steps/1/mocked_result/standard_weight_limit_kg",
+              "/steps/1/mocked_result/overweight_fee_per_bag",
+              "/steps/1/mocked_result/currency"
+            ]
+          },
+          {
+            "name": "savings_if_second_bag_23kg",
+            "description": "State the savings if the second bag weighs 23 kilograms.",
+            "expected_answer": "75 USD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/standard_weight_limit_kg",
+              "/steps/1/mocked_result/overweight_fee_per_bag",
+              "/steps/1/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "reduced_total_fee",
+            "description": "May state the reduced total and explain that only the second-bag base fee remains.",
+            "expected_answer": "45 USD total, consisting of the second-bag base fee only.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/bag_base_fees/1/fee",
+              "/steps/1/mocked_result/standard_weight_limit_kg"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You would pay 120 USD now and save 75 USD if the second bag were 23 kilograms.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_change_tradeoff_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "additional_total_payment",
+            "description": "State the total additional payment required to switch.",
+            "expected_answer": {
+              "kind": "money",
+              "amount": 50,
+              "currency": "USD"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/paid_fare_including_taxes",
+              "/steps/0/mocked_result/change_fee",
+              "/steps/1/mocked_result/flights/1/total_price_including_taxes"
+            ]
+          },
+          {
+            "name": "earlier_arrival_amount",
+            "description": "State how much earlier the qualifying flight arrives.",
+            "expected_answer": {
+              "kind": "duration",
+              "value": 55,
+              "unit": "minutes"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_arrival_local",
+              "/steps/1/mocked_result/flights/1/arrival_local"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "qualifying_flight_and_calculation",
+            "description": "May identify AW306 and explain the fare and arrival-time calculations.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "AW306; 205 + 25 - 180 = 50 USD; 18:20 - 17:25 = 55 minutes"
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/flights/1"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The switch costs 50 USD more in total and arrives 55 minutes earlier. The qualifying flight is AW306.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_context_gate_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "departure_gate",
+            "description": "State the gate the user should go to.",
+            "expected_answer": "B7",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/gate"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "departure_terminal",
+            "description": "May also state the terminal.",
+            "expected_answer": "Terminal 1",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/departure_terminal"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Go to gate B7.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_last_rail_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "can_catch_last_express",
+            "description": "State whether the user can catch the last airport express.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/estimated_arrival_local_time",
+              "/steps/1/mocked_result/last_departure_local_time",
+              "/steps/1/mocked_result/arrival_exit_buffer_minutes",
+              "/steps/1/mocked_result/terminal_to_station_minutes"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "remaining_buffer",
+            "description": "May state the estimated platform arrival and remaining buffer.",
+            "expected_answer": "Reach the platform around 22:52, leaving 8 minutes before the 23:00 train.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/estimated_arrival_local_time",
+              "/steps/1/mocked_result/last_departure_local_time",
+              "/steps/1/mocked_result/arrival_exit_buffer_minutes",
+              "/steps/1/mocked_result/terminal_to_station_minutes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes, you can still catch the last airport express.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_meeting_alternative_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "alternative_exists",
+            "description": "State whether another available flight arrives before the 4 PM meeting.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/flights/0/availability",
+              "/steps/1/mocked_result/flights/0/arrival_local_time"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "qualifying_alternative",
+            "description": "May identify the qualifying alternative flight.",
+            "expected_answer": "AW412",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/flights/0/flight_number"
+            ]
+          },
+          {
+            "name": "arrival_time_verification",
+            "description": "May state that AW412 arrives at 15:25 New York time, before 16:00.",
+            "expected_answer": "15:25 local time, before the 16:00 meeting.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/flights/0/arrival_local_time",
+              "/steps/1/mocked_result/flights/0/arrival_time_zone"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. AW412 arrives before the meeting.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_1step_completion_deadline_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "finishes_by_deadline",
+            "description": "State whether all three activities finish by 4 PM.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/activities",
+              "/steps/0/mocked_result/activities_are_sequential"
+            ]
+          },
+          {
+            "name": "time_remaining",
+            "description": "State how much time remains before 4 PM.",
+            "expected_answer": "20 minutes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/activities",
+              "/steps/0/mocked_result/activities_are_sequential"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "finish_time_calculation",
+            "description": "May state the total duration and calculated finish time.",
+            "expected_answer": "80 minutes total, finishing at 15:40.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/activities"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. Everything will finish by 4 PM, with 20 minutes left.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_1step_family_details_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "finishes_by_deadline",
+            "description": "State whether Mia's appointment finishes by 11:30 AM.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/duration_minutes"
+            ]
+          },
+          {
+            "name": "time_remaining",
+            "description": "State how much time remains before 11:30 AM.",
+            "expected_answer": "15 minutes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/duration_minutes"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "finish_time",
+            "description": "May state the calculated finish time.",
+            "expected_answer": "11:15 AM",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/duration_minutes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. Mia will finish in time, with 15 minutes left before 11:30 AM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_1step_late_arrival_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "will_still_be_seen",
+            "description": "State whether the user will still be seen after arriving at 3:28 PM.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/grace_period_minutes",
+              "/steps/0/mocked_result/auto_cancel_after_minutes"
+            ]
+          },
+          {
+            "name": "minutes_before_auto_cancel",
+            "description": "State how many minutes remain before automatic cancellation.",
+            "expected_answer": "12 minutes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/auto_cancel_after_minutes"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "lateness_calculation",
+            "description": "May state that arrival is 8 minutes late and within the 10-minute grace period.",
+            "expected_answer": "8 minutes late and within the 10-minute grace period.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/start_local",
+              "/steps/0/mocked_result/grace_period_minutes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. You would still be seen, with 12 minutes remaining before automatic cancellation.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_1step_package_credits_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "enough_credits",
+            "description": "State whether the package has enough credits for both requested services.",
+            "expected_answer": "No",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/credits_remaining",
+              "/steps/0/mocked_result/services/0",
+              "/steps/0/mocked_result/services/1"
+            ]
+          },
+          {
+            "name": "additional_payment",
+            "description": "State how much the user needs to pay.",
+            "expected_answer": "300 TWD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/credits_remaining",
+              "/steps/0/mocked_result/top_up_price_per_credit",
+              "/steps/0/mocked_result/currency",
+              "/steps/0/mocked_result/services/0/credits_required",
+              "/steps/0/mocked_result/services/1/credits_required"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "credit_shortfall",
+            "description": "May explain the required credits and shortfall.",
+            "expected_answer": "The services require 10 credits; 7 remain, leaving a 3-credit shortfall.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/credits_remaining",
+              "/steps/0/mocked_result/services/0/credits_required",
+              "/steps/0/mocked_result/services/1/credits_required"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "No. You would need to pay an additional 300 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_1step_slot_selection_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_slot",
+            "description": "Identify the available appointment slot selected under the user's constraints and tie-break rule.",
+            "expected_answer": "Dr. Chen at 14:20",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/options/1/provider_name",
+              "/steps/0/mocked_result/options/1/start_local"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "selected_slot_details",
+            "description": "May state that the slot finishes at 15:20 and costs 850 TWD.",
+            "expected_answer": "Finishes 15:20; costs 850 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/options/1/duration_minutes",
+              "/steps/0/mocked_result/options/1/price",
+              "/steps/0/mocked_result/options/1/currency"
+            ]
+          },
+          {
+            "name": "alternative_rejection",
+            "description": "May explain why equal-price or cheaper alternatives were not selected.",
+            "expected_answer": "Dr. Wu costs the same but finishes later; the other options violate constraints or are unavailable.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/options"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose Dr. Chen's 2:20 PM slot.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_2step_addon_selection_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_addon",
+            "description": "Identify the addon selected under the user's price and tie-break criteria.",
+            "expected_answer": "quick cooling scalp care",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/options/1/name"
+            ]
+          },
+          {
+            "name": "finish_time",
+            "description": "State the finish time with the selected addon.",
+            "expected_answer": "16:35",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/options/1/earliest_start_local",
+              "/steps/1/mocked_result/options/1/duration_minutes"
+            ]
+          },
+          {
+            "name": "total_price",
+            "description": "State the total price including the original haircut.",
+            "expected_answer": "1,100 TWD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_price",
+              "/steps/0/mocked_result/currency",
+              "/steps/1/mocked_result/options/1/price"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "selection_reasoning",
+            "description": "May explain that it ties for the cheapest feasible price and finishes earlier.",
+            "expected_answer": "It costs the same as refresh scalp care but finishes earlier, and it finishes before 17:00.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/options"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose quick cooling scalp care; you would finish at 4:35 PM and pay 1,100 TWD in total.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_2step_cancellation_refund_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "deposit_refund",
+            "description": "State how much of the deposit would be refunded.",
+            "expected_answer": "900 TWD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/deposit_paid",
+              "/steps/0/mocked_result/currency",
+              "/steps/1/mocked_result/refund_tiers/1/refund_percentage"
+            ]
+          },
+          {
+            "name": "deposit_loss",
+            "description": "State how much of the deposit would be lost.",
+            "expected_answer": "300 TWD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/deposit_paid",
+              "/steps/0/mocked_result/currency",
+              "/steps/1/mocked_result/refund_tiers/1/refund_percentage"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "refund_tier_reasoning",
+            "description": "May state that 49 hours' notice qualifies for the 75 percent refund tier.",
+            "expected_answer": "49 hours before the appointment, qualifying for a 75% refund.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/appointment_start_local",
+              "/steps/1/mocked_result/refund_tiers"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You would receive 900 TWD back and lose 300 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_2step_followup_fitting_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_provider",
+            "description": "State which optometrist the user should see.",
+            "expected_answer": {
+              "kind": "entity",
+              "value": "Dr. Wu"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/options/3/provider_name"
+            ]
+          },
+          {
+            "name": "finish_time",
+            "description": "State when the selected fitting finishes.",
+            "expected_answer": {
+              "kind": "time",
+              "value": "11:35 AM"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/options/3"
+            ]
+          },
+          {
+            "name": "time_before_noon",
+            "description": "State how much time remains before noon.",
+            "expected_answer": {
+              "kind": "duration",
+              "value": 25,
+              "unit": "minutes"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/options/3"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "selection_reasoning",
+            "description": "May explain the 11:00 start and why Dr. Kao and Dr. Lin are infeasible.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "Dr. Kao overlaps the eye exam; Dr. Lin finishes at 12:10; Dr. Wu starts at 11:00."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/appointment_end_local",
+              "/steps/1/mocked_result/options/0",
+              "/steps/1/mocked_result/options/1",
+              "/steps/1/mocked_result/options/3"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose Dr. Wu; the fitting finishes at 11:35 AM, leaving 25 minutes before noon. Dr. Kao overlaps the exam and Dr. Lin finishes too late.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_2step_maintenance_deadline_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "ready_by_deadline",
+            "description": "State whether the car will be ready by 5 PM.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/scheduled_drop_off_local",
+              "/steps/1/mocked_result/job_durations_minutes",
+              "/steps/1/mocked_result/parallel_groups",
+              "/steps/1/mocked_result/sequential_constraints",
+              "/steps/1/mocked_result/final_inspection_minutes"
+            ]
+          },
+          {
+            "name": "time_early",
+            "description": "State how much earlier than 5 PM the car will be ready.",
+            "expected_answer": "2 hours 10 minutes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/scheduled_drop_off_local",
+              "/steps/1/mocked_result/job_durations_minutes",
+              "/steps/1/mocked_result/parallel_groups",
+              "/steps/1/mocked_result/sequential_constraints",
+              "/steps/1/mocked_result/final_inspection_minutes"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "completion_calculation",
+            "description": "May state the 110-minute schedule and 14:50 completion time.",
+            "expected_answer": "110 minutes total, finishing at 14:50.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/scheduled_drop_off_local",
+              "/steps/1/mocked_result/job_durations_minutes",
+              "/steps/1/mocked_result/parallel_groups",
+              "/steps/1/mocked_result/sequential_constraints",
+              "/steps/1/mocked_result/final_inspection_minutes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. The car will be ready 2 hours 10 minutes before 5 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "appointment_service_2step_photo_overtime_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "three_scene_overtime_fee",
+            "description": "State the overtime fee for three scenes and two scene changes.",
+            "expected_answer": "1,500 TWD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/included_studio_minutes",
+              "/steps/0/mocked_result/currency",
+              "/steps/1/mocked_result/scene_change_minutes",
+              "/steps/1/mocked_result/scene_changes_count_toward_studio_time",
+              "/steps/1/mocked_result/overtime_block_minutes",
+              "/steps/1/mocked_result/fee_per_started_block"
+            ]
+          },
+          {
+            "name": "two_scene_overtime_fee",
+            "description": "State the overtime fee for two scenes and one scene change.",
+            "expected_answer": "1,000 TWD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/included_studio_minutes",
+              "/steps/0/mocked_result/currency",
+              "/steps/1/mocked_result/scene_change_minutes",
+              "/steps/1/mocked_result/scene_changes_count_toward_studio_time",
+              "/steps/1/mocked_result/overtime_block_minutes",
+              "/steps/1/mocked_result/fee_per_started_block"
+            ]
+          },
+          {
+            "name": "savings",
+            "description": "State the savings from using two scenes instead of three.",
+            "expected_answer": "500 TWD",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/fee_per_started_block"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "studio_time_calculation",
+            "description": "May explain total studio time, overtime minutes, and started-block rounding for each case.",
+            "expected_answer": "Three scenes use 94 minutes and 3 overtime blocks; two scenes use 82 minutes and 2 overtime blocks.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/included_studio_minutes",
+              "/steps/1/mocked_result/scene_change_minutes",
+              "/steps/1/mocked_result/overtime_block_minutes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The overtime fees are 1,500 TWD for three scenes and 1,000 TWD for two scenes, so you would save 500 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_1step_contiguous_latest_start",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "latest_start_time",
+            "description": "State the latest time the uninterrupted revision and proofreading block can begin.",
+            "expected_answer": "15:30 on September 10",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "task_intervals",
+            "description": "May state the revision and proofreading subintervals.",
+            "expected_answer": "Revise 15:30-16:40 and proofread 16:40-17:00.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The latest start time is 3:30 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_1step_cross_timezone_overlap",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "taipei_meeting_time",
+            "description": "State the earliest 45-minute meeting interval in Taipei time.",
+            "expected_answer": "16:15 to 17:00 on September 10",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/participants"
+            ]
+          },
+          {
+            "name": "london_meeting_time",
+            "description": "State the same meeting interval in London time.",
+            "expected_answer": "09:15 to 10:00 on September 10",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/participants"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest meeting is 4:15-5:00 PM in Taipei, or 9:15-10:00 AM in London.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_1step_hypothetical_event_move",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "moved_event_conflict",
+            "description": "State whether moving the event to end at 1:30 PM would conflict with anything.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events/0",
+              "/steps/0/mocked_result/events/1"
+            ]
+          },
+          {
+            "name": "original_slot_free",
+            "description": "State whether 2:00-3:00 PM would then be completely free.",
+            "expected_answer": "Yes",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "conflict_details",
+            "description": "May explain the moved interval and overlap duration.",
+            "expected_answer": "The one-hour event moves to 12:30-13:30 and overlaps Team review from 12:30-13:00 for 30 minutes.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events/0",
+              "/steps/0/mocked_result/events/1"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The move would conflict with Team review, although 2:00-3:00 PM would then be free.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_1step_meeting_type_buffers",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_work_interval",
+            "description": "State the earliest valid uninterrupted 75-minute work interval.",
+            "expected_answer": "15:15 to 16:30 on September 9",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You can work from 3:15 to 4:30 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_1step_ordered_split_work",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_completion_time",
+            "description": "State the earliest time both ordered tasks can be completed.",
+            "expected_answer": "12:25 PM on September 9",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "work_schedule",
+            "description": "May give the preparation, waiting, and analysis intervals.",
+            "expected_answer": "Prepare 10:10-10:55, wait until 11:25, analyze 11:25-12:25.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest you can finish both tasks is 12:25 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_2step_business_day_deadline",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "latest_send_date",
+            "description": "State the latest date the final draft can be sent.",
+            "expected_answer": {
+              "kind": "date",
+              "value": "2026-09-24",
+              "year_may_be_implicit": true
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/contract_start_local",
+              "/steps/1/mocked_result/company_schedule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "working_day_count",
+            "description": "May explain the three prior working days and the skipped company-trip and weekend dates.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "September 29, September 28, and September 24 are the three prior working days."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/company_schedule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The latest date is September 24. The three prior working days are September 29, September 28, and September 24 after skipping the company trip and weekend.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_2step_first_pending_required_invite",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "meeting_name",
+            "description": "State the name of the first required meeting with no response yet.",
+            "expected_answer": "Vendor Call",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events/2/title",
+              "/steps/1/mocked_result/invitation_details/2"
+            ]
+          },
+          {
+            "name": "meeting_start_time",
+            "description": "State that meeting's start time.",
+            "expected_answer": "14:30 on September 24",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events/2/start_local"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The first such meeting is Vendor Call at 2:30 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_2step_meeting_type_buffer_rules",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_work_interval",
+            "description": "State the earliest valid uninterrupted 75-minute work interval after applying the meeting-specific buffers.",
+            "expected_answer": "15:15 to 16:30 on September 9",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/events",
+              "/steps/1/mocked_result/event_details"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest valid time is 3:15 to 4:30 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_2step_people_then_room",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_meeting_interval",
+            "description": "State the earliest qualifying 45-minute meeting interval.",
+            "expected_answer": "14:10 to 14:55 on September 10",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/shared_free_intervals/1",
+              "/steps/1/mocked_result/availability_by_interval/1"
+            ]
+          },
+          {
+            "name": "selected_room",
+            "description": "Identify the smallest qualifying room at that time.",
+            "expected_answer": "Huddle Room 2",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/availability_by_interval/1/rooms/0"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "room_constraint_verification",
+            "description": "May state that Huddle Room 2 has capacity two, video conferencing, and a whiteboard.",
+            "expected_answer": "Capacity 2 with video conferencing and a whiteboard.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/availability_by_interval/1/rooms/0"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest qualifying meeting is 2:10-2:55 PM in Huddle Room 2.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "calendar_2step_three_person_reschedule",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_rescheduled_interval",
+            "description": "State the earliest interval on September 15 that works for all original attendees and the user's time constraints.",
+            "expected_answer": "14:20 to 15:10 on September 15",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/duration_minutes",
+              "/steps/0/mocked_result/participant_names",
+              "/steps/1/mocked_result/participant_schedules"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest time that works is 2:20 to 3:10 PM on September 15.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_authorized_fill_option",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_fill_option",
+            "description": "Identify the authorized option selected under the deadline, cost, and tie-break rules.",
+            "expected_answer": "The 45-tablet option.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/options"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "selection_support",
+            "description": "May state its copay and explain the tie-break against the 60-tablet option.",
+            "expected_answer": "It costs 160 TWD and has fewer extra tablets than the equally priced 60-tablet option.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/options"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Use the 45-tablet option. It meets the pickup deadline and costs 160 TWD; the equally priced 60-tablet option has more extra tablets.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_partial_fill_cumulative_ready",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_sufficient_time",
+            "description": "State the earliest time at which at least 24 tablets are available.",
+            "expected_answer": "3:40 PM on September 12.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/supply_lots"
+            ]
+          },
+          {
+            "name": "time_before_train",
+            "description": "State how much time remains before the 5 PM train.",
+            "expected_answer": "1 hour 20 minutes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/supply_lots"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The pharmacy first has enough at 3:40 PM on September 12, leaving 1 hour and 20 minutes before the train.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_printed_morning_sequence",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "all_times_follow_labels",
+            "description": "Answer whether all three planned times follow the printed instructions.",
+            "expected_answer": "No.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/medications"
+            ]
+          },
+          {
+            "name": "invalid_medicine_and_direction",
+            "description": "Identify the invalid plan and whether it is early or late.",
+            "expected_answer": "The Oral liquid at 8:45 AM is too early.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/medications"
+            ]
+          },
+          {
+            "name": "earliest_valid_time",
+            "description": "State the earliest valid time for the invalid medicine.",
+            "expected_answer": "9:00 AM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/medications"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "valid_plans",
+            "description": "May confirm which proposed medicine times are valid.",
+            "expected_answer": "The White tablet at 7:10 AM and Green capsule at 8:00 AM are valid.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/medications"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "No. The Oral liquid at 8:45 AM is too early; its earliest valid time is 9 AM. The other two proposed times are valid.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_ready_hold_baseline",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "refill_ready",
+            "description": "Answer whether the current refill is ready.",
+            "expected_answer": "Yes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/status"
+            ]
+          },
+          {
+            "name": "pickup_location",
+            "description": "Because it is ready, state where it can be collected.",
+            "expected_answer": "Consultation Counter at Main Pharmacy.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/pickup_location"
+            ]
+          },
+          {
+            "name": "latest_pickup_time",
+            "description": "Because it is ready, state the latest local pickup time before return to stock.",
+            "expected_answer": "6 PM on September 13.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/hold_until_local"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. It is ready at the Consultation Counter at Main Pharmacy and must be collected by 6 PM on September 13.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_trip_supply_shortfall",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "lasts_through_target_dose",
+            "description": "Answer whether the 17 tablets last through the September 19 morning dose.",
+            "expected_answer": "No.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/units_per_dose",
+              "/steps/0/mocked_result/dose_times_local"
+            ]
+          },
+          {
+            "name": "shortfall_amount",
+            "description": "State how many tablets short the supply is.",
+            "expected_answer": "1 tablet short.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/units_per_dose",
+              "/steps/0/mocked_result/dose_times_local"
+            ]
+          },
+          {
+            "name": "last_available_dose",
+            "description": "State when the last available tablet will be taken.",
+            "expected_answer": "The evening dose on September 18.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/units_per_dose",
+              "/steps/0/mocked_result/dose_times_local"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "needed_tablet_calculation",
+            "description": "May state the number of tablets needed over the interval.",
+            "expected_answer": "18 tablets are needed from the evening of September 10 through the morning of September 19.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/units_per_dose",
+              "/steps/0/mocked_result/dose_times_local"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "No. The supply is one tablet short, and the last available tablet is for the evening dose on September 18.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_all_refills_common_pickup",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "single_visit_possible",
+            "description": "Answer whether all current refills can be collected in one visit on September 12.",
+            "expected_answer": "Yes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/refills",
+              "/steps/1/mocked_result/readiness"
+            ]
+          },
+          {
+            "name": "earliest_common_time",
+            "description": "State the earliest time all refills are available together.",
+            "expected_answer": "1:20 PM on September 12.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/readiness"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. All three refills are available together starting at 1:20 PM on September 12.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_liquid_prescription_then_packages",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_bottle_combination",
+            "description": "State the bottle combination selected under the price and leftover tie-break rules.",
+            "expected_answer": "One 150 mL bottle.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/required_total_volume_ml",
+              "/steps/0/mocked_result/may_combine_package_sizes",
+              "/steps/1/mocked_result/packages"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "combination_support",
+            "description": "May state the price, coverage, leftover amount, and tie-break comparison.",
+            "expected_answer": "115 TWD, covering 140 mL with 10 mL left over; this beats the equally priced 60 mL plus 100 mL combination on leftover volume.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/required_total_volume_ml",
+              "/steps/1/mocked_result/packages"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose one 150 mL bottle for 115 TWD. It covers the course and leaves less liquid than the equally priced alternative.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_prescription_then_branch_fulfillment",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_qualifying_branch",
+            "description": "Identify the in-network branch that can prepare the full quantity earliest by the deadline.",
+            "expected_answer": "East Pharmacy.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/refill_requirements",
+              "/steps/1/mocked_result/branches"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "ready_time",
+            "description": "May state when the complete refill will be ready there.",
+            "expected_answer": "4:45 PM on September 12.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/branches"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "East Pharmacy can prepare the complete refill earliest, at 4:45 PM on September 12.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_supply_then_coverage_window",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "first_covered_refill_date",
+            "description": "State the first date insurance covers the next fill.",
+            "expected_answer": {
+              "kind": "date",
+              "value": "2026-09-19",
+              "year_may_be_implicit": true
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/fill_start_date",
+              "/steps/1/mocked_result/eligible_after_percent_consumed",
+              "/steps/1/mocked_result/threshold_application",
+              "/steps/1/mocked_result/eligibility_starts"
+            ]
+          },
+          {
+            "name": "tablets_remaining_at_day_start",
+            "description": "State how many tablets remain at the start of that date.",
+            "expected_answer": {
+              "kind": "quantity",
+              "value": 12,
+              "unit": "tablets"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/quantity_dispensed",
+              "/steps/0/mocked_result/units_per_day"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "coverage_calculation",
+            "description": "May explain the 48-tablet supply, two-tablet daily use, 75 percent threshold, and next-local-day rule.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "The 75 percent threshold is reached after 18 complete days and coverage starts the next local day."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/quantity_dispensed",
+              "/steps/0/mocked_result/units_per_day",
+              "/steps/1/mocked_result/eligible_after_percent_consumed",
+              "/steps/1/mocked_result/threshold_application",
+              "/steps/1/mocked_result/eligibility_starts"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Insurance first covers the next fill on September 19, when 12 tablets remain at the start of the day.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_synchronize_covered_refills",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_common_coverage_date",
+            "description": "State the earliest date in the requested window when all refills are covered.",
+            "expected_answer": "September 23.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/refill_schedule"
+            ]
+          },
+          {
+            "name": "any_runs_out_before_date",
+            "description": "Answer whether any medication runs out before the common coverage date.",
+            "expected_answer": "Yes; at least one runs out before September 23.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/as_of_date",
+              "/steps/0/mocked_result/inventory_timing",
+              "/steps/0/mocked_result/medications",
+              "/steps/1/mocked_result/refill_schedule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "runout_identity",
+            "description": "May identify the medication that runs out before the common date.",
+            "expected_answer": "The Maintenance tablets.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/medications",
+              "/steps/1/mocked_result/refill_schedule"
+            ]
+          },
+          {
+            "name": "other_medications_status",
+            "description": "May state whether the other two medications last until the common date.",
+            "expected_answer": "The Allergy tablets and Daily capsules do not run out before September 23.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/medications",
+              "/steps/1/mocked_result/refill_schedule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "September 23 is the earliest date all three are covered. The Maintenance tablets run out before then; the other two do not.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_apparel_size_matrix_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "qualifying_color",
+            "description": "Identify the available color that supplies the entire requested size mix.",
+            "expected_answer": "Navy.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/color_variants"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "color_comparison",
+            "description": "May verify Navy's quantities and explain why Black and forest green fail.",
+            "expected_answer": "Navy supplies 2 M, 2 L, and 1 XL; Black lacks a second sellable L and forest green lacks a sellable XL.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/color_variants"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Navy is the available color that can supply the full requested size mix.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_fifo_use_by_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "finished_before_expiry",
+            "description": "State how many yogurts can be finished before they expire.",
+            "expected_answer": "6 yogurts.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/batches",
+              "/steps/0/mocked_result/usable_through_use_by_date"
+            ]
+          },
+          {
+            "name": "expire_first",
+            "description": "State how many yogurts expire before they can be eaten.",
+            "expected_answer": "2 yogurts.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/batches",
+              "/steps/0/mocked_result/usable_through_use_by_date"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "fifo_schedule",
+            "description": "May explain the day-by-day earliest-expiry-first schedule.",
+            "expected_answer": "One September 12 yogurt and one September 13 yogurt expire; the two September 15 yogurts are eaten September 14.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/batches",
+              "/steps/0/mocked_result/usable_through_use_by_date"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You can finish 6 yogurts before expiry, and 2 will expire first.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_owned_battery_runtime_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "continuous_two_hour_runtime",
+            "description": "Answer whether the owned batteries and charger can run the mower continuously for two hours.",
+            "expected_answer": "Yes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/batteries",
+              "/steps/0/mocked_result/charger"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "battery_schedule",
+            "description": "May give a valid battery-use and recharge schedule proving continuous operation.",
+            "expected_answer": "Use the 40-minute battery first, recharge it while the two 30-minute batteries cover minutes 40–100, then use the recharged battery for the final 20 minutes.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/batteries",
+              "/steps/0/mocked_result/charger"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes, the mower can run continuously for the full two hours by recharging the 40-minute battery while using the two 30-minute batteries.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_same_lot_fabric_cuts_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_dye_lot",
+            "description": "Identify the available dye lot that supplies all continuous cuts with the least leftover fabric.",
+            "expected_answer": "Lot C.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/sale_unit",
+              "/steps/0/mocked_result/dye_lots"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "cutting_comparison",
+            "description": "May explain Lot C's cuts and leftover amount and why the other lots lose.",
+            "expected_answer": "Lot C uses its 2.5, 2.5, and 1.5 m rolls and leaves 0.6 m; Lot A leaves 1.1 m and Lot B cannot supply two continuous 2.4 m panels.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/dye_lots"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose Lot C; it can supply all three continuous cuts with the least leftover fabric.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_smallest_rotated_box_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "smallest_fitting_box",
+            "description": "Identify the smallest-volume available box that fits under the stated rotation rule.",
+            "expected_answer": "The Wide box.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/boxes"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "box_selection_reasoning",
+            "description": "May show padded dimensions and explain which boxes fail or fit.",
+            "expected_answer": "The padded print is 68 by 50 by 13 cm; Wide and Square fit, and Wide has the smaller volume.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/boxes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose the Wide box; it is the smallest-volume sellable box that fits after allowed rotation.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_camera_mode_savings_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "high_quality_setup",
+            "description": "State the lowest-cost qualifying in-stock card setup for 4K high-quality mode.",
+            "expected_answer": {
+              "kind": "set",
+              "values": [
+                "Fast 256",
+                "Fast 128"
+              ],
+              "order_matters": false
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/profiles/0",
+              "/steps/1/mocked_result/inventory_by_card_type/1/cards/0",
+              "/steps/1/mocked_result/inventory_by_card_type/1/cards/1"
+            ]
+          },
+          {
+            "name": "standard_mode_savings",
+            "description": "State how much the cheapest qualifying standard-mode setup saves.",
+            "expected_answer": {
+              "kind": "money",
+              "amount": 1900,
+              "currency": "TWD"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/profiles/1",
+              "/steps/1/mocked_result/inventory_by_card_type/0/cards/0",
+              "/steps/1/mocked_result/inventory_by_card_type/1/cards/0",
+              "/steps/1/mocked_result/inventory_by_card_type/1/cards/1"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "prices_and_constraint_reasoning",
+            "description": "May state the 2,800 TWD high-quality price, the 900 TWD Standard 256 setup, and the capacity and speed reasoning.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "High quality costs 2,800 TWD; standard uses Standard 256 for 900 TWD; Fast 512 exceeds the per-card limit."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/profiles/0",
+              "/steps/0/mocked_result/profiles/1",
+              "/steps/1/mocked_result/inventory_by_card_type/0/cards/0",
+              "/steps/1/mocked_result/inventory_by_card_type/1/cards/0",
+              "/steps/1/mocked_result/inventory_by_card_type/1/cards/1",
+              "/steps/1/mocked_result/inventory_by_card_type/1/cards/2"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Use Fast 256 plus Fast 128 for 4K high quality. Switching to the cheapest qualifying standard setup saves 1,900 TWD; the high-quality setup costs 2,800 TWD and the standard setup costs 900 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_department_paper_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "august_paper_type",
+            "description": "State the copy-paper type used in August.",
+            "expected_answer": "A4, 80 gsm, recycled, uncoated paper.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/paper_type"
+            ]
+          },
+          {
+            "name": "august_quantity",
+            "description": "State the quantity used in August.",
+            "expected_answer": "8,000 sheets.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/sheets_used"
+            ]
+          },
+          {
+            "name": "lowest_cost_combination",
+            "description": "Identify the lowest-cost September purchase combination for 125 percent of August usage in the same type.",
+            "expected_answer": "Five 2,000-sheet boxes from Budget Office.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/paper_type",
+              "/steps/0/mocked_result/sheets_used",
+              "/steps/1/mocked_result/offers"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "target_and_offer_comparison",
+            "description": "May state the target, selected cost, and compare the other qualifying offers.",
+            "expected_answer": "The target is 10,000 sheets; Budget Office costs 1,350 TWD, while Alpha Paper and Central Supply each cost 1,440 TWD.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/sheets_used",
+              "/steps/1/mocked_result/offers"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "August usage was 8,000 sheets of A4 80 gsm recycled uncoated paper. Buy five 2,000-sheet boxes of that paper from Budget Office for 1,350 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_manual_filter_packs_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "replacement_interval",
+            "description": "State how often the manual says to replace the filter.",
+            "expected_answer": "Every 4 months.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/replacement_interval_months"
+            ]
+          },
+          {
+            "name": "filter_family",
+            "description": "State the filter family specified by the manual.",
+            "expected_answer": "BreatheWell PureAir P4.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/recommended_filter_family"
+            ]
+          },
+          {
+            "name": "lowest_cost_pack_combination",
+            "description": "Identify the lowest-cost in-stock pack combination covering all scheduled replacements through the inclusive end date.",
+            "expected_answer": "One triple pack.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/replacement_interval_months",
+              "/steps/1/mocked_result/packs"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "replacement_schedule_and_comparison",
+            "description": "May list the three replacement dates and compare pack costs.",
+            "expected_answer": "Replacements are January 7, May 7, and September 7, 2027; the triple costs 80 TWD, three singles cost 90 TWD, and a double plus single costs 82 TWD.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/replacement_interval_months",
+              "/steps/1/mocked_result/packs"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The BreatheWell PureAir P4 filter should be replaced every four months. Buy one triple pack for 80 TWD to cover all three replacements through September 7, 2027.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_shelf_bom_stock_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_nearby_branch",
+            "description": "Identify the within-five-kilometer branch that builds the most complete shelves today.",
+            "expected_answer": "Breeze branch.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/components",
+              "/steps/1/mocked_result/branch_distances",
+              "/steps/1/mocked_result/stock_by_component"
+            ]
+          },
+          {
+            "name": "complete_shelves_today",
+            "description": "State how many complete shelves can be built there today.",
+            "expected_answer": "2 complete shelves.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/components",
+              "/steps/1/mocked_result/stock_by_component"
+            ]
+          },
+          {
+            "name": "remaining_need_for_three",
+            "description": "State what is still needed to build all three shelves.",
+            "expected_answer": "1 additional post.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/components",
+              "/steps/1/mocked_result/stock_by_component"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "branch_selection_support",
+            "description": "May state Breeze's distance and explain its board/brace sufficiency and Hill's exclusion.",
+            "expected_answer": "Breeze is 3.2 km away and has all 12 boards and 6 braces; Hill is beyond 5 km.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/branch_distances",
+              "/steps/1/mocked_result/stock_by_component"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose Breeze branch. You can build 2 complete shelves today and need 1 more post to complete all three.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_sofa_package_fit_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "cheapest_fitting_sofa",
+            "description": "Identify the cheapest in-stock three-seat sofa under 1,000 USD for which every package fits.",
+            "expected_answer": "Cedar three-seat sofa.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/products",
+              "/steps/1/mocked_result/packaging_by_product"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "price_and_comparison",
+            "description": "May state Cedar's price and explain why Lane, Harbor, and Summit are not selected.",
+            "expected_answer": "Cedar costs 900 USD; Lane's 215 cm carton does not fit, Harbor costs 950 USD, and Summit is over budget.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/products",
+              "/steps/1/mocked_result/packaging_by_product"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose the Cedar three-seat sofa; it is the cheapest qualifying sofa whose packages all fit.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_early_checkin_wait_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "wait_duration",
+            "description": "State how long the user must wait before checking in.",
+            "expected_answer": "5 minutes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_time_local",
+              "/steps/0/mocked_result/checkin_opens_minutes_before"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "checkin_open_time",
+            "description": "May state the check-in opening time.",
+            "expected_answer": "6:45 PM.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_time_local",
+              "/steps/0/mocked_result/checkin_opens_minutes_before"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You need to wait 5 minutes; check-in opens at 6:45 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_estimated_spend_parking_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "cheapest_parking_lot",
+            "description": "Identify the cheapest partner lot after dining validation.",
+            "expected_answer": "River Lot.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/parking_options"
+            ]
+          },
+          {
+            "name": "parking_cost",
+            "description": "State the expected cost at the cheapest lot.",
+            "expected_answer": "70 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/currency",
+              "/steps/0/mocked_result/rates_are_prorated_by_minute",
+              "/steps/0/mocked_result/parking_options"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "lot_comparison",
+            "description": "May show the validated costs of the other lots and River Lot's calculation.",
+            "expected_answer": "Harbor Garage is 80 TWD, Maple Lot is 100 TWD, and River Lot is 110 TWD before a 40 TWD discount.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/parking_options"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "River Lot is cheapest at 70 TWD after dining validation.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_partial_party_arrival_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "reservation_held",
+            "description": "Answer whether the restaurant will still hold the reservation under the stated arrivals.",
+            "expected_answer": "No.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_time_local",
+              "/steps/0/mocked_result/minimum_guests_present",
+              "/steps/0/mocked_result/reservation_hold_minutes",
+              "/steps/0/mocked_result/arrival_at_hold_deadline_is_accepted"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "release_reason",
+            "description": "May explain the hold deadline and missing fifth guest.",
+            "expected_answer": "It is released after 7:15 PM because only four of the required five guests are present by then; the fifth arrives at 7:18 PM.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/minimum_guests_present",
+              "/steps/0/mocked_result/reservation_hold_minutes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "No. The reservation is released after 7:15 PM because only four of the required five guests are present by the hold deadline.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_takeout_common_pickup_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_common_pickup",
+            "description": "State the earliest time all items can be collected together within their hold windows.",
+            "expected_answer": "6:30 PM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/items"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "overlap_explanation",
+            "description": "May explain the overlap among all pickup windows.",
+            "expected_answer": "All three windows overlap from 6:30 PM through 6:40 PM.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/items"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest time to collect everything together is 6:30 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_walkin_queue_progression_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_seating_time",
+            "description": "State the earliest time the party of four can be seated.",
+            "expected_answer": "7:16 PM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/snapshot_at_local",
+              "/steps/0/mocked_result/parties_ahead",
+              "/steps/0/mocked_result/tables",
+              "/steps/0/mocked_result/seating_rules"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "queue_reasoning",
+            "description": "May explain the table turnovers and size-based skip that yield 7:16 PM.",
+            "expected_answer": "The two-person party takes the two-seat table at 7:15; at 7:16 the five-person party cannot use the four-seat table, so the party of four may take it.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/parties_ahead",
+              "/steps/0/mocked_result/tables",
+              "/steps/0/mocked_result/seating_rules"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest seating time is 7:16 PM. The size-based skip rule lets your party use the four-seat table then.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_2step_dining_plan_parking_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "parking_cost",
+            "description": "State the parking cost under the attached dining plan.",
+            "expected_answer": "60 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/billing_block_minutes",
+              "/steps/1/mocked_result/fee_per_started_block",
+              "/steps/1/mocked_result/currency",
+              "/steps/1/mocked_result/minimum_spend_for_validation",
+              "/steps/1/mocked_result/free_parking_minutes",
+              "/steps/1/mocked_result/validation_applies_before_rounding"
+            ]
+          },
+          {
+            "name": "plan_savings",
+            "description": "State how much the dining plan saves.",
+            "expected_answer": "90 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/billing_block_minutes",
+              "/steps/1/mocked_result/fee_per_started_block",
+              "/steps/1/mocked_result/minimum_spend_for_validation",
+              "/steps/1/mocked_result/free_parking_minutes",
+              "/steps/1/mocked_result/validation_applies_before_rounding"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "parking_calculation",
+            "description": "May explain the normal cost and validation calculation.",
+            "expected_answer": "The normal 2.5-hour cost is 150 TWD; 90 free minutes leave 60 charged minutes.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/billing_block_minutes",
+              "/steps/1/mocked_result/fee_per_started_block",
+              "/steps/1/mocked_result/free_parking_minutes",
+              "/steps/1/mocked_result/validation_applies_before_rounding"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Parking will cost 60 TWD, and the dining plan saves 90 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_2step_party_increase_table_batch_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "smallest_qualifying_table",
+            "description": "State the smallest table type that satisfies the request.",
+            "expected_answer": {
+              "kind": "entity",
+              "value": "standard six-seat table"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/table_options/0"
+            ]
+          },
+          {
+            "name": "seating_time",
+            "description": "State when the party can be seated at that table.",
+            "expected_answer": {
+              "kind": "time",
+              "value": "7:10 PM"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/table_options/0"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "selection_reasoning",
+            "description": "May explain that the table seats all five diners, is the smallest qualifying type, and is available before 7:15 PM.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "The six-seat table holds all five diners and is available by the deadline; the eight-seat table is not the smallest."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/table_options"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Switch to the standard six-seat table, which can seat the party at 7:10 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_2step_prepaid_hold_deadline_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "reservation_still_held",
+            "description": "Answer whether the reservation is still held at a 7:14 PM arrival.",
+            "expected_answer": "Yes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_start_local",
+              "/steps/1/mocked_result/hold_minutes_after_start",
+              "/steps/1/mocked_result/arrival_at_deadline_is_accepted"
+            ]
+          },
+          {
+            "name": "minutes_before_release",
+            "description": "State how many minutes remain before release.",
+            "expected_answer": "1 minute.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_start_local",
+              "/steps/1/mocked_result/hold_minutes_after_start"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "release_time",
+            "description": "May state the release deadline.",
+            "expected_answer": "7:15 PM.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_start_local",
+              "/steps/1/mocked_result/hold_minutes_after_start"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. Arriving at 7:14 PM leaves 1 minute before the reservation is released.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_2step_secretary_service_timeline_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "finishes_by_deadline",
+            "description": "Answer whether Emma will finish by 8:40 PM.",
+            "expected_answer": "Yes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_start_local",
+              "/steps/1/mocked_result/stages",
+              "/steps/1/mocked_result/stages_are_sequential"
+            ]
+          },
+          {
+            "name": "time_remaining",
+            "description": "State how much time remains before 8:40 PM.",
+            "expected_answer": "10 minutes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_start_local",
+              "/steps/1/mocked_result/stages",
+              "/steps/1/mocked_result/stages_are_sequential"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "finish_time_and_duration",
+            "description": "May state the calculated finish time and total service duration.",
+            "expected_answer": "The stages total 120 minutes and finish at 8:30 PM.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/reservation_start_local",
+              "/steps/1/mocked_result/stages",
+              "/steps/1/mocked_result/stages_are_sequential"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. Emma will finish in time, with 10 minutes left before 8:40 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_2step_walkin_menu_cutoff_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "selected_menu",
+            "description": "Identify the available fixed menu with the most courses that can still start at the quoted seating time.",
+            "expected_answer": "The five-course menu.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/quoted_seating_local",
+              "/steps/1/mocked_result/menus"
+            ]
+          },
+          {
+            "name": "seating_time",
+            "description": "State when the party would be seated.",
+            "expected_answer": "8:05 PM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/quoted_seating_local"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "menu_rejection_reasoning",
+            "description": "May explain why the seven- and six-course menus are not selected.",
+            "expected_answer": "8:05 PM is too late for the seven-course menu, and the six-course menu is unavailable.",
+            "requirement_basis": "supporting_explanation_not_required",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/quoted_seating_local",
+              "/steps/1/mocked_result/menus"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You can have the five-course menu, and the quoted seating time is 8:05 PM.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_1step_bundle_return_repricing_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "bundle_return_refund",
+            "description": "State the refund after repricing the retained bundle items.",
+            "expected_answer": "400 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/bundle_items",
+              "/steps/0/mocked_result/original_amount_paid",
+              "/steps/0/mocked_result/promotion_rule",
+              "/steps/0/mocked_result/partial_return_rule",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "retained_items_repricing",
+            "description": "May explain how the retained scarf and hat are repriced.",
+            "expected_answer": "The scarf and hat no longer qualify for the promotion and are repriced to 1,200 TWD total.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/bundle_items",
+              "/steps/0/mocked_result/promotion_rule",
+              "/steps/0/mocked_result/partial_return_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The retained scarf and hat no longer qualify for the three-item promotion, so they are repriced at 700 plus 500, or 1,200 TWD. Since the original amount paid was 1,600 TWD, the refund is 400 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_1step_mixed_tender_refund_routing_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "stored_balance_refund",
+            "description": "State how much is returned to stored balance.",
+            "expected_answer": "500 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/original_tenders",
+              "/steps/0/mocked_result/refund_routing_rule",
+              "/steps/0/mocked_result/currency"
+            ]
+          },
+          {
+            "name": "credit_card_refund",
+            "description": "State how much is returned to the credit card.",
+            "expected_answer": "1,500 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/original_tenders",
+              "/steps/0/mocked_result/refund_routing_rule",
+              "/steps/0/mocked_result/currency"
+            ]
+          },
+          {
+            "name": "unreturned_refund_amount",
+            "description": "State whether any refund is lost and the amount.",
+            "expected_answer": "Yes; 150 TWD is not returned.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/returned_item_amount",
+              "/steps/0/mocked_result/return_shipping_deduction",
+              "/steps/0/mocked_result/original_tenders",
+              "/steps/0/mocked_result/refund_routing_rule",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "refund_routing_explanation",
+            "description": "May explain the net refund basis and why the remainder is not returned.",
+            "expected_answer": "The net basis is 2,150 TWD, and the remainder is lost because promotional store credit is non-restorable.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/returned_item_amount",
+              "/steps/0/mocked_result/return_shipping_deduction",
+              "/steps/0/mocked_result/original_tenders",
+              "/steps/0/mocked_result/refund_routing_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "After the 150 TWD return-shipping deduction, the net refund basis is 2,150 TWD. Restore 500 TWD to stored balance and 1,500 TWD to the credit card, reaching both original-contribution limits. The remaining 150 TWD cannot be returned because the promotional store credit is non-restorable.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_1step_multi_item_cancellation_stages_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "cancelled_items",
+            "description": "Identify the items that will be cancelled.",
+            "expected_answer": "The desk lamp and rug will be cancelled.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/order_items",
+              "/steps/0/mocked_result/cancellation_rules"
+            ]
+          },
+          {
+            "name": "item_still_shipping",
+            "description": "Identify the item that will still ship.",
+            "expected_answer": "The vase will still ship.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/order_items",
+              "/steps/0/mocked_result/cancellation_rules"
+            ]
+          },
+          {
+            "name": "cancellation_refund_total",
+            "description": "State the total refund from the cancellations.",
+            "expected_answer": "2,900 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/order_items",
+              "/steps/0/mocked_result/cancellation_rules",
+              "/steps/0/mocked_result/refund_formula",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "cancellation_stage_explanation",
+            "description": "May explain the rug fee and why the vase cannot be cancelled.",
+            "expected_answer": "The rug has a 100 TWD cancellation fee, and the vase was handed to the carrier.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/order_items",
+              "/steps/0/mocked_result/cancellation_rules"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The desk lamp and rug can be cancelled, while the vase has already been handed to the carrier and will still ship. After the rug's 100 TWD cancellation fee, the total refund is 2,900 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_1step_price_adjustment_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "better_request_day",
+            "description": "Recommend whether to request the adjustment today or tomorrow.",
+            "expected_answer": "Request it today.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_date",
+              "/steps/0/mocked_result/following_date",
+              "/steps/0/mocked_result/order_lines",
+              "/steps/0/mocked_result/policy"
+            ]
+          },
+          {
+            "name": "better_option_difference",
+            "description": "State how much more the better request day yields.",
+            "expected_answer": "50 TWD more.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/order_lines",
+              "/steps/0/mocked_result/policy",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "day_totals",
+            "description": "May explain the totals available on each request day.",
+            "expected_answer": "Today totals 350 TWD and tomorrow totals 300 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/order_lines",
+              "/steps/0/mocked_result/policy",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Requesting today yields 350 TWD for the headphones and zero for the phone cases, totaling 350 TWD. Waiting until tomorrow makes the headphones one day late, while the two phone cases yield 300 TWD, totaling 300 TWD. Because the order permits only one request, submit today; it pays 50 TWD more.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_1step_split_shipment_tiered_delay_refund_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "qualifying_packages",
+            "description": "Identify the packages that qualify for a shipping refund.",
+            "expected_answer": "The coffee grinder package and kettle package qualify.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/packages",
+              "/steps/0/mocked_result/compensation_tiers"
+            ]
+          },
+          {
+            "name": "total_shipping_refund",
+            "description": "State the final total shipping refund.",
+            "expected_answer": "140 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/packages",
+              "/steps/0/mocked_result/compensation_tiers",
+              "/steps/0/mocked_result/order_level_cap",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "refund_cap_calculation",
+            "description": "May explain the per-package amounts and order-level cap.",
+            "expected_answer": "The tier amounts are 20 TWD and 140 TWD, totaling 160 TWD before the 140 TWD order cap.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/packages",
+              "/steps/0/mocked_result/compensation_tiers",
+              "/steps/0/mocked_result/order_level_cap"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The coffee grinder and kettle packages qualify. Their tier refunds are 20 TWD and 140 TWD, for 160 TWD before the order cap. Total allocated shipping fees are 280 TWD, so the 50% cap is 140 TWD. The final shipping refund is 140 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_2step_exchange_true_cost_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "best_store",
+            "description": "State which store has the requested variant and leaves the user paying the least.",
+            "expected_answer": {
+              "kind": "entity",
+              "value": "Nangang Station Store"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/options/1"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "cost_and_comparison_details",
+            "description": "May state the 250 TWD additional payment, 6:30 PM readiness, and why the Xinyi alternatives are worse or unavailable.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "Nangang requires 250 TWD and is ready at 6:30 PM; Xinyi A13 effectively costs 500 TWD after clawback; Xinyi Songgao has no stock."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/original_net_paid_twd",
+              "/steps/0/mocked_result/original_order_discount",
+              "/steps/0/mocked_result/cost_rules",
+              "/steps/1/mocked_result/options"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose Nangang Station Store. It is ready at 6:30 PM and requires 250 TWD; Xinyi A13 effectively costs 500 TWD after the discount clawback.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_2step_market_average_protection_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "price_protection_eligibility",
+            "description": "State whether the purchase qualifies for market-price protection.",
+            "expected_answer": "Yes, it qualifies.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/purchase_date",
+              "/steps/0/mocked_result/checked_at",
+              "/steps/0/mocked_result/matched_product",
+              "/steps/0/mocked_result/nearby_verified_prices",
+              "/steps/1/mocked_result/comparison_radius_km",
+              "/steps/1/mocked_result/claim_window_calendar_days"
+            ]
+          },
+          {
+            "name": "price_protection_amount",
+            "description": "State the market-price-protection reimbursement amount.",
+            "expected_answer": "1,120 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/original_net_paid_twd",
+              "/steps/0/mocked_result/nearby_verified_prices",
+              "/steps/1/mocked_result/reimbursement_percent_of_price_difference",
+              "/steps/1/mocked_result/maximum_reimbursement_twd",
+              "/steps/1/mocked_result/calculation_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "eligible_comparison_explanation",
+            "description": "May explain the claim-window, distance, comparison-price, and cap calculations.",
+            "expected_answer": "The check is within 10 days; the lowest eligible nearby price is 31,500 TWD; 80% of the 1,400 TWD difference is 1,120 TWD, below the cap.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/purchase_date",
+              "/steps/0/mocked_result/checked_at",
+              "/steps/0/mocked_result/original_net_paid_twd",
+              "/steps/0/mocked_result/nearby_verified_prices",
+              "/steps/1/mocked_result/comparison_radius_km",
+              "/steps/1/mocked_result/claim_window_calendar_days",
+              "/steps/1/mocked_result/reimbursement_percent_of_price_difference",
+              "/steps/1/mocked_result/maximum_reimbursement_twd",
+              "/steps/1/mocked_result/calculation_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. The check was made seven calendar days after purchase, within Galaxy Mall Xinyi's 10-day claim window. QuickBuy Xinyi at 1.8 km and Orange Shop Songren at 4.6 km are within the 5 km radius; Budget Tech Nangang is cheaper but is 7.2 km away and does not qualify. The lowest eligible price is 31,500 TWD, so the price difference is 1,400 TWD and 80% is 1,120 TWD, below the 2,000 TWD cap. The claim is 1,120 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_2step_refund_transfer_schedule_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "minimum_transfer_days",
+            "description": "State the fewest number of transfer days needed.",
+            "expected_answer": "Three transfer days.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/refund_components",
+              "/steps/1/mocked_result/daily_transfer_limit_twd"
+            ]
+          },
+          {
+            "name": "all_funds_arrival_date",
+            "description": "State when all transferred money can arrive at Harbor Bank.",
+            "expected_answer": "September 11, 2026.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/funds_available_at",
+              "/steps/0/mocked_result/refund_components",
+              "/steps/1/mocked_result/daily_transfer_limit_twd",
+              "/steps/1/mocked_result/same_day_instruction_cutoff_local",
+              "/steps/1/mocked_result/transfer_instruction_days",
+              "/steps/1/mocked_result/arrival_delay_business_days",
+              "/steps/1/mocked_result/non_business_dates"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "transfer_schedule_calculation",
+            "description": "May give the refund total and daily transfer schedule.",
+            "expected_answer": "The 55,000 TWD refund is transferred as 20,000 TWD on September 8, 20,000 TWD on September 9, and 15,000 TWD on September 10.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/refund_components",
+              "/steps/1/mocked_result/daily_transfer_limit_twd"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The net wallet refund is 55,000 TWD. With a 20,000 TWD daily limit, it takes three transfer days: 20,000 on September 8, 20,000 on September 9, and 15,000 on September 10. Each arrives one business day later, so all of the money can arrive by September 11.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_2step_return_membership_consequence_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "return_cash_refund",
+            "description": "State how much money is refunded for the suitcase return.",
+            "expected_answer": "4,200 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/refund_components",
+              "/steps/0/mocked_result/currency"
+            ]
+          },
+          {
+            "name": "membership_after_return",
+            "description": "State how the return affects Gold membership.",
+            "expected_answer": "The membership drops from Gold to Silver.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_year_eligible_spend_twd",
+              "/steps/0/mocked_result/membership_spend_reversal_twd",
+              "/steps/1/mocked_result/tier_rules",
+              "/steps/1/mocked_result/projected_tier"
+            ]
+          },
+          {
+            "name": "birthday_voucher_consequence",
+            "description": "State the other account consequence of the return.",
+            "expected_answer": "The unused 500 TWD Gold birthday voucher is revoked.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/affected_rewards",
+              "/steps/1/mocked_result/reward_actions"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "voucher_not_cash_deduction",
+            "description": "May clarify that voucher revocation is not another cash deduction from the refund.",
+            "expected_answer": "The revoked voucher is not deducted again from the 4,200 TWD cash refund.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/affected_rewards",
+              "/steps/1/mocked_result/reward_actions"
+            ]
+          },
+          {
+            "name": "membership_spend_calculation",
+            "description": "May explain the eligible-spend change underlying the tier downgrade.",
+            "expected_answer": "Eligible annual spend falls from 52,300 TWD to 47,500 TWD, below the 50,000 TWD Gold threshold.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_year_eligible_spend_twd",
+              "/steps/0/mocked_result/membership_spend_reversal_twd",
+              "/steps/1/mocked_result/tier_rules"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The merchandise refund is 4,200 TWD after the 600 TWD discount clawback. Eligible annual spend falls from 52,300 to 47,500 TWD, below the 50,000 TWD Gold threshold, so membership becomes Silver. The model must also discover and disclose that the unused 500 TWD Gold birthday voucher is revoked, while making clear that it is not deducted again from the 4,200 TWD cash refund.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "retail_order_2step_return_shipping_tradeoff_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "cheapest_qualifying_shipping_option",
+            "description": "Identify the cheapest tracked shipping option that reaches the return center by the deadline.",
+            "expected_answer": "Standard Courier.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/must_arrive_by",
+              "/steps/0/mocked_result/package_requirements",
+              "/steps/0/mocked_result/shipping_credit",
+              "/steps/1/mocked_result/quotes"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "net_shipping_cost",
+            "description": "State the cost of the selected option after the store credit.",
+            "expected_answer": "140 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/shipping_credit",
+              "/steps/1/mocked_result/currency",
+              "/steps/1/mocked_result/quotes"
+            ]
+          },
+          {
+            "name": "shipping_alternative_comparison",
+            "description": "May explain why the other shipping options are rejected or cost more.",
+            "expected_answer": "Economy misses the deadline, the convenience-store option rejects the package, and Express costs 230 TWD after credit.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/must_arrive_by",
+              "/steps/0/mocked_result/package_requirements",
+              "/steps/0/mocked_result/shipping_credit",
+              "/steps/1/mocked_result/quotes"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Use Standard Courier. Economy Courier arrives one day after the September 13 deadline, and the convenience-store option rejects the package. Standard and Express both qualify; after the 100 TWD credit they cost 140 TWD and 230 TWD respectively, so Standard is cheapest at 140 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_addon_cancellation_savings_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "next_bill_decrease",
+            "description": "State how much the next monthly bill decreases after cancelling the video add-on.",
+            "expected_answer": "40 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/recurring_components",
+              "/steps/0/mocked_result/discount_rules",
+              "/steps/0/mocked_result/cancellation_timing",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "before_after_bill_totals",
+            "description": "May state and explain the monthly totals before and after cancellation.",
+            "expected_answer": "The current bill is 410 TWD and the post-cancellation bill is 370 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/recurring_components",
+              "/steps/0/mocked_result/discount_rules"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The current monthly bill is 410 TWD: 390 plus 120 minus the 100 TWD bundle discount. After cancellation it becomes 370 TWD: 390 minus the 20 TWD core-only loyalty discount. The next bill therefore decreases by only 40 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_member_day_billing_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "pretax_subscription_subtotal",
+            "description": "State the September 2026 subscription subtotal before tax.",
+            "expected_answer": "1,220 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/billing_period",
+              "/steps/0/mocked_result/base_monthly_fee_twd",
+              "/steps/0/mocked_result/included_active_members",
+              "/steps/0/mocked_result/extra_member_monthly_fee_twd",
+              "/steps/0/mocked_result/active_member_intervals",
+              "/steps/0/mocked_result/proration_rule",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "member_day_calculation",
+            "description": "May explain the extra-member-day calculation.",
+            "expected_answer": "There are 32 extra member-days at 10 TWD each, adding 320 TWD to the 900 TWD base fee.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/billing_period",
+              "/steps/0/mocked_result/base_monthly_fee_twd",
+              "/steps/0/mocked_result/included_active_members",
+              "/steps/0/mocked_result/extra_member_monthly_fee_twd",
+              "/steps/0/mocked_result/active_member_intervals"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "There are 22 extra member-days from September 10 through 20 and 10 extra member-days from September 21 through 30, for 32 total. At 300 divided by 30, each extra member-day costs 10 TWD, so the extra charge is 320 TWD. Adding the 900 TWD base fee gives a pre-tax subtotal of 1,220 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_payment_ledger_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "duplicate_effective_charge",
+            "description": "State whether the renewal was effectively paid more than once after settlement.",
+            "expected_answer": "No; there is only one effective charge.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/ledger_events",
+              "/steps/0/mocked_result/ledger_semantics"
+            ]
+          },
+          {
+            "name": "net_settled_charge",
+            "description": "State the net amount that remained charged.",
+            "expected_answer": "390 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/ledger_events",
+              "/steps/0/mocked_result/ledger_semantics",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "ledger_settlement_explanation",
+            "description": "May explain how the authorization, captures, and reversal produce the net charge.",
+            "expected_answer": "The expired authorization contributes zero, and the settled 390 TWD reversal neutralizes one of the two settled 390 TWD captures.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/ledger_events",
+              "/steps/0/mocked_result/ledger_semantics"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "No, there is only one effective charge. The expired 390 TWD authorization contributes zero. The two settled captures add 780 TWD, but the settled 390 TWD reversal neutralizes the duplicate capture, leaving a net settled amount of 390 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_storage_downgrade_006",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "storage_to_clear",
+            "description": "State how much storage must be manually cleared to fit the Basic limit.",
+            "expected_answer": "14 GB.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/target_plan",
+              "/steps/0/mocked_result/current_storage",
+              "/steps/0/mocked_result/quota_counting_rule",
+              "/steps/0/mocked_result/scheduled_system_actions"
+            ]
+          },
+          {
+            "name": "upload_block_time",
+            "description": "State when uploads will be blocked if the user does nothing.",
+            "expected_answer": "12:00 AM on October 8, 2026, local time.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/timezone",
+              "/steps/0/mocked_result/downgrade_effective_at",
+              "/steps/0/mocked_result/over_quota_policy"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "post_purge_usage_and_grace",
+            "description": "May explain post-purge usage and the grace-period dates.",
+            "expected_answer": "The purge leaves 214 GB, and the seven full grace days run from October 1 through October 7.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_storage",
+              "/steps/0/mocked_result/scheduled_system_actions",
+              "/steps/0/mocked_result/over_quota_policy"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The scheduled trash purge removes 14 GB before the downgrade, leaving 214 GB: 186 GB of active files plus 28 GB of version history. To meet Basic's 200 GB quota, you must manually clear another 14 GB. If you do nothing, the seven full grace days are October 1 through October 7, so uploads are blocked at 12:00 AM on October 8, 2026.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_tiered_overage_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "data_export_overage_fee",
+            "description": "State the August 2026 data-export overage fee after included usage and waiver.",
+            "expected_answer": "130 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/usage_amount",
+              "/steps/0/mocked_result/included_amount",
+              "/steps/0/mocked_result/courtesy_waiver_amount",
+              "/steps/0/mocked_result/application_order",
+              "/steps/0/mocked_result/overage_tiers",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "overage_calculation",
+            "description": "May explain the billable quantity and progressive tier calculation.",
+            "expected_answer": "The billable overage is 80 GB; the first 50 GB costs 100 TWD and the remaining 30 GB costs 30 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/usage_amount",
+              "/steps/0/mocked_result/included_amount",
+              "/steps/0/mocked_result/courtesy_waiver_amount",
+              "/steps/0/mocked_result/overage_tiers"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The billable overage is 80 GB: 188 minus the 8 GB waiver and 100 GB included allowance. The first 50 GB costs 100 TWD and the remaining 30 GB costs 30 TWD, so the total overage fee is 130 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_annual_cancellation_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "annual_cancellation_refund",
+            "description": "State the refund if the annual subscription ends on October 1.",
+            "expected_answer": "600 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/term_start",
+              "/steps/0/mocked_result/prepaid_amount_twd",
+              "/steps/0/mocked_result/currency",
+              "/steps/1/mocked_result/requested_end_date_semantics",
+              "/steps/1/mocked_result/full_month_definition",
+              "/steps/1/mocked_result/clawback_threshold_completed_months",
+              "/steps/1/mocked_result/before_threshold_rule",
+              "/steps/1/mocked_result/standard_monthly_rate_twd"
+            ]
+          },
+          {
+            "name": "effective_service_cost",
+            "description": "State the effective cost of service through October 1.",
+            "expected_answer": "9,000 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/term_start",
+              "/steps/1/mocked_result/requested_end_date_semantics",
+              "/steps/1/mocked_result/full_month_definition",
+              "/steps/1/mocked_result/clawback_threshold_completed_months",
+              "/steps/1/mocked_result/before_threshold_rule",
+              "/steps/1/mocked_result/standard_monthly_rate_twd"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "annual_cancellation_calculation",
+            "description": "May explain the completed-month count and discount clawback.",
+            "expected_answer": "Nine full service months are repriced at 1,000 TWD each because cancellation is before the ten-month threshold.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/term_start",
+              "/steps/1/mocked_result/requested_end_date_semantics",
+              "/steps/1/mocked_result/full_month_definition",
+              "/steps/1/mocked_result/clawback_threshold_completed_months",
+              "/steps/1/mocked_result/before_threshold_rule",
+              "/steps/1/mocked_result/standard_monthly_rate_twd"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "October 1 is the ninth monthly anniversary after the January 1 start, so 9 complete service months have elapsed. Because that is below the 10-month threshold, the Annual Saver discount is clawed back and those months are repriced at 1,000 TWD each. The service through October 1 therefore effectively costs 9,000 TWD, and the refund is 9,600 - 9,000 = 600 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_partial_payment_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "cleared_overdue_charges",
+            "description": "Identify which overdue charges are fully cleared by the payment.",
+            "expected_answer": "The August late fee and August subscription principal are fully cleared.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/unpaid_charges",
+              "/steps/1/mocked_result/allocation_order"
+            ]
+          },
+          {
+            "name": "remaining_balance",
+            "description": "State the balance remaining after the payment.",
+            "expected_answer": "500 TWD remains.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/unpaid_charges",
+              "/steps/1/mocked_result/allocation_order",
+              "/steps/0/mocked_result/currency"
+            ]
+          },
+          {
+            "name": "upload_restoration",
+            "description": "State whether uploads are restored.",
+            "expected_answer": "Yes, uploads are restored.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/matched_payment_profile",
+              "/steps/0/mocked_result/unpaid_charges",
+              "/steps/1/mocked_result/upload_restoration_rule",
+              "/steps/1/mocked_result/newer_month_balance_may_remain"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "payment_allocation_detail",
+            "description": "May explain how the payment is allocated across charges.",
+            "expected_answer": "The payment clears the 100 TWD August late fee and 700 TWD August principal, then applies 200 TWD to September principal.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/unpaid_charges",
+              "/steps/1/mocked_result/allocation_order"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The 1,000 TWD payment first clears the August late fee of 100 TWD, then the August subscription principal of 700 TWD, and applies the remaining 200 TWD to September principal. The remaining balance is 500 TWD. Because every August charge, the oldest outstanding month, is fully cleared and this bank profile posts today's payment immediately, uploads are restored even though 500 TWD from September remains unpaid.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_secretary_upgrade_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "immediate_upgrade_charge",
+            "description": "State the amount charged immediately for the September 16 switch to Team.",
+            "expected_answer": "120 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_net_recurring_price_twd",
+              "/steps/0/mocked_result/cycle_start",
+              "/steps/0/mocked_result/cycle_end_exclusive",
+              "/steps/0/mocked_result/cycle_day_count",
+              "/steps/1/mocked_result/after_plan_list_price_twd",
+              "/steps/1/mocked_result/transferable_offer_names",
+              "/steps/1/mocked_result/offer_application_rule",
+              "/steps/1/mocked_result/old_plan_credit_rule",
+              "/steps/1/mocked_result/new_plan_charge_rule",
+              "/steps/1/mocked_result/service_day_rule",
+              "/steps/1/mocked_result/rounding_rule"
+            ]
+          },
+          {
+            "name": "future_full_month_cost",
+            "description": "State the full monthly Team cost afterward.",
+            "expected_answer": "720 TWD per month.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/active_offer",
+              "/steps/1/mocked_result/after_plan_list_price_twd",
+              "/steps/1/mocked_result/transferable_offer_names",
+              "/steps/1/mocked_result/offer_application_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "upgrade_proration_calculation",
+            "description": "May explain the transferred offer and remaining-cycle proration.",
+            "expected_answer": "The Team price is 720 TWD after the 20% offer; the prorated new charge is 360 TWD and the old-plan credit is 240 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/active_offer",
+              "/steps/0/mocked_result/current_net_recurring_price_twd",
+              "/steps/0/mocked_result/cycle_start",
+              "/steps/0/mocked_result/cycle_end_exclusive",
+              "/steps/0/mocked_result/cycle_day_count",
+              "/steps/1/mocked_result/after_plan_list_price_twd",
+              "/steps/1/mocked_result/transferable_offer_names",
+              "/steps/1/mocked_result/offer_application_rule",
+              "/steps/1/mocked_result/old_plan_credit_rule",
+              "/steps/1/mocked_result/new_plan_charge_rule",
+              "/steps/1/mocked_result/service_day_rule",
+              "/steps/1/mocked_result/rounding_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Daniel's Founding 20% offer transfers to Team, making the full monthly price 900 × 80% = 720 TWD. September 16 through September 30 is 15 of the 30 cycle days. The new-plan charge is 720 × 15/30 = 360 TWD, while the unused Solo Plus credit is 480 × 15/30 = 240 TWD. The immediate charge is therefore 120 TWD, and a later full month costs 720 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_sla_credit_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "service_credit_amount",
+            "description": "State the service credit amount that should come off the next bill.",
+            "expected_answer": {
+              "kind": "money",
+              "amount": 240,
+              "currency": "TWD"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/eligible_monthly_charge_twd",
+              "/steps/0/mocked_result/incidents",
+              "/steps/1/mocked_result/credit_brackets"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "credit_calculation",
+            "description": "May explain the qualifying incidents, 130-minute union, 20 percent bracket, and 1,200 TWD base.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "Two unplanned full outages form a 130-minute union, triggering 20 percent of the 1,200 TWD eligible charge."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/eligible_monthly_charge_twd",
+              "/steps/0/mocked_result/incidents",
+              "/steps/1/mocked_result/eligible_incident_types",
+              "/steps/1/mocked_result/aggregation_rule",
+              "/steps/1/mocked_result/credit_brackets"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The next bill should receive a 240 TWD service credit. The qualifying outage union is 130 minutes, placing it in the 20 percent bracket on the 1,200 TWD eligible charge.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_upgrade_selection_006",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "cheapest_sufficient_upgrade",
+            "description": "Identify the cheapest available upgrade that supports all current usage.",
+            "expected_answer": "Business.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_usage",
+              "/steps/0/mocked_result/active_offer",
+              "/steps/0/mocked_result/offer_discount_percent",
+              "/steps/1/mocked_result/options",
+              "/steps/1/mocked_result/offer_rule"
+            ]
+          },
+          {
+            "name": "monthly_cost_increase",
+            "description": "State how much more the selected plan costs per month than the current subscription.",
+            "expected_answer": "336 TWD more per month.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_net_price_twd",
+              "/steps/0/mocked_result/offer_discount_percent",
+              "/steps/1/mocked_result/options",
+              "/steps/1/mocked_result/offer_rule",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "upgrade_price_and_alternative_analysis",
+            "description": "May state Business's net monthly price and explain why the alternatives lose.",
+            "expected_answer": "Business costs 720 TWD monthly; Creator Plus cannot support six members, and Studio costs 800 TWD because the offer does not carry over.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_usage",
+              "/steps/0/mocked_result/active_offer",
+              "/steps/0/mocked_result/offer_discount_percent",
+              "/steps/0/mocked_result/current_net_price_twd",
+              "/steps/1/mocked_result/options",
+              "/steps/1/mocked_result/offer_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Choose Business. Creator Plus has enough storage and automation runs but its 5-member limit is below the current 6 members. Studio fits all current usage but its Founding offer does not carry over, so it costs its 800 TWD list price. Business also fits and looks more expensive at a 900 TWD list price, but the Founding 20% offer carries over, reducing it to 720 TWD. Business is therefore cheapest and costs 720 - 384 = 336 TWD more per month than the current subscription.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_1step_age_band_upgrade_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "tickets_still_correct",
+            "description": "Identify the ticket assignments that remain correct on the show date.",
+            "expected_answer": "Both adult tickets and the younger child's infant lap admission remain correct.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/show_date",
+              "/steps/0/mocked_result/attendees",
+              "/steps/0/mocked_result/age_rules"
+            ]
+          },
+          {
+            "name": "ticket_needing_upgrade",
+            "description": "Identify any child who has aged out and the required ticket correction.",
+            "expected_answer": "The older child has aged out of the child ticket and must be upgraded to an adult ticket.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/show_date",
+              "/steps/0/mocked_result/attendees",
+              "/steps/0/mocked_result/age_rules"
+            ]
+          },
+          {
+            "name": "ticket_upgrade_amount_due",
+            "description": "State how much must be paid to correct the ticket.",
+            "expected_answer": "300 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/same_section_prices_twd",
+              "/steps/0/mocked_result/age_rules"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "age_and_price_difference",
+            "description": "May explain the older child's age and the price difference.",
+            "expected_answer": "The older child is 12 on October 4, and the adult-minus-child face-value difference is 900 minus 600 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/show_date",
+              "/steps/0/mocked_result/attendees",
+              "/steps/0/mocked_result/same_section_prices_twd",
+              "/steps/0/mocked_result/age_rules"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The two adult tickets and the infant lap admission are correct. The older child is 12 on October 4 and is no longer under 12, so that ticket must be upgraded from child to adult. The amount due is 300 TWD, the difference between 900 and 600 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_1step_festival_ticket_coverage_008",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "cheapest_valid_ticket_option",
+            "description": "Identify the cheapest ticket option that covers all three requested performances and the lunch re-entry plan.",
+            "expected_answer": "The day pass.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/performance_schedule",
+              "/steps/0/mocked_result/ticket_products",
+              "/steps/0/mocked_result/combination_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "cheapest_valid_ticket_price",
+            "description": "State the price of the cheapest valid option.",
+            "expected_answer": "1,200 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/ticket_products",
+              "/steps/0/mocked_result/currency"
+            ]
+          },
+          {
+            "name": "festival_option_comparison",
+            "description": "May explain coverage, re-entry, and why other ticket combinations lose.",
+            "expected_answer": "The day pass covers all three shows and allows lunch re-entry; three singles cost 1,440 TWD, and the Harbor-plus-evening combination cannot support the lunch re-entry plan.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/performance_schedule",
+              "/steps/0/mocked_result/ticket_products",
+              "/steps/0/mocked_result/combination_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Buy the 1,200 TWD day pass. It covers all three performances and allows the one lunch exit and re-entry. Three single-performance tickets cost 1,440 TWD. The 1,350 TWD Harbor Stage plus evening-pass combination covers all three by show, but the Harbor pass cannot be re-entered after lunch, so it is not valid for the stated plan.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_1step_group_threshold_same_total_007",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "whether_revised_total_increases",
+            "description": "State whether the total becomes more expensive with eleven people.",
+            "expected_answer": "No; the total stays the same.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/original_party_size",
+              "/steps/0/mocked_result/revised_party_size",
+              "/steps/0/mocked_result/pricing_tiers",
+              "/steps/0/mocked_result/pricing_rules"
+            ]
+          },
+          {
+            "name": "revised_group_total",
+            "description": "State the new total for eleven people.",
+            "expected_answer": "5,280 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/revised_party_size",
+              "/steps/0/mocked_result/pricing_tiers",
+              "/steps/0/mocked_result/pricing_rules"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "group_pricing_comparison",
+            "description": "May show why the totals for twelve and eleven people match.",
+            "expected_answer": "Twelve people at 440 TWD and eleven people at 480 TWD both total 5,280 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/original_party_size",
+              "/steps/0/mocked_result/revised_party_size",
+              "/steps/0/mocked_result/pricing_tiers"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "No, the total does not become more expensive; it stays exactly the same. Twelve people at 440 TWD cost 5,280 TWD, and eleven people at 480 TWD also cost 5,280 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_1step_relocation_compensation_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "relocation_compensation_total",
+            "description": "State the total compensation for the three relocated seats.",
+            "expected_answer": "1,050 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/original_section",
+              "/steps/0/mocked_result/replacement_section",
+              "/steps/0/mocked_result/tickets",
+              "/steps/0/mocked_result/compensation_matrix",
+              "/steps/0/mocked_result/calculation_rules"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "relocation_compensation_breakdown",
+            "description": "May explain the rate and per-ticket amounts.",
+            "expected_answer": "The 25% rate gives 375 TWD for each regular ticket and 300 TWD for the student ticket; facility fees are excluded.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/tickets",
+              "/steps/0/mocked_result/compensation_matrix",
+              "/steps/0/mocked_result/calculation_rules"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The A-to-C rate is 25%. The two regular tickets receive 375 TWD each and the student ticket receives 300 TWD, for 1,050 TWD total. The facility fees are excluded.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_1step_resale_net_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "resale_net_proceeds",
+            "description": "State how much the user would actually receive if both tickets sell.",
+            "expected_answer": "4,080 TWD total.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/ticket_count",
+              "/steps/0/mocked_result/submitted_asking_price_per_ticket_twd",
+              "/steps/0/mocked_result/original_order",
+              "/steps/0/mocked_result/resale_rules",
+              "/steps/0/mocked_result/currency"
+            ]
+          },
+          {
+            "name": "resale_profit_or_loss",
+            "description": "State whether the resale produces a profit or loss and its amount relative to the original payment.",
+            "expected_answer": "A 320 TWD loss.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/ticket_count",
+              "/steps/0/mocked_result/original_order",
+              "/steps/0/mocked_result/resale_rules",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "resale_calculation",
+            "description": "May explain the listing cap, seller fee, and original total paid.",
+            "expected_answer": "The listing is capped at 2,400 TWD per ticket, net proceeds are 2,040 TWD per ticket after the 15% fee, and the original total was 4,400 TWD.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/ticket_count",
+              "/steps/0/mocked_result/submitted_asking_price_per_ticket_twd",
+              "/steps/0/mocked_result/original_order",
+              "/steps/0/mocked_result/resale_rules",
+              "/steps/0/mocked_result/currency"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Your 2,800 TWD asking price is capped at 2,400 TWD per ticket. After the 15% seller fee, you receive 2,040 TWD per ticket, or 4,080 TWD total. You originally paid 4,400 TWD including the two facility fees and the order delivery fee, so this is a 320 TWD loss.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_2step_delay_protection_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "delay_protection_benefit",
+            "description": "State the delay-protection amount the user should receive.",
+            "expected_answer": "450 TWD.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/scheduled_start_at",
+              "/steps/0/mocked_result/actual_start_at",
+              "/steps/0/mocked_result/ticket_face_value_twd",
+              "/steps/1/mocked_result/benefit_tiers",
+              "/steps/1/mocked_result/maximum_benefit_per_ticket_twd",
+              "/steps/1/mocked_result/calculation_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "delay_benefit_calculation",
+            "description": "May explain the delay tier, percentage, and cap check.",
+            "expected_answer": "A 95-minute delay uses the 60-to-119-minute tier; 25% of 1,800 TWD is 450 TWD, below the 500 TWD cap.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/scheduled_start_at",
+              "/steps/0/mocked_result/actual_start_at",
+              "/steps/0/mocked_result/ticket_face_value_twd",
+              "/steps/1/mocked_result/benefit_tiers",
+              "/steps/1/mocked_result/maximum_benefit_per_ticket_twd",
+              "/steps/1/mocked_result/calculation_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The game started 95 minutes late, so the 60-to-119-minute tier applies. Twenty-five percent of the 1,800 TWD face value is 450 TWD, below the 500 TWD cap, so you should receive 450 TWD.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_2step_intervenue_connection_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "can_stay_through_curtain_call",
+            "description": "State whether the user can stay through the curtain call and enter the concert on time.",
+            "expected_answer": "No.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/tickets",
+              "/steps/1/mocked_result/origin_seat_to_venue_exit_minutes",
+              "/steps/1/mocked_result/venue_to_venue_travel_minutes",
+              "/steps/1/mocked_result/destination_security_to_completed_entry_minutes",
+              "/steps/1/mocked_result/duration_rule"
+            ]
+          },
+          {
+            "name": "minutes_to_leave_early",
+            "description": "State how many minutes before the matinee ends the user must leave.",
+            "expected_answer": "15 minutes early.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/tickets",
+              "/steps/1/mocked_result/origin_seat_to_venue_exit_minutes",
+              "/steps/1/mocked_result/venue_to_venue_travel_minutes",
+              "/steps/1/mocked_result/destination_security_to_completed_entry_minutes",
+              "/steps/1/mocked_result/duration_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "connection_timing_detail",
+            "description": "May give the departure deadline and transfer-time calculation.",
+            "expected_answer": "The user must leave by 4:35 PM because the total transfer takes 75 minutes and entry must complete by 5:50 PM; staying to 4:50 PM would complete entry at 6:05 PM.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/tickets",
+              "/steps/1/mocked_result/origin_seat_to_venue_exit_minutes",
+              "/steps/1/mocked_result/venue_to_venue_travel_minutes",
+              "/steps/1/mocked_result/destination_security_to_completed_entry_minutes",
+              "/steps/1/mocked_result/duration_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "No. Leaving after the 4:50 PM curtain call would complete entry at 6:05 PM. The transfer takes 75 minutes in total, so to complete entry by 5:50 PM you must leave your seat by 4:35 PM, 15 minutes before the matinee ends.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_2step_lottery_quantity_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "must_wait_for_later_round",
+            "description": "State whether the requested three-together application must wait for a later lottery round.",
+            "expected_answer": "Yes; the user must wait for a later round.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/membership_status",
+              "/steps/0/mocked_result/membership_tier",
+              "/steps/0/mocked_result/completed_purchase_count",
+              "/steps/1/mocked_result/lottery_rounds",
+              "/steps/1/mocked_result/application_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "later_round_identity_and_opening",
+            "description": "May identify the later qualifying round and when it opens.",
+            "expected_answer": "The General member draw opens September 13, 2026 at 10:00 AM.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/lottery_rounds/1",
+              "/steps/1/mocked_result/application_rule"
+            ]
+          },
+          {
+            "name": "lottery_quantity_explanation",
+            "description": "May explain eligibility and ticket limits for both rounds.",
+            "expected_answer": "The member qualifies for Early Gold, but it allows only two Saturday tickets; General allows up to four and applications cannot be split across rounds.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/membership_status",
+              "/steps/0/mocked_result/membership_tier",
+              "/steps/0/mocked_result/completed_purchase_count",
+              "/steps/1/mocked_result/lottery_rounds",
+              "/steps/1/mocked_result/application_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You qualify for the earliest Early Gold draw, but that round allows at most two Saturday tickets in one application. Because you want three together and applications cannot be split across rounds, you need to wait until the General member draw on September 13, which allows up to four.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_2step_rotating_stage_sightline_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "headliner_clear_view",
+            "description": "State whether the user's view is clear for the headliner.",
+            "expected_answer": "Yes, the headliner view is clear.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/seat_location",
+              "/steps/0/mocked_result/set_orientations",
+              "/steps/1/mocked_result/sightlines"
+            ]
+          },
+          {
+            "name": "fully_clear_set_count",
+            "description": "State how many of the five sets have a completely clear view.",
+            "expected_answer": "Three of the five sets.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/set_orientations",
+              "/steps/1/mocked_result/sightlines"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "per_set_sightline_mapping",
+            "description": "May give the sightline status for all five sets.",
+            "expected_answer": "The five sets map to clear, clear, partially obstructed, blocked, and clear.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/set_orientations",
+              "/steps/1/mocked_result/sightlines"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Yes. The headliner faces east, which is clear from your East Lower seat. Mapping all five sets gives clear, clear, partially obstructed, blocked, and clear, so your view is completely clear for 3 of the 5 sets.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "ticket_2step_weekend_disruption_credit_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "total_credit",
+            "description": "State the total credit the user should receive.",
+            "expected_answer": {
+              "kind": "money",
+              "amount": 1600,
+              "currency": "TWD"
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/daily_records",
+              "/steps/1/mocked_result/daily_value_allocation_twd",
+              "/steps/1/mocked_result/disruption_rules"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "daily_breakdown",
+            "description": "May explain the Friday, Saturday, and Sunday credit amounts and rules.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "Friday 0 TWD; Saturday 600 TWD; Sunday 1,000 TWD."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/daily_records",
+              "/steps/1/mocked_result/daily_value_allocation_twd",
+              "/steps/1/mocked_result/disruption_rules",
+              "/steps/1/mocked_result/normal_completion_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The user should receive 1,600 TWD in total credit: 0 for Friday, 600 for Saturday, and 1,000 for Sunday.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_1step_coating_cure_window_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "latest_sealant_start_time",
+            "description": "State the latest safe start time for applying the sealant.",
+            "expected_answer": "10:00 AM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/interval_definition",
+              "/steps/0/mocked_result/hourly_forecast"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "application_and_cure_verification",
+            "description": "May explain why 10:00 AM works and a later start fails.",
+            "expected_answer": "A 10:00 AM start applies through noon and cures through 4:00 PM within limits; an 11:00 AM start reaches the 4–5 PM interval with 82% humidity.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/interval_definition",
+              "/steps/0/mocked_result/hourly_forecast"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The latest safe start is 10 AM. Application would run from 10 AM to noon, and the four full curing hours from noon through 4 PM stay rain-free at or below 75 percent humidity. Starting at 11 would make the curing period include the 4–5 PM hour at 82 percent humidity.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_1step_heat_work_rest_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "total_work_minutes",
+            "description": "State the total number of minutes the crew can work.",
+            "expected_answer": "105 minutes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/hourly_heat_index_c",
+              "/steps/0/mocked_result/hourly_work_rest_policy",
+              "/steps/0/mocked_result/boundary_rule"
+            ]
+          },
+          {
+            "name": "total_break_minutes",
+            "description": "State the total number of required break minutes.",
+            "expected_answer": "75 minutes.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/hourly_heat_index_c",
+              "/steps/0/mocked_result/hourly_work_rest_policy",
+              "/steps/0/mocked_result/boundary_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "hourly_work_break_breakdown",
+            "description": "May explain the work/rest allocation for each hour.",
+            "expected_answer": "The 1 PM hour uses 45 work and 15 break minutes; the next two hours each use 30 work and 30 break minutes.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/hourly_heat_index_c",
+              "/steps/0/mocked_result/hourly_work_rest_policy"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "They can work 105 minutes and must take 75 minutes of breaks in total: 45/15 minutes for the 1 PM hour, then 30/30 for each of the next two hours.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_1step_rain_tank_overflow_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "roof_collection_amount",
+            "description": "State how much water the roof should collect.",
+            "expected_answer": "384 liters.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/collection_roof_area_square_meters",
+              "/steps/0/mocked_result/collection_efficiency_percent",
+              "/steps/0/mocked_result/conversion_rule",
+              "/steps/0/mocked_result/forecast_rainfall"
+            ]
+          },
+          {
+            "name": "tank_retained_amount",
+            "description": "State how much water the tank can keep.",
+            "expected_answer": "240 liters.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/collection_roof_area_square_meters",
+              "/steps/0/mocked_result/collection_efficiency_percent",
+              "/steps/0/mocked_result/forecast_rainfall"
+            ]
+          },
+          {
+            "name": "tank_overflow_amount",
+            "description": "State how much collected water will overflow.",
+            "expected_answer": "144 liters.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/collection_roof_area_square_meters",
+              "/steps/0/mocked_result/collection_efficiency_percent",
+              "/steps/0/mocked_result/conversion_rule",
+              "/steps/0/mocked_result/forecast_rainfall"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The roof should collect 384 liters. The tank can keep 240 liters, so 144 liters will overflow.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_1step_rotating_windbreak_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "initial_closed_canopy_sides",
+            "description": "State which two canopy sides should be closed at the start.",
+            "expected_answer": "Close the west and north sides at 2:00 PM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/event_window_local",
+              "/steps/0/mocked_result/canopy_sides",
+              "/steps/0/mocked_result/hourly_wind",
+              "/steps/0/mocked_result/windbreak_rule"
+            ]
+          },
+          {
+            "name": "canopy_rotation_time",
+            "description": "State when the canopy sides should be rotated.",
+            "expected_answer": "Rotate them at 4:00 PM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/hourly_wind",
+              "/steps/0/mocked_result/windbreak_rule"
+            ]
+          },
+          {
+            "name": "rotated_closed_canopy_sides",
+            "description": "State which two sides should be closed after rotation.",
+            "expected_answer": "Close the north and east sides after the rotation.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/canopy_sides",
+              "/steps/0/mocked_result/hourly_wind",
+              "/steps/0/mocked_result/windbreak_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "wind_direction_change_explanation",
+            "description": "May explain why the rotation occurs at 4:00 PM.",
+            "expected_answer": "The incoming wind changes from west to north at 4:00 PM.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/hourly_wind",
+              "/steps/0/mocked_result/windbreak_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Close the west and north sides at 2 PM. At 4 PM, rotate to close the north and east sides, because that is when the incoming wind changes from west to north.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_1step_two_load_drying_windows_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "earliest_two_load_finish",
+            "description": "State the earliest time both laundry loads can finish drying.",
+            "expected_answer": "1:30 PM.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/interval_minutes",
+              "/steps/0/mocked_result/usable_interval_rule",
+              "/steps/0/mocked_result/intervals"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "drying_schedule",
+            "description": "May provide a schedule that attains the earliest finish and explain the unusable gap.",
+            "expected_answer": "Dry one load from 9:30 to 11:00 AM and the other from noon to 1:30 PM; the intervening humidity and rain prevent an earlier second slot.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/usable_interval_rule",
+              "/steps/0/mocked_result/intervals"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The earliest finish is 1:30 PM. Dry the first load from 9:30 to 11:00, then the second from noon to 1:30 PM; the rain and humidity between those windows prevent an earlier second slot.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_2step_cycling_crosswind_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "segments_exceeding_crosswind_limit",
+            "description": "Identify the route segments that exceed the user's crosswind-component limit.",
+            "expected_answer": "Canal climb and Levee return.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/maximum_crosswind_component_kph",
+              "/steps/0/mocked_result/crosswind_rule",
+              "/steps/0/mocked_result/route_segments",
+              "/steps/1/mocked_result/hourly_wind"
+            ]
+          },
+          {
+            "name": "total_excess_crosswind_duration",
+            "description": "State the total duration for which the limit is exceeded.",
+            "expected_answer": "Two hours.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/maximum_crosswind_component_kph",
+              "/steps/0/mocked_result/crosswind_rule",
+              "/steps/0/mocked_result/route_segments",
+              "/steps/1/mocked_result/hourly_wind"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "crosswind_component_calculation",
+            "description": "May explain the computed crosswind components and threshold comparison.",
+            "expected_answer": "The perpendicular components are 28, 36, and 34 kph; only the latter two exceed the 32 kph limit.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/maximum_crosswind_component_kph",
+              "/steps/0/mocked_result/crosswind_rule",
+              "/steps/0/mocked_result/route_segments",
+              "/steps/1/mocked_result/hourly_wind"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The Canal climb and Levee return exceed your crosswind-component limit, for two hours total. In all three intervals the wind is perpendicular to travel, so each crosswind component equals the full gust: 28, 36, and 34 kph respectively. Only the latter two exceed 32 kph.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_2step_hike_phase_rain_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "ridge_climb_precipitation",
+            "description": "State the precipitation encountered on the ridge climb.",
+            "expected_answer": "The ridge climb encounters rain.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/route_phases",
+              "/steps/1/mocked_result/zone_definitions",
+              "/steps/1/mocked_result/precipitation_windows",
+              "/steps/1/mocked_result/interval_rule"
+            ]
+          },
+          {
+            "name": "summit_and_upper_descent_precipitation",
+            "description": "State the precipitation encountered on the summit stop and upper descent.",
+            "expected_answer": "The summit stop and upper descent encounter snow.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/route_phases",
+              "/steps/1/mocked_result/zone_definitions",
+              "/steps/1/mocked_result/precipitation_windows",
+              "/steps/1/mocked_result/interval_rule"
+            ]
+          },
+          {
+            "name": "lower_descent_precipitation",
+            "description": "State the precipitation encountered on the lower descent.",
+            "expected_answer": "The lower descent encounters rain.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/route_phases",
+              "/steps/1/mocked_result/zone_definitions",
+              "/steps/1/mocked_result/precipitation_windows",
+              "/steps/1/mocked_result/interval_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "hike_precipitation_timing",
+            "description": "May state the overlap times, return time, and dry section.",
+            "expected_answer": "The ridge climb meets rain from 9:00–10:00 AM, summit stop and upper descent meet snow from 10:10–11:50 AM, lower descent meets rain from noon–1:30 PM, and the lower approach stays dry; return is 1:30 PM.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/route_phases",
+              "/steps/1/mocked_result/precipitation_windows"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Starting at 7:00 AM, you finish at 1:30 PM. The ridge climb meets rain from 9:00 to 10:00 AM. The summit stop and upper descent meet snow from 10:10 to 11:50 AM. The lower descent meets rain from noon until you return at 1:30 PM. The lower approach stays dry.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_2step_mountain_pass_chains_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "passes_requiring_chains",
+            "description": "Identify the mountain passes where chains are required during the planned drive.",
+            "expected_answer": "Pine Pass and Eagle Gap.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/pass_schedule",
+              "/steps/1/mocked_result/requirements",
+              "/steps/1/mocked_result/overlap_rule"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "chain_requirement_overlap_detail",
+            "description": "May explain the overlap windows and why Cloud Notch does not require chains.",
+            "expected_answer": "Pine Pass overlaps until 8:00 AM, Eagle Gap overlaps from 9:45 to 9:50 AM, and Cloud Notch is cleared before its noon requirement begins.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/pass_schedule",
+              "/steps/1/mocked_result/requirements",
+              "/steps/1/mocked_result/overlap_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "You will need chains at Pine Pass and Eagle Gap. Pine Pass overlaps the requirement until 8:00 AM, and Eagle Gap overlaps from 9:45 to 9:50. You should clear Cloud Notch before its noon requirement begins.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_2step_observatory_clear_windows_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "targets_with_sufficient_clear_window",
+            "description": "Identify the saved targets that have a sufficiently long clear window at the nearest observatory.",
+            "expected_answer": "Saturn and the Andromeda Galaxy.",
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/nearest_observatory",
+              "/steps/0/mocked_result/observation_window",
+              "/steps/0/mocked_result/clear_definition",
+              "/steps/0/mocked_result/targets",
+              "/steps/1/mocked_result/cloud_cover_intervals"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "clear_window_and_orion_explanation",
+            "description": "May state the clear windows and explain why Orion does not qualify.",
+            "expected_answer": "There are clear 60-minute windows from 8:00–9:00 PM and 9:30–10:30 PM; Orion requires 90 continuous minutes, which is unavailable.",
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/observation_window",
+              "/steps/0/mocked_result/clear_definition",
+              "/steps/0/mocked_result/targets",
+              "/steps/1/mocked_result/cloud_cover_intervals"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "Saturn and the Andromeda Galaxy still have long enough clear windows. There is a 60-minute clear stretch from 8:00 to 9:00 PM, and another from 9:30 to 10:30 PM. Orion needs 90 continuous minutes, which is not available.",
+        "judge_visible": false
+      }
+    },
+    {
+      "task_id": "weather_2step_surf_session_limits_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "whole_lesson_allowed",
+            "description": "State whether the whole lesson can run under the rules.",
+            "expected_answer": {
+              "kind": "boolean",
+              "value": false
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/marine_intervals",
+              "/steps/1/mocked_result/base_limits",
+              "/steps/1/mocked_result/conditional_limits",
+              "/steps/1/mocked_result/coverage_rule"
+            ]
+          },
+          {
+            "name": "failed_interval_1000_1030_with_reason",
+            "description": "Identify 10:00-10:30 as failing and explain that the waves exceed the tightened limit caused by the onshore gust.",
+            "expected_answer": {
+              "kind": "semantic",
+              "required_concepts": [
+                "10:00-10:30",
+                "wave height exceeds tightened limit",
+                "onshore gust"
+              ]
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/marine_intervals/2",
+              "/steps/1/mocked_result/conditional_limits"
+            ]
+          },
+          {
+            "name": "failed_interval_1030_1100_with_reason",
+            "description": "Identify 10:30-11:00 as failing and explain that outgoing-tide height is below the minimum.",
+            "expected_answer": {
+              "kind": "semantic",
+              "required_concepts": [
+                "10:30-11:00",
+                "outgoing tide",
+                "height below minimum"
+              ]
+            },
+            "requirement_basis": "explicit_user_question",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/marine_intervals/3",
+              "/steps/1/mocked_result/conditional_limits"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "numeric_thresholds_and_passing_intervals",
+            "description": "May give the exact wind, wave, and tide values and state that the first two intervals pass.",
+            "expected_answer": {
+              "kind": "text",
+              "value": "26 kph; 0.9 m versus 1.1 m; 0.7 m versus 0.8 m; first two intervals pass."
+            },
+            "requirement_basis": "supporting_detail",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/marine_intervals",
+              "/steps/1/mocked_result/base_limits",
+              "/steps/1/mocked_result/conditional_limits",
+              "/steps/1/mocked_result/boundary_rule"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      },
+      "reference_answer": {
+        "text": "The whole lesson cannot run. The 10:00-10:30 interval fails because the onshore gust tightens the wave limit below the observed waves, and 10:30-11:00 fails because the outgoing-tide height is below the minimum. The first two intervals pass.",
+        "judge_visible": false
+      }
+    }
+  ]
+}
