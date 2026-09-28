@@ -1,0 +1,28 @@
+{
+  "schema_version": "spokenwait-release-manifest-v1",
+  "release": "paper-v1",
+  "frozen_source": "spoken_tool_wait_tasks_openai_full100_2026-09-25",
+  "task_count": 100,
+  "files": {
+    "tasks/airline_travel/1_step/tasks.json": "b87b77dc1d8f67340be913157ba54b9c12cdd13ff11f30cebef3211140cc410a",
+    "tasks/airline_travel/2_step/tasks.json": "abdb113a92d71c97614debec4d779aa4765d23375400759921e5eacaa18855e2",
+    "tasks/appointment_service/1_step/tasks.json": "4b3db2d081d3c8017dc67c7d3dd40214b50946fc908c97aaf1bad184cf2bac8b",
+    "tasks/appointment_service/2_step/tasks.json": "a371531af3fdf8c3a53cdcb46e77e2311a2157b0b2d253bcedc5f3709972bf7e",
+    "tasks/calendar/1_step/tasks.json": "9577f7d21395de255ba6da5071e1e433792b5f4851da01834f9f6bfd3a2a6b2f",
+    "tasks/calendar/2_step/tasks.json": "223d36fcdd5a3cae071d6591e5d8968ab7a5aebc8468cf034ca7860fcebfc125",
+    "tasks/pharmacy_refill/1_step/tasks.json": "24963318bb7a4d33bc418992a909f83e69d12d8b6a86cd3951d06c467bd05eb8",
+    "tasks/pharmacy_refill/2_step/tasks.json": "01e5884815e1fb4f68aa53f34b0735d53f528b54381a161aac8b90c15134cd3a",
+    "tasks/product_inventory/1_step/tasks.json": "9d2004f9e934cb30c3643a94bb6b6d8da6109d59e43569f44e8acffd5e517ba7",
+    "tasks/product_inventory/2_step/tasks.json": "621de19b7b78c3621e3dc15a1fc539339d6960898298099145c38a885b91014c",
+    "tasks/restaurant_arrival/1_step/tasks.json": "c282f7c5fbefcbf524410c277c190ddbb5d424a3b23457da26c35d43e566ca76",
+    "tasks/restaurant_arrival/2_step/tasks.json": "9843b6492521f2140e419d7522c9dbf6e56cee97151d85913592e91779254ceb",
+    "tasks/retail_order/1_step/tasks.json": "c972283875470f455b3cb292711759a794a1120e6bedb9ec0d0b8bf582dcf743",
+    "tasks/retail_order/2_step/tasks.json": "a1e678c0a54eed79cf837afb22f141f7fa814125b5062ec2de8777f83f7b9045",
+    "tasks/subscription_billing/1_step/tasks.json": "fa445ba55956dd2967e7bda7b882d7b3571a5d344c3cde21e6b8b9841e2629f5",
+    "tasks/subscription_billing/2_step/tasks.json": "ecafb63a2e189b14bc57b4129dc11eac351df66d18743db43baa3d53a37ea97e",
+    "tasks/ticket/1_step/tasks.json": "0ace694103fbf5da36e49f707099903fe5461bfdf3722a1de1e6870d9a2b94d5",
+    "tasks/ticket/2_step/tasks.json": "f62bfb863e6c2ca744e20e42acb80661040b8c88e933acde38ea54af094e71f6",
+    "tasks/weather/1_step/tasks.json": "7c76a75a892c8c561ea025c849a721f73b46149dd21cb530be1fbf405b1668d0",
+    "tasks/weather/2_step/tasks.json": "66d49d62e3d1827daa369fe51e6646d869c9e14283e3cb0869fa4c4fa8dc5cfe"
+  }
+}

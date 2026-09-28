@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "SpokenWait: A Benchmark for Real-Time Voice Agents Awaiting Tool Results"
+message: "If you use SpokenWait, please cite the accompanying paper."
+type: software
+version: 0.1.0
+date-released: 2026-09-28
+authors:
+  - family-names: Zheng
+    given-names: Bo-Xuan
+  - family-names: Guo
+    given-names: Yu-Kai
+  - family-names: Chung
+    given-names: Ho-Lam
+  - family-names: Lee
+    given-names: Hung-yi
+license: MIT

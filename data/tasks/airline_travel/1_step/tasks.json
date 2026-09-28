@@ -1,0 +1,470 @@
+{
+  "category": "airline_travel",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "airline_travel_1step_budget_arrival_001",
+      "category": "airline_travel",
+      "step_count": 1,
+      "user_prompt": "I need to fly from Taipei to Osaka tomorrow, arrive by 3 PM, and spend no more than 220 U.S. dollars including taxes. Which flight works?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The only tool argument is the relative day stated by the user. Route, deadline, and budget remain user-side constraints that must be applied to returned raw flight records.",
+      "flow_summary": "查明日航班清單，再依使用者給的路線、抵達期限與含稅預算找唯一符合者。",
+      "tools": [
+        {
+          "name": "search_daily_flights",
+          "description": "Retrieve a small daily flight schedule. Returns flights, each with flight_number (string), origin (string), destination (string), departure_local (ISO local datetime string), arrival_local (ISO local datetime string), total_price_including_taxes (number), and currency (string). It does not select or recommend a flight.",
+          "parameters": {
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "flights": {
+                "type": "array",
+                "description": "Returned flights.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "flight_number": {
+                      "type": "string",
+                      "description": "Returned flight number."
+                    },
+                    "origin": {
+                      "type": "string",
+                      "description": "Returned origin."
+                    },
+                    "destination": {
+                      "type": "string",
+                      "description": "Returned destination."
+                    },
+                    "departure_local": {
+                      "type": "string",
+                      "description": "Returned departure local."
+                    },
+                    "arrival_local": {
+                      "type": "string",
+                      "description": "Returned arrival local."
+                    },
+                    "total_price_including_taxes": {
+                      "type": "number",
+                      "description": "Returned total price including taxes."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Returned currency."
+                    }
+                  },
+                  "required": [
+                    "flight_number",
+                    "origin",
+                    "destination",
+                    "departure_local",
+                    "arrival_local",
+                    "total_price_including_taxes",
+                    "currency"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "flights"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "daily_schedule",
+          "tool_name": "search_daily_flights",
+          "tool_input": {
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "flights": [
+              {
+                "flight_number": "AW214",
+                "origin": "Taipei",
+                "destination": "Osaka",
+                "departure_local": "2026-09-08T09:10:00+08:00",
+                "arrival_local": "2026-09-08T13:05:00+09:00",
+                "total_price_including_taxes": 245,
+                "currency": "USD"
+              },
+              {
+                "flight_number": "AW216",
+                "origin": "Taipei",
+                "destination": "Osaka",
+                "departure_local": "2026-09-08T11:35:00+08:00",
+                "arrival_local": "2026-09-08T15:35:00+09:00",
+                "total_price_including_taxes": 198,
+                "currency": "USD"
+              },
+              {
+                "flight_number": "AW218",
+                "origin": "Taipei",
+                "destination": "Osaka",
+                "departure_local": "2026-09-08T10:40:00+08:00",
+                "arrival_local": "2026-09-08T14:40:00+09:00",
+                "total_price_including_taxes": 215,
+                "currency": "USD"
+              },
+              {
+                "flight_number": "AW220",
+                "origin": "Taipei",
+                "destination": "Tokyo",
+                "departure_local": "2026-09-08T09:45:00+08:00",
+                "arrival_local": "2026-09-08T13:50:00+09:00",
+                "total_price_including_taxes": 205,
+                "currency": "USD"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看明天的航班與含稅價格。"
+        }
+      ],
+      "expected_final_answer": "AW218 符合：從 Taipei 飛往 Osaka，14:40 抵達，含稅 215 美元。"
+    },
+    {
+      "id": "airline_travel_1step_gate_context_002",
+      "category": "airline_travel",
+      "step_count": 1,
+      "user_prompt": "Which gate is my flight to Osaka using tomorrow?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "Destination and relative day are ordinary user-stated itinerary selectors; no spoken booking code is required.",
+      "flow_summary": "依目的地與日期查登入使用者的航班登機門。",
+      "tools": [
+        {
+          "name": "find_my_flight",
+          "description": "Find the signed-in user's flight matching a destination and relative day. Returns flight_number (string), service_date (YYYY-MM-DD string), departure_terminal (string), gate (string), boarding_local (ISO local datetime string), and operating_status (string).",
+          "parameters": {
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "flight_number": {
+                "type": "string",
+                "description": "Returned flight number."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "departure_terminal": {
+                "type": "string",
+                "description": "Returned departure terminal."
+              },
+              "gate": {
+                "type": "string",
+                "description": "Returned gate."
+              },
+              "boarding_local": {
+                "type": "string",
+                "description": "Returned boarding local."
+              },
+              "operating_status": {
+                "type": "string",
+                "description": "Returned operating status."
+              }
+            },
+            "required": [
+              "flight_number",
+              "service_date",
+              "departure_terminal",
+              "gate",
+              "boarding_local",
+              "operating_status"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "flight",
+          "tool_name": "find_my_flight",
+          "tool_input": {
+            "destination": "Osaka",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "flight_number": "AW217",
+            "service_date": "2026-09-08",
+            "departure_terminal": "Terminal 1",
+            "gate": "B7",
+            "boarding_local": "2026-09-08T08:10:00+08:00",
+            "operating_status": "on_time"
+          },
+          "waiting_speech_target": "正在查你明天前往 Osaka 的登機門。"
+        }
+      ],
+      "expected_final_answer": "登機門是 B7。"
+    },
+    {
+      "id": "airline_travel_1step_baggage_fee_003",
+      "category": "airline_travel",
+      "step_count": 1,
+      "user_prompt": "On my flight tomorrow, I will check two bags weighing 23 and 29 kilograms. How much will I pay in total?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The account-scoped tool resolves the signed-in user's next flight without requiring a redundant date selector; bag count and weights are user facts used only after the policy is returned.",
+      "flow_summary": "查明日行程適用的行李規則，依兩件行李重量計算總費用。",
+      "tools": [
+        {
+          "name": "get_next_flight_checked_baggage_policy",
+          "description": "Retrieve the checked-baggage policy for the signed-in user's next flight. Returns baggage_plan (string), currency (string), standard_weight_limit_kg (number), maximum_accepted_weight_kg (number), bag_base_fees (array of bag_number and fee records), and overweight_fee_per_bag (number). It does not calculate a total charge. This account-scoped tool takes no arguments.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "baggage_plan": {
+                "type": "string",
+                "description": "Returned baggage plan."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "standard_weight_limit_kg": {
+                "type": "number",
+                "description": "Returned standard weight limit kg."
+              },
+              "maximum_accepted_weight_kg": {
+                "type": "number",
+                "description": "Returned maximum accepted weight kg."
+              },
+              "bag_base_fees": {
+                "type": "array",
+                "description": "Returned bag base fees.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "bag_number": {
+                      "type": "number",
+                      "description": "Returned bag number."
+                    },
+                    "fee": {
+                      "type": "number",
+                      "description": "Returned fee."
+                    }
+                  },
+                  "required": [
+                    "bag_number",
+                    "fee"
+                  ]
+                }
+              },
+              "overweight_fee_per_bag": {
+                "type": "number",
+                "description": "Returned overweight fee per bag."
+              }
+            },
+            "required": [
+              "baggage_plan",
+              "currency",
+              "standard_weight_limit_kg",
+              "maximum_accepted_weight_kg",
+              "bag_base_fees",
+              "overweight_fee_per_bag"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "baggage_policy",
+          "tool_name": "get_next_flight_checked_baggage_policy",
+          "tool_input": {},
+          "mocked_result": {
+            "baggage_plan": "Standard International",
+            "currency": "USD",
+            "standard_weight_limit_kg": 23,
+            "maximum_accepted_weight_kg": 32,
+            "bag_base_fees": [
+              {
+                "bag_number": 1,
+                "fee": 0
+              },
+              {
+                "bag_number": 2,
+                "fee": 45
+              }
+            ],
+            "overweight_fee_per_bag": 75
+          },
+          "waiting_speech_target": "正在查你明日行程適用的托運行李規則。"
+        }
+      ],
+      "expected_final_answer": "總共 120 美元：第二件基本費 45 美元，加上 29 公斤行李的超重費 75 美元。"
+    },
+    {
+      "id": "airline_travel_1step_timezone_arrival_004",
+      "category": "airline_travel",
+      "step_count": 1,
+      "user_prompt": "What local time will my flight to Tokyo arrive tomorrow?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user states a destination and relative day. The tool supplies all date-specific time-zone facts, so no city-time-zone knowledge is assumed.",
+      "flow_summary": "查航班的出發當地時間、飛行時間與兩地 offset，再計算目的地當地抵達時間。",
+      "tools": [
+        {
+          "name": "get_my_flight_time_details",
+          "description": "Retrieve timing facts for the signed-in user's flight. Returns origin (string), destination (string), departure_local_date (YYYY-MM-DD string), departure_local_time (HH:MM string), duration_minutes (number), origin_utc_offset (UTC offset string), and destination_utc_offset (UTC offset string). It does not return the arrival time.",
+          "parameters": {
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "origin": {
+                "type": "string",
+                "description": "Returned origin."
+              },
+              "destination": {
+                "type": "string",
+                "description": "Returned destination."
+              },
+              "departure_local_date": {
+                "type": "string",
+                "description": "Returned departure local date."
+              },
+              "departure_local_time": {
+                "type": "string",
+                "description": "Returned departure local time."
+              },
+              "duration_minutes": {
+                "type": "number",
+                "description": "Returned duration minutes."
+              },
+              "origin_utc_offset": {
+                "type": "string",
+                "description": "Returned origin utc offset."
+              },
+              "destination_utc_offset": {
+                "type": "string",
+                "description": "Returned destination utc offset."
+              }
+            },
+            "required": [
+              "origin",
+              "destination",
+              "departure_local_date",
+              "departure_local_time",
+              "duration_minutes",
+              "origin_utc_offset",
+              "destination_utc_offset"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "flight_time",
+          "tool_name": "get_my_flight_time_details",
+          "tool_input": {
+            "destination": "Tokyo",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "origin": "Taipei",
+            "destination": "Tokyo",
+            "departure_local_date": "2026-09-08",
+            "departure_local_time": "09:30",
+            "duration_minutes": 240,
+            "origin_utc_offset": "+08:00",
+            "destination_utc_offset": "+09:00"
+          },
+          "waiting_speech_target": "正在查你明天前往 Tokyo 的航班時間資料。"
+        }
+      ],
+      "expected_final_answer": "你會在 Tokyo 當地時間 14:30 抵達。"
+    },
+    {
+      "id": "airline_travel_1step_meeting_buffer_005",
+      "category": "airline_travel",
+      "step_count": 1,
+      "user_prompt": "My meeting starts at 2:30 PM local time after my flight to Tokyo tomorrow. How much time will I have to travel from the airport to the venue?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "Destination and relative day identify the flight, while the meeting time is a user-stated constraint. Both times are explicitly in the destination's local clock.",
+      "flow_summary": "查目的地當地落地時間，計算到當地 14:30 會議前剩餘的通勤時間。",
+      "tools": [
+        {
+          "name": "find_my_flight",
+          "description": "Find the signed-in user's flight matching a destination and relative day. Returns arrival_local_date (YYYY-MM-DD string), arrival_local_time (HH:MM string), arrival_time_zone (IANA time-zone string), arrival_airport (string), and operating_status (string).",
+          "parameters": {
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "arrival_local_date": {
+                "type": "string",
+                "description": "Returned arrival local date."
+              },
+              "arrival_local_time": {
+                "type": "string",
+                "description": "Returned arrival local time."
+              },
+              "arrival_time_zone": {
+                "type": "string",
+                "description": "Returned arrival time zone."
+              },
+              "arrival_airport": {
+                "type": "string",
+                "description": "Returned arrival airport."
+              },
+              "operating_status": {
+                "type": "string",
+                "description": "Returned operating status."
+              }
+            },
+            "required": [
+              "arrival_local_date",
+              "arrival_local_time",
+              "arrival_time_zone",
+              "arrival_airport",
+              "operating_status"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "arrival",
+          "tool_name": "find_my_flight",
+          "tool_input": {
+            "destination": "Tokyo",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "arrival_local_date": "2026-09-08",
+            "arrival_local_time": "13:10",
+            "arrival_time_zone": "Asia/Tokyo",
+            "arrival_airport": "Haneda",
+            "operating_status": "on_time"
+          },
+          "waiting_speech_target": "正在查你明天抵達 Tokyo 的當地時間。"
+        }
+      ],
+      "expected_final_answer": "落地後到 14:30 的會議前有 1 小時 20 分鐘可以通勤。"
+    }
+  ]
+}

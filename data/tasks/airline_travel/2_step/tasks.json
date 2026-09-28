@@ -1,0 +1,859 @@
+{
+  "category": "airline_travel",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "airline_travel_2step_context_gate_001",
+      "category": "airline_travel",
+      "step_count": 2,
+      "user_prompt": "What gate should I go to for my flight to Osaka tomorrow?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The first lookup uses ordinary destination and day selectors; the live-operation lookup requires the returned flight number and service date.",
+      "flow_summary": "先依目的地與日期找到航班，再以航班號與服務日期查即時登機門。",
+      "tools": [
+        {
+          "name": "find_my_flight",
+          "description": "Find the signed-in user's flight matching a destination and relative day. Returns flight_number (string), service_date (YYYY-MM-DD string), origin (string), destination (string), and scheduled_departure_local (ISO local datetime string).",
+          "parameters": {
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "flight_number": {
+                "type": "string",
+                "description": "Returned flight number."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "origin": {
+                "type": "string",
+                "description": "Returned origin."
+              },
+              "destination": {
+                "type": "string",
+                "description": "Returned destination."
+              },
+              "scheduled_departure_local": {
+                "type": "string",
+                "description": "Returned scheduled departure local."
+              }
+            },
+            "required": [
+              "flight_number",
+              "service_date",
+              "origin",
+              "destination",
+              "scheduled_departure_local"
+            ]
+          }
+        },
+        {
+          "name": "get_flight_operation",
+          "description": "Retrieve the current operating record for one flight on one service date. Returns operating_status (string), departure_terminal (string), gate (string), and boarding_local (ISO local datetime string).",
+          "parameters": {
+            "flight_number": "string",
+            "service_date": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "operating_status": {
+                "type": "string",
+                "description": "Returned operating status."
+              },
+              "departure_terminal": {
+                "type": "string",
+                "description": "Returned departure terminal."
+              },
+              "gate": {
+                "type": "string",
+                "description": "Returned gate."
+              },
+              "boarding_local": {
+                "type": "string",
+                "description": "Returned boarding local."
+              }
+            },
+            "required": [
+              "operating_status",
+              "departure_terminal",
+              "gate",
+              "boarding_local"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "itinerary",
+          "tool_name": "find_my_flight",
+          "tool_input": {
+            "destination": "Osaka",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "flight_number": "AW217",
+            "service_date": "2026-09-08",
+            "origin": "Taipei",
+            "destination": "Osaka",
+            "scheduled_departure_local": "2026-09-08T09:00:00+08:00"
+          },
+          "waiting_speech_target": "正在找你明天前往 Osaka 的航班。"
+        },
+        {
+          "index": 2,
+          "label": "operation",
+          "tool_name": "get_flight_operation",
+          "tool_input": {
+            "flight_number": "AW217",
+            "service_date": "2026-09-08"
+          },
+          "mocked_result": {
+            "operating_status": "on_time",
+            "departure_terminal": "Terminal 1",
+            "gate": "B7",
+            "boarding_local": "2026-09-08T08:10:00+08:00"
+          },
+          "waiting_speech_target": "正在查這班航班的即時登機門。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "flight_number",
+              "argument_name": "flight_number"
+            },
+            {
+              "step_index": 1,
+              "result_field": "service_date",
+              "argument_name": "service_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "請前往 Terminal 1 的 B7 登機門。"
+    },
+    {
+      "id": "airline_travel_2step_change_tradeoff_002",
+      "category": "airline_travel",
+      "step_count": 2,
+      "user_prompt": "For my trip to Osaka tomorrow, if I switch to a flight leaving after 3 PM that arrives earlier, how much extra would I pay in total and how much earlier would I arrive?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The signed-in itinerary is resolved from destination and day. User constraints are applied to raw alternatives rather than encoded as hidden selectors.",
+      "flow_summary": "先查既有行程、含稅票價與改訂費，再查同路線候選，找唯一符合出發與抵達限制者並計算金額及時間差。",
+      "tools": [
+        {
+          "name": "find_my_itinerary",
+          "description": "Retrieve the signed-in user's itinerary matching a destination and relative day. Returns origin (string), destination (string), service_date (YYYY-MM-DD string), current_flight_number (string), current_departure_local (ISO local datetime string), current_arrival_local (ISO local datetime string), paid_fare_including_taxes (number), change_fee (number), and currency (string).",
+          "parameters": {
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "origin": {
+                "type": "string",
+                "description": "Returned origin."
+              },
+              "destination": {
+                "type": "string",
+                "description": "Returned destination."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "current_flight_number": {
+                "type": "string",
+                "description": "Returned current flight number."
+              },
+              "current_departure_local": {
+                "type": "string",
+                "description": "Returned current departure local."
+              },
+              "current_arrival_local": {
+                "type": "string",
+                "description": "Returned current arrival local."
+              },
+              "paid_fare_including_taxes": {
+                "type": "number",
+                "description": "Returned paid fare including taxes."
+              },
+              "change_fee": {
+                "type": "number",
+                "description": "Returned change fee."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              }
+            },
+            "required": [
+              "origin",
+              "destination",
+              "service_date",
+              "current_flight_number",
+              "current_departure_local",
+              "current_arrival_local",
+              "paid_fare_including_taxes",
+              "change_fee",
+              "currency"
+            ]
+          }
+        },
+        {
+          "name": "list_route_flights",
+          "description": "Retrieve scheduled flights for an origin, destination, and service date. Returns flights with flight_number (string), departure_local (ISO local datetime string), arrival_local (ISO local datetime string), total_price_including_taxes (number), currency (string), and availability (string). It does not rank or recommend a flight.",
+          "parameters": {
+            "origin": "string",
+            "destination": "string",
+            "service_date": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "flights": {
+                "type": "array",
+                "description": "Returned flights.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "flight_number": {
+                      "type": "string",
+                      "description": "Returned flight number."
+                    },
+                    "departure_local": {
+                      "type": "string",
+                      "description": "Returned departure local."
+                    },
+                    "arrival_local": {
+                      "type": "string",
+                      "description": "Returned arrival local."
+                    },
+                    "total_price_including_taxes": {
+                      "type": "number",
+                      "description": "Returned total price including taxes."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Returned currency."
+                    },
+                    "availability": {
+                      "type": "string",
+                      "description": "Returned availability."
+                    }
+                  },
+                  "required": [
+                    "flight_number",
+                    "departure_local",
+                    "arrival_local",
+                    "total_price_including_taxes",
+                    "currency",
+                    "availability"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "flights"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "current_itinerary",
+          "tool_name": "find_my_itinerary",
+          "tool_input": {
+            "destination": "Osaka",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "origin": "Taipei",
+            "destination": "Osaka",
+            "service_date": "2026-09-08",
+            "current_flight_number": "AW302",
+            "current_departure_local": "2026-09-08T14:30:00+08:00",
+            "current_arrival_local": "2026-09-08T18:20:00+09:00",
+            "paid_fare_including_taxes": 180,
+            "change_fee": 25,
+            "currency": "USD"
+          },
+          "waiting_speech_target": "正在查看你明天前往 Osaka 的既有行程與改訂費。"
+        },
+        {
+          "index": 2,
+          "label": "alternatives",
+          "tool_name": "list_route_flights",
+          "tool_input": {
+            "origin": "Taipei",
+            "destination": "Osaka",
+            "service_date": "2026-09-08"
+          },
+          "mocked_result": {
+            "flights": [
+              {
+                "flight_number": "AW304",
+                "departure_local": "2026-09-08T14:15:00+08:00",
+                "arrival_local": "2026-09-08T17:00:00+09:00",
+                "total_price_including_taxes": 170,
+                "currency": "USD",
+                "availability": "available"
+              },
+              {
+                "flight_number": "AW306",
+                "departure_local": "2026-09-08T15:20:00+08:00",
+                "arrival_local": "2026-09-08T17:25:00+09:00",
+                "total_price_including_taxes": 205,
+                "currency": "USD",
+                "availability": "available"
+              },
+              {
+                "flight_number": "AW308",
+                "departure_local": "2026-09-08T16:10:00+08:00",
+                "arrival_local": "2026-09-08T18:40:00+09:00",
+                "total_price_including_taxes": 155,
+                "currency": "USD",
+                "availability": "available"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查同一路線可改搭的航班與含稅價格。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "origin",
+              "argument_name": "origin"
+            },
+            {
+              "step_index": 1,
+              "result_field": "destination",
+              "argument_name": "destination"
+            },
+            {
+              "step_index": 1,
+              "result_field": "service_date",
+              "argument_name": "service_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "符合條件的是 AW306。加上 25 美元改訂費後，總共要多付 50 美元，並會提早 55 分鐘抵達。"
+    },
+    {
+      "id": "airline_travel_2step_meeting_alternative_003",
+      "category": "airline_travel",
+      "step_count": 2,
+      "user_prompt": "I have a 4 PM meeting in New York tomorrow. My current flight arrives too late. Is there another flight that arrives before the meeting?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "Destination and day identify the current trip. Every arrival is explicitly returned in the destination's local time zone.",
+      "flow_summary": "先確認既有航班確實晚於會議，再查同路線候選並用目的地當地時間找出唯一會前抵達者。",
+      "tools": [
+        {
+          "name": "find_my_itinerary",
+          "description": "Retrieve the signed-in user's itinerary matching a destination and relative day. Returns origin (string), destination (string), service_date (YYYY-MM-DD string), current_flight_number (string), arrival_local_date (YYYY-MM-DD string), arrival_local_time (HH:MM string), and arrival_time_zone (IANA time-zone string).",
+          "parameters": {
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "origin": {
+                "type": "string",
+                "description": "Returned origin."
+              },
+              "destination": {
+                "type": "string",
+                "description": "Returned destination."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "current_flight_number": {
+                "type": "string",
+                "description": "Returned current flight number."
+              },
+              "arrival_local_date": {
+                "type": "string",
+                "description": "Returned arrival local date."
+              },
+              "arrival_local_time": {
+                "type": "string",
+                "description": "Returned arrival local time."
+              },
+              "arrival_time_zone": {
+                "type": "string",
+                "description": "Returned arrival time zone."
+              }
+            },
+            "required": [
+              "origin",
+              "destination",
+              "service_date",
+              "current_flight_number",
+              "arrival_local_date",
+              "arrival_local_time",
+              "arrival_time_zone"
+            ]
+          }
+        },
+        {
+          "name": "list_route_flights",
+          "description": "Retrieve scheduled flights for an origin, destination, and service date. Returns flights with flight_number (string), arrival_local_date (YYYY-MM-DD string), arrival_local_time (HH:MM string), arrival_time_zone (IANA time-zone string), total_price_including_taxes (number), currency (string), and availability (string). It does not identify a best option.",
+          "parameters": {
+            "origin": "string",
+            "destination": "string",
+            "service_date": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "flights": {
+                "type": "array",
+                "description": "Returned flights.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "flight_number": {
+                      "type": "string",
+                      "description": "Returned flight number."
+                    },
+                    "arrival_local_date": {
+                      "type": "string",
+                      "description": "Returned arrival local date."
+                    },
+                    "arrival_local_time": {
+                      "type": "string",
+                      "description": "Returned arrival local time."
+                    },
+                    "arrival_time_zone": {
+                      "type": "string",
+                      "description": "Returned arrival time zone."
+                    },
+                    "total_price_including_taxes": {
+                      "type": "number",
+                      "description": "Returned total price including taxes."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Returned currency."
+                    },
+                    "availability": {
+                      "type": "string",
+                      "description": "Returned availability."
+                    }
+                  },
+                  "required": [
+                    "flight_number",
+                    "arrival_local_date",
+                    "arrival_local_time",
+                    "arrival_time_zone",
+                    "total_price_including_taxes",
+                    "currency",
+                    "availability"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "flights"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "current_itinerary",
+          "tool_name": "find_my_itinerary",
+          "tool_input": {
+            "destination": "New York",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "origin": "Chicago",
+            "destination": "New York",
+            "service_date": "2026-09-08",
+            "current_flight_number": "AW410",
+            "arrival_local_date": "2026-09-08",
+            "arrival_local_time": "16:50",
+            "arrival_time_zone": "America/New_York"
+          },
+          "waiting_speech_target": "正在查看你明天抵達 New York 的既有航班。"
+        },
+        {
+          "index": 2,
+          "label": "alternatives",
+          "tool_name": "list_route_flights",
+          "tool_input": {
+            "origin": "Chicago",
+            "destination": "New York",
+            "service_date": "2026-09-08"
+          },
+          "mocked_result": {
+            "flights": [
+              {
+                "flight_number": "AW412",
+                "arrival_local_date": "2026-09-08",
+                "arrival_local_time": "15:25",
+                "arrival_time_zone": "America/New_York",
+                "total_price_including_taxes": 190,
+                "currency": "USD",
+                "availability": "available"
+              },
+              {
+                "flight_number": "AW414",
+                "arrival_local_date": "2026-09-08",
+                "arrival_local_time": "16:10",
+                "arrival_time_zone": "America/New_York",
+                "total_price_including_taxes": 165,
+                "currency": "USD",
+                "availability": "available"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查同一路線其他航班的 New York 當地抵達時間。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "origin",
+              "argument_name": "origin"
+            },
+            {
+              "step_index": 1,
+              "result_field": "destination",
+              "argument_name": "destination"
+            },
+            {
+              "step_index": 1,
+              "result_field": "service_date",
+              "argument_name": "service_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "有，AW412 會在 New York 當地時間 15:25 抵達，早於 16:00 的會議。"
+    },
+    {
+      "id": "airline_travel_2step_last_rail_004",
+      "category": "airline_travel",
+      "step_count": 2,
+      "user_prompt": "If I take my next flight to New York tomorrow, can I still catch the last airport express into the city?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "Destination and day identify the trip. Exit and station-transfer buffers come from the transport service rather than model assumptions.",
+      "flow_summary": "先查目的地當地落地時間、機場與航廈，再查末班車和兩段必要 buffer，計算能否趕上。",
+      "tools": [
+        {
+          "name": "find_my_itinerary",
+          "description": "Retrieve the signed-in user's itinerary matching a destination and relative day. Returns arrival_airport (string), arrival_terminal (string), service_date (YYYY-MM-DD string), estimated_arrival_local_time (HH:MM string), and arrival_time_zone (IANA time-zone string).",
+          "parameters": {
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "arrival_airport": {
+                "type": "string",
+                "description": "Returned arrival airport."
+              },
+              "arrival_terminal": {
+                "type": "string",
+                "description": "Returned arrival terminal."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "estimated_arrival_local_time": {
+                "type": "string",
+                "description": "Returned estimated arrival local time."
+              },
+              "arrival_time_zone": {
+                "type": "string",
+                "description": "Returned arrival time zone."
+              }
+            },
+            "required": [
+              "arrival_airport",
+              "arrival_terminal",
+              "service_date",
+              "estimated_arrival_local_time",
+              "arrival_time_zone"
+            ]
+          }
+        },
+        {
+          "name": "get_airport_rail_service",
+          "description": "Retrieve the final airport-rail departure and access requirements for an airport terminal on a service date. Returns last_departure_local_time (HH:MM string), arrival_exit_buffer_minutes (number), terminal_to_station_minutes (number), and service_time_zone (IANA time-zone string).",
+          "parameters": {
+            "airport": "string",
+            "arrival_terminal": "string",
+            "service_date": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "last_departure_local_time": {
+                "type": "string",
+                "description": "Returned last departure local time."
+              },
+              "arrival_exit_buffer_minutes": {
+                "type": "number",
+                "description": "Returned arrival exit buffer minutes."
+              },
+              "terminal_to_station_minutes": {
+                "type": "number",
+                "description": "Returned terminal to station minutes."
+              },
+              "service_time_zone": {
+                "type": "string",
+                "description": "Returned service time zone."
+              }
+            },
+            "required": [
+              "last_departure_local_time",
+              "arrival_exit_buffer_minutes",
+              "terminal_to_station_minutes",
+              "service_time_zone"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "arrival",
+          "tool_name": "find_my_itinerary",
+          "tool_input": {
+            "destination": "New York",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "arrival_airport": "JFK",
+            "arrival_terminal": "Terminal 4",
+            "service_date": "2026-09-08",
+            "estimated_arrival_local_time": "22:05",
+            "arrival_time_zone": "America/New_York"
+          },
+          "waiting_speech_target": "正在查你明天抵達 New York 的時間與航廈。"
+        },
+        {
+          "index": 2,
+          "label": "rail_service",
+          "tool_name": "get_airport_rail_service",
+          "tool_input": {
+            "airport": "JFK",
+            "arrival_terminal": "Terminal 4",
+            "service_date": "2026-09-08"
+          },
+          "mocked_result": {
+            "last_departure_local_time": "23:00",
+            "arrival_exit_buffer_minutes": 35,
+            "terminal_to_station_minutes": 12,
+            "service_time_zone": "America/New_York"
+          },
+          "waiting_speech_target": "正在查該航廈前往市區的末班快線與轉乘時間。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "arrival_airport",
+              "argument_name": "airport"
+            },
+            {
+              "step_index": 1,
+              "result_field": "arrival_terminal",
+              "argument_name": "arrival_terminal"
+            },
+            {
+              "step_index": 1,
+              "result_field": "service_date",
+              "argument_name": "service_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "可以。預計 22:05 落地，加上 35 分鐘出站和 12 分鐘到車站，約 22:52 抵達月台，距 23:00 末班車還有 8 分鐘。"
+    },
+    {
+      "id": "airline_travel_2step_baggage_plan_005",
+      "category": "airline_travel",
+      "step_count": 2,
+      "user_prompt": "For my Taipei-to-Tokyo trip tomorrow, I have checked bags of 23 and 29 kilograms. What will I pay, and how much would I save if the second bag were 23 kilograms?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "User-stated route and day identify the itinerary. The first result exposes a meaningful baggage plan, not an opaque transition token.",
+      "flow_summary": "先查行程取得適用的行李方案，再查該方案規則，計算目前費用與第二件減重後的差額。",
+      "tools": [
+        {
+          "name": "find_my_itinerary",
+          "description": "Retrieve the signed-in user's itinerary for an origin, destination, and relative day. Returns flight_number (string), service_date (YYYY-MM-DD string), fare_name (string), and baggage_plan (string).",
+          "parameters": {
+            "origin": "string",
+            "destination": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "flight_number": {
+                "type": "string",
+                "description": "Returned flight number."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "fare_name": {
+                "type": "string",
+                "description": "Returned fare name."
+              },
+              "baggage_plan": {
+                "type": "string",
+                "description": "Returned baggage plan."
+              }
+            },
+            "required": [
+              "flight_number",
+              "service_date",
+              "fare_name",
+              "baggage_plan"
+            ]
+          }
+        },
+        {
+          "name": "get_checked_baggage_policy",
+          "description": "Retrieve checked-baggage rules for a named baggage plan. Returns currency (string), standard_weight_limit_kg (number), maximum_accepted_weight_kg (number), bag_base_fees (array of bag_number and fee records), and overweight_fee_per_bag (number). It does not calculate a total charge.",
+          "parameters": {
+            "baggage_plan": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "standard_weight_limit_kg": {
+                "type": "number",
+                "description": "Returned standard weight limit kg."
+              },
+              "maximum_accepted_weight_kg": {
+                "type": "number",
+                "description": "Returned maximum accepted weight kg."
+              },
+              "bag_base_fees": {
+                "type": "array",
+                "description": "Returned bag base fees.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "bag_number": {
+                      "type": "number",
+                      "description": "Returned bag number."
+                    },
+                    "fee": {
+                      "type": "number",
+                      "description": "Returned fee."
+                    }
+                  },
+                  "required": [
+                    "bag_number",
+                    "fee"
+                  ]
+                }
+              },
+              "overweight_fee_per_bag": {
+                "type": "number",
+                "description": "Returned overweight fee per bag."
+              }
+            },
+            "required": [
+              "currency",
+              "standard_weight_limit_kg",
+              "maximum_accepted_weight_kg",
+              "bag_base_fees",
+              "overweight_fee_per_bag"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "itinerary",
+          "tool_name": "find_my_itinerary",
+          "tool_input": {
+            "origin": "Taipei",
+            "destination": "Tokyo",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "flight_number": "AW217",
+            "service_date": "2026-09-08",
+            "fare_name": "Standard",
+            "baggage_plan": "Standard International"
+          },
+          "waiting_speech_target": "正在查看你明天從 Taipei 前往 Tokyo 的行程與行李方案。"
+        },
+        {
+          "index": 2,
+          "label": "baggage_policy",
+          "tool_name": "get_checked_baggage_policy",
+          "tool_input": {
+            "baggage_plan": "Standard International"
+          },
+          "mocked_result": {
+            "currency": "USD",
+            "standard_weight_limit_kg": 23,
+            "maximum_accepted_weight_kg": 32,
+            "bag_base_fees": [
+              {
+                "bag_number": 1,
+                "fee": 0
+              },
+              {
+                "bag_number": 2,
+                "fee": 45
+              }
+            ],
+            "overweight_fee_per_bag": 75
+          },
+          "waiting_speech_target": "正在查 Standard International 方案的托運行李規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "baggage_plan",
+              "argument_name": "baggage_plan"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "目前總共 120 美元。若第二件降到 23 公斤，就只需付第二件基本費 45 美元，因此可省 75 美元。"
+    }
+  ]
+}

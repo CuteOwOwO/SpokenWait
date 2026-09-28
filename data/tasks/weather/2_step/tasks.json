@@ -1,0 +1,1563 @@
+{
+  "category": "weather",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "weather_2step_surf_session_limits_001",
+      "category": "weather",
+      "step_count": 2,
+      "user_prompt": "For my Sunrise Longboard Basics booking, can the whole lesson run under the beach rules? If not, which intervals fail and why?",
+      "flow_summary": "先用課程名稱查預約、板型與分段海況；再把海灘、課程類型和板型帶入規則工具，逐段套用陣風與潮汐觸發的條件式限制。",
+      "tools": [
+        {
+          "name": "get_my_surf_session_forecast",
+          "description": "Return the signed-in user's matching surf booking and interval marine forecast for the selected lesson name. It does not return beach limits or decide safety.",
+          "parameters": {
+            "lesson_name": {
+              "type": "string",
+              "description": "The booked lesson name stated by the user.",
+              "enum": [
+                "Sunrise Longboard Basics",
+                "Weekend Shortboard Starter",
+                "Evening Reef Skills"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "lesson_name": {
+                "type": "string",
+                "description": "Returned lesson name."
+              },
+              "session_date": {
+                "type": "string",
+                "description": "Returned session date."
+              },
+              "beach_name": {
+                "type": "string",
+                "description": "Returned beach name."
+              },
+              "lesson_type": {
+                "type": "string",
+                "description": "Returned lesson type."
+              },
+              "board_type": {
+                "type": "string",
+                "description": "Returned board type."
+              },
+              "session_window": {
+                "type": "object",
+                "description": "Returned session window.",
+                "properties": {
+                  "starts_at": {
+                    "type": "string",
+                    "description": "Returned starts at."
+                  },
+                  "ends_at": {
+                    "type": "string",
+                    "description": "Returned ends at."
+                  }
+                },
+                "required": [
+                  "starts_at",
+                  "ends_at"
+                ]
+              },
+              "marine_intervals": {
+                "type": "array",
+                "description": "Returned marine intervals.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "starts_at": {
+                      "type": "string",
+                      "description": "Returned starts at."
+                    },
+                    "ends_at": {
+                      "type": "string",
+                      "description": "Returned ends at."
+                    },
+                    "wave_height_m": {
+                      "type": "number",
+                      "description": "Returned wave height m."
+                    },
+                    "wave_period_seconds": {
+                      "type": "number",
+                      "description": "Returned wave period seconds."
+                    },
+                    "wind_from": {
+                      "type": "string",
+                      "description": "Returned wind from."
+                    },
+                    "gust_kph": {
+                      "type": "integer",
+                      "description": "Returned gust kph."
+                    },
+                    "tide_phase": {
+                      "type": "string",
+                      "description": "Returned tide phase."
+                    },
+                    "tide_height_m": {
+                      "type": "number",
+                      "description": "Returned tide height m."
+                    }
+                  },
+                  "required": [
+                    "starts_at",
+                    "ends_at",
+                    "wave_height_m",
+                    "wave_period_seconds",
+                    "wind_from",
+                    "gust_kph",
+                    "tide_phase",
+                    "tide_height_m"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "lesson_name",
+              "session_date",
+              "beach_name",
+              "lesson_type",
+              "board_type",
+              "session_window",
+              "marine_intervals"
+            ]
+          }
+        },
+        {
+          "name": "get_beach_activity_limits",
+          "description": "Return raw base and conditional operating limits for the beach, lesson type, and board type returned by the booking service. It does not inspect forecast intervals or issue a verdict.",
+          "parameters": {
+            "beach_name": {
+              "type": "string",
+              "description": "The semantic beach name returned by the surf-session service."
+            },
+            "lesson_type": {
+              "type": "string",
+              "description": "The semantic lesson type returned by the surf-session service."
+            },
+            "board_type": {
+              "type": "string",
+              "description": "The semantic board type returned by the surf-session service."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "beach_name": {
+                "type": "string",
+                "description": "Returned beach name."
+              },
+              "lesson_type": {
+                "type": "string",
+                "description": "Returned lesson type."
+              },
+              "board_type": {
+                "type": "string",
+                "description": "Returned board type."
+              },
+              "base_limits": {
+                "type": "object",
+                "description": "Returned base limits.",
+                "properties": {
+                  "maximum_wave_height_m": {
+                    "type": "number",
+                    "description": "Returned maximum wave height m."
+                  },
+                  "minimum_wave_period_seconds": {
+                    "type": "integer",
+                    "description": "Returned minimum wave period seconds."
+                  }
+                },
+                "required": [
+                  "maximum_wave_height_m",
+                  "minimum_wave_period_seconds"
+                ]
+              },
+              "conditional_limits": {
+                "type": "array",
+                "description": "Returned conditional limits.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "when": {
+                      "type": "string",
+                      "description": "Returned when."
+                    },
+                    "meaning": {
+                      "type": "string",
+                      "description": "Returned meaning."
+                    },
+                    "maximum_wave_height_m": {
+                      "type": "number",
+                      "description": "Returned maximum wave height m."
+                    },
+                    "minimum_tide_height_m": {
+                      "type": "number",
+                      "description": "Returned minimum tide height m."
+                    }
+                  },
+                  "required": [
+                    "when"
+                  ]
+                }
+              },
+              "boundary_rule": {
+                "type": "string",
+                "description": "Returned boundary rule."
+              },
+              "coverage_rule": {
+                "type": "string",
+                "description": "Returned coverage rule."
+              }
+            },
+            "required": [
+              "beach_name",
+              "lesson_type",
+              "board_type",
+              "base_limits",
+              "conditional_limits",
+              "boundary_rule",
+              "coverage_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "session_forecast",
+          "tool_name": "get_my_surf_session_forecast",
+          "tool_input": {
+            "lesson_name": "Sunrise Longboard Basics"
+          },
+          "mocked_result": {
+            "lesson_name": "Sunrise Longboard Basics",
+            "session_date": "2026-09-14",
+            "beach_name": "Crescent Beach",
+            "lesson_type": "beginner group lesson",
+            "board_type": "longboard",
+            "session_window": {
+              "starts_at": "2026-09-14T09:00:00+08:00",
+              "ends_at": "2026-09-14T11:00:00+08:00"
+            },
+            "marine_intervals": [
+              {
+                "starts_at": "09:00",
+                "ends_at": "09:30",
+                "wave_height_m": 0.8,
+                "wave_period_seconds": 8,
+                "wind_from": "east",
+                "gust_kph": 20,
+                "tide_phase": "rising",
+                "tide_height_m": 1.1
+              },
+              {
+                "starts_at": "09:30",
+                "ends_at": "10:00",
+                "wave_height_m": 1,
+                "wave_period_seconds": 7.5,
+                "wind_from": "east",
+                "gust_kph": 22,
+                "tide_phase": "rising",
+                "tide_height_m": 1
+              },
+              {
+                "starts_at": "10:00",
+                "ends_at": "10:30",
+                "wave_height_m": 1.1,
+                "wave_period_seconds": 8,
+                "wind_from": "east",
+                "gust_kph": 26,
+                "tide_phase": "high",
+                "tide_height_m": 1.2
+              },
+              {
+                "starts_at": "10:30",
+                "ends_at": "11:00",
+                "wave_height_m": 0.8,
+                "wave_period_seconds": 8,
+                "wind_from": "east",
+                "gust_kph": 20,
+                "tide_phase": "outgoing",
+                "tide_height_m": 0.7
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 Sunrise Longboard Basics 的預約內容和每半小時海況。",
+          "case_insensitive_arguments": [
+            "lesson_name"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "beach_limits",
+          "tool_name": "get_beach_activity_limits",
+          "tool_input": {
+            "beach_name": "Crescent Beach",
+            "lesson_type": "beginner group lesson",
+            "board_type": "longboard"
+          },
+          "mocked_result": {
+            "beach_name": "Crescent Beach",
+            "lesson_type": "beginner group lesson",
+            "board_type": "longboard",
+            "base_limits": {
+              "maximum_wave_height_m": 1.2,
+              "minimum_wave_period_seconds": 7
+            },
+            "conditional_limits": [
+              {
+                "when": "wind_from is east and gust_kph is at least 24",
+                "meaning": "East is onshore at Crescent Beach.",
+                "maximum_wave_height_m": 0.9
+              },
+              {
+                "when": "tide_phase is outgoing",
+                "minimum_tide_height_m": 0.8
+              }
+            ],
+            "boundary_rule": "Values equal to a minimum or maximum are allowed.",
+            "coverage_rule": "Every forecast interval in the booked lesson must satisfy every applicable rule."
+          },
+          "waiting_speech_target": "正在核對 Crescent Beach 初學者長板團體課的基本與條件式限制。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "beach_name",
+              "argument_name": "beach_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "lesson_type",
+              "argument_name": "lesson_type"
+            },
+            {
+              "step_index": 1,
+              "result_field": "board_type",
+              "argument_name": "board_type"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The whole lesson cannot run under the rules. The 10:00–10:30 interval fails because the 26 kph onshore gust tightens the wave limit to 0.9 meters, while waves are 1.1 meters. The 10:30–11:00 interval fails because the outgoing-tide height is 0.7 meters, below the 0.8-meter minimum. The first two intervals pass.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The selected lesson name is a small public enum; the service discovers the date, beach, lesson type, board type, and forecast needed downstream.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步查課程與分段海況；第二步用查到的海灘、課程類型和板型取得條件式規則；最後逐段套用所有適用規則。",
+          "steps": [
+            "Step 1：以 Sunrise Longboard Basics 查詢，取得 Crescent Beach、beginner group lesson、longboard，以及09:00至11:00四段浪高、週期、風向、陣風與潮汐。",
+            "Step 2：把 Crescent Beach、beginner group lesson、longboard 傳入規則工具；工具回傳基本限制為浪高至多1.2公尺、週期至少7秒，另回傳兩條附加規則：東風且陣風至少24公里時浪高上限收緊為0.9公尺；退潮時潮高至少0.8公尺。",
+            "模型判斷：10:00至10:30的東風陣風26公里觸發0.9公尺上限，實際浪高1.1公尺，所以不合格。",
+            "模型判斷：10:30至11:00正值退潮，潮高0.7公尺低於0.8公尺，所以不合格；前兩段通過全部適用規則，因此整堂課不能照常進行。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_surf_session_forecast",
+            "input_example_zh": "選擇 Sunrise Longboard Basics。",
+            "output_example_zh": "回傳預約日期、Crescent Beach、初學者長板團體課及四段浪高、週期、風向、陣風與潮汐。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_beach_activity_limits",
+            "input_example_zh": "傳入 Crescent Beach、beginner group lesson 與 longboard。",
+            "output_example_zh": "回傳基本限制，以及迎岸強陣風與退潮時才生效的附加規則。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather_2step_hike_phase_rain_002",
+      "category": "weather",
+      "step_count": 2,
+      "user_prompt": "I want to hike Cedar Ridge Loop from North Gate on September 9, starting at 7 AM. At my usual pace, which route sections will meet rain or snow before I return?",
+      "flow_summary": "先用路線與登山口查本人平常速度下的各段預計耗時；模型從七點依序累加出路段時窗，再用山名與使用者給的日期查服務端自行分區的雨雪預報。",
+      "tools": [
+        {
+          "name": "get_my_hike_timing",
+          "description": "Return the mountain and estimated route-phase durations at the signed-in hiker's saved usual pace for the selected route and trailhead. It does not accept a start time, calculate clock times, or return weather.",
+          "parameters": {
+            "route_name": {
+              "type": "string",
+              "description": "The hiking route stated by the user.",
+              "enum": [
+                "Cedar Ridge Loop",
+                "Maple Falls Trail",
+                "Granite Peak Traverse"
+              ]
+            },
+            "trailhead": {
+              "type": "string",
+              "description": "The route trailhead stated by the user.",
+              "enum": [
+                "North Gate",
+                "South Gate",
+                "Lake Entrance"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "route_name": {
+                "type": "string",
+                "description": "Returned route name."
+              },
+              "trailhead": {
+                "type": "string",
+                "description": "Returned trailhead."
+              },
+              "mountain_name": {
+                "type": "string",
+                "description": "Returned mountain name."
+              },
+              "pace_profile": {
+                "type": "string",
+                "description": "Returned pace profile."
+              },
+              "route_phases": {
+                "type": "array",
+                "description": "Returned route phases.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "phase_name": {
+                      "type": "string",
+                      "description": "Returned phase name."
+                    },
+                    "estimated_minutes": {
+                      "type": "integer",
+                      "description": "Returned estimated minutes."
+                    },
+                    "weather_zone": {
+                      "type": "string",
+                      "description": "Returned weather zone."
+                    },
+                    "elevation_range_m": {
+                      "type": "string",
+                      "description": "Returned elevation range m."
+                    }
+                  },
+                  "required": [
+                    "phase_name",
+                    "estimated_minutes",
+                    "weather_zone",
+                    "elevation_range_m"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "route_name",
+              "trailhead",
+              "mountain_name",
+              "pace_profile",
+              "route_phases"
+            ]
+          }
+        },
+        {
+          "name": "get_mountain_hourly_weather",
+          "description": "Return precipitation windows for the weather service's own elevation zones on the supplied mountain and date. The caller does not choose elevation ranges, and the tool does not map weather to route phases.",
+          "parameters": {
+            "mountain_name": {
+              "type": "string",
+              "description": "The semantic mountain name returned by the hike service."
+            },
+            "forecast_date": {
+              "type": "string",
+              "description": "The local hike date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "mountain_name": {
+                "type": "string",
+                "description": "Returned mountain name."
+              },
+              "forecast_date": {
+                "type": "string",
+                "description": "Returned forecast date."
+              },
+              "zone_definitions": {
+                "type": "array",
+                "description": "Returned zone definitions.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "zone_name": {
+                      "type": "string",
+                      "description": "Returned zone name."
+                    },
+                    "elevation_range_m": {
+                      "type": "string",
+                      "description": "Returned elevation range m."
+                    }
+                  },
+                  "required": [
+                    "zone_name",
+                    "elevation_range_m"
+                  ]
+                }
+              },
+              "precipitation_windows": {
+                "type": "array",
+                "description": "Returned precipitation windows.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "zone_name": {
+                      "type": "string",
+                      "description": "Returned zone name."
+                    },
+                    "starts_at": {
+                      "type": "string",
+                      "description": "Returned starts at."
+                    },
+                    "ends_at": {
+                      "type": "string",
+                      "description": "Returned ends at."
+                    },
+                    "precipitation_type": {
+                      "type": "string",
+                      "description": "Returned precipitation type."
+                    }
+                  },
+                  "required": [
+                    "zone_name",
+                    "starts_at",
+                    "ends_at",
+                    "precipitation_type"
+                  ]
+                }
+              },
+              "interval_rule": {
+                "type": "string",
+                "description": "Returned interval rule."
+              }
+            },
+            "required": [
+              "mountain_name",
+              "forecast_date",
+              "zone_definitions",
+              "precipitation_windows",
+              "interval_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "hike_timing",
+          "tool_name": "get_my_hike_timing",
+          "tool_input": {
+            "route_name": "Cedar Ridge Loop",
+            "trailhead": "North Gate"
+          },
+          "mocked_result": {
+            "route_name": "Cedar Ridge Loop",
+            "trailhead": "North Gate",
+            "mountain_name": "Mount Cedar",
+            "pace_profile": "saved usual pace",
+            "route_phases": [
+              {
+                "phase_name": "lower approach",
+                "estimated_minutes": 80,
+                "weather_zone": "lower",
+                "elevation_range_m": "800–1100"
+              },
+              {
+                "phase_name": "ridge climb",
+                "estimated_minutes": 110,
+                "weather_zone": "middle",
+                "elevation_range_m": "1200–1700"
+              },
+              {
+                "phase_name": "summit stop",
+                "estimated_minutes": 40,
+                "weather_zone": "summit",
+                "elevation_range_m": "1900–2050"
+              },
+              {
+                "phase_name": "upper descent",
+                "estimated_minutes": 60,
+                "weather_zone": "summit",
+                "elevation_range_m": "1800–2050"
+              },
+              {
+                "phase_name": "lower descent",
+                "estimated_minutes": 100,
+                "weather_zone": "lower",
+                "elevation_range_m": "800–1200"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 Cedar Ridge Loop 從 North Gate 出發、依你平常速度估算的各路段耗時。"
+        },
+        {
+          "index": 2,
+          "label": "mountain_weather",
+          "tool_name": "get_mountain_hourly_weather",
+          "tool_input": {
+            "mountain_name": "Mount Cedar",
+            "forecast_date": "2026-09-09"
+          },
+          "mocked_result": {
+            "mountain_name": "Mount Cedar",
+            "forecast_date": "2026-09-09",
+            "zone_definitions": [
+              {
+                "zone_name": "lower",
+                "elevation_range_m": "800–1200"
+              },
+              {
+                "zone_name": "middle",
+                "elevation_range_m": "1200–1800"
+              },
+              {
+                "zone_name": "summit",
+                "elevation_range_m": "1800–2050"
+              }
+            ],
+            "precipitation_windows": [
+              {
+                "zone_name": "lower",
+                "starts_at": "12:00",
+                "ends_at": "14:00",
+                "precipitation_type": "rain"
+              },
+              {
+                "zone_name": "middle",
+                "starts_at": "09:00",
+                "ends_at": "10:00",
+                "precipitation_type": "rain"
+              },
+              {
+                "zone_name": "summit",
+                "starts_at": "10:00",
+                "ends_at": "12:00",
+                "precipitation_type": "snow"
+              }
+            ],
+            "interval_rule": "A route phase meets precipitation when its clock-time interval has positive overlap with a precipitation window in the same weather zone."
+          },
+          "waiting_speech_target": "正在查看 Mount Cedar 九月九日各海拔分區的雨雪時窗。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "mountain_name",
+              "argument_name": "mountain_name"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Starting at 7:00 AM, you finish at 1:30 PM. The ridge climb meets rain from 9:00 to 10:00 AM. The summit stop and upper descent meet snow from 10:10 to 11:50 AM. The lower descent meets rain from noon until you return at 1:30 PM. The lower approach stays dry.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Route and trailhead are bounded semantic choices; the tool returns durations rather than precomputed clock times, so the model must use the user's 7 AM start and do the schedule arithmetic itself.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步取得各路段預計耗時；模型用使用者說的07:00自行排出時程；第二步查官方海拔分區雨雪，再將路段時窗與同分區的雨雪時窗相交。",
+          "steps": [
+            "Step 1：以 Cedar Ridge Loop 和 North Gate 查詢，取得 Mount Cedar，以及五段路程的預計耗時80、110、40、60、100分鐘和各自所屬的 lower、middle、summit 分區。",
+            "模型先計算時程：五段依序為07:00至08:20、08:20至10:10、10:10至10:50、10:50至11:50、11:50至13:30。",
+            "Step 2：把 Step 1 的 Mount Cedar 與使用者說的2026-09-09傳入天氣工具；工具回傳官方 lower、middle、summit 分區，以及 middle 09:00至10:00下雨、summit 10:00至12:00下雪、lower 12:00至14:00下雨。",
+            "模型比對後得到：ridge climb 在09:00至10:00遇雨；summit stop 與 upper descent 在10:10至11:50遇雪；lower descent 從12:00淋雨至13:30返回；lower approach 維持乾燥。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_hike_timing",
+            "input_example_zh": "選擇 Cedar Ridge Loop 與 North Gate。",
+            "output_example_zh": "回傳 Mount Cedar，以及五段路程各自的預計分鐘數和所屬天氣分區，不直接給時鐘時間。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_mountain_hourly_weather",
+            "input_example_zh": "傳入 Mount Cedar 與使用者說的 2026-09-09。",
+            "output_example_zh": "回傳服務端自行劃分的 lower、middle、summit 分區，以及各區雨雪時窗。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather_2step_mountain_pass_chains_004",
+      "category": "weather",
+      "step_count": 2,
+      "user_prompt": "For my drive from Pine City to Lake Town on September 20, leaving at 7 AM, at which mountain passes will I actually need chains?",
+      "flow_summary": "先用起點、終點、日期與出發時間規劃路線，取得全部山口及預計進出時間；再把日期及全部山口名稱一次傳入路況服務，將雪鏈生效窗和通過窗相交。",
+      "tools": [
+        {
+          "name": "get_mountain_drive_schedule",
+          "description": "Plan the selected intercity route and return every mountain pass with estimated entry and exit times. It does not return road restrictions.",
+          "parameters": {
+            "route_name": {
+              "type": "string",
+              "description": "The origin-to-destination route stated by the user.",
+              "enum": [
+                "Pine City to Lake Town",
+                "Lake Town to Pine City",
+                "River Junction to Lake Town"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local travel date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "clock_time": {
+              "type": "string",
+              "description": "The local departure time stated by the user, in 24-hour HH:MM format.",
+              "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "origin": {
+                "type": "string",
+                "description": "Returned origin."
+              },
+              "destination": {
+                "type": "string",
+                "description": "Returned destination."
+              },
+              "travel_date": {
+                "type": "string",
+                "description": "Returned travel date."
+              },
+              "departure_time": {
+                "type": "string",
+                "description": "Returned departure time."
+              },
+              "pass_names": {
+                "type": "array",
+                "description": "Returned pass names.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              },
+              "pass_schedule": {
+                "type": "array",
+                "description": "Returned pass schedule.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "pass_name": {
+                      "type": "string",
+                      "description": "Returned pass name."
+                    },
+                    "estimated_entry": {
+                      "type": "string",
+                      "description": "Returned estimated entry."
+                    },
+                    "estimated_exit": {
+                      "type": "string",
+                      "description": "Returned estimated exit."
+                    }
+                  },
+                  "required": [
+                    "pass_name",
+                    "estimated_entry",
+                    "estimated_exit"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "origin",
+              "destination",
+              "travel_date",
+              "departure_time",
+              "pass_names",
+              "pass_schedule"
+            ]
+          }
+        },
+        {
+          "name": "get_pass_winter_requirements",
+          "description": "Return weather and chain-requirement windows for every supplied mountain pass on the supplied date. All pass names should be sent together. It does not compare the windows with the travel schedule.",
+          "parameters": {
+            "travel_date": {
+              "type": "string",
+              "description": "The local travel date returned by the drive-schedule service, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "pass_names": {
+              "type": "array",
+              "description": "Every semantic mountain-pass name returned by the drive-schedule service, supplied together in one call.",
+              "items": {
+                "type": "string",
+                "description": "One semantic mountain-pass name."
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "travel_date": {
+                "type": "string",
+                "description": "Returned travel date."
+              },
+              "requirements": {
+                "type": "array",
+                "description": "Returned requirements.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "pass_name": {
+                      "type": "string",
+                      "description": "Returned pass name."
+                    },
+                    "chain_required_from": {
+                      "type": "string",
+                      "description": "Returned chain required from."
+                    },
+                    "chain_required_until": {
+                      "type": "string",
+                      "description": "Returned chain required until."
+                    },
+                    "condition": {
+                      "type": "string",
+                      "description": "Returned condition."
+                    }
+                  },
+                  "required": [
+                    "pass_name",
+                    "chain_required_from",
+                    "chain_required_until",
+                    "condition"
+                  ]
+                }
+              },
+              "overlap_rule": {
+                "type": "string",
+                "description": "Returned overlap rule."
+              }
+            },
+            "required": [
+              "travel_date",
+              "requirements",
+              "overlap_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "drive_schedule",
+          "tool_name": "get_mountain_drive_schedule",
+          "tool_input": {
+            "route_name": "Pine City to Lake Town",
+            "event_date": "2026-09-20",
+            "clock_time": "07:00"
+          },
+          "mocked_result": {
+            "origin": "Pine City",
+            "destination": "Lake Town",
+            "travel_date": "2026-09-20",
+            "departure_time": "07:00",
+            "pass_names": [
+              "Pine Pass",
+              "Eagle Gap",
+              "Cloud Notch"
+            ],
+            "pass_schedule": [
+              {
+                "pass_name": "Pine Pass",
+                "estimated_entry": "07:40",
+                "estimated_exit": "08:05"
+              },
+              {
+                "pass_name": "Eagle Gap",
+                "estimated_entry": "09:20",
+                "estimated_exit": "09:50"
+              },
+              {
+                "pass_name": "Cloud Notch",
+                "estimated_entry": "11:10",
+                "estimated_exit": "11:35"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在規劃九月二十日早上七點從 Pine City 到 Lake Town 的山路行程。"
+        },
+        {
+          "index": 2,
+          "label": "pass_requirements",
+          "tool_name": "get_pass_winter_requirements",
+          "tool_input": {
+            "travel_date": "2026-09-20",
+            "pass_names": [
+              "Pine Pass",
+              "Eagle Gap",
+              "Cloud Notch"
+            ]
+          },
+          "mocked_result": {
+            "travel_date": "2026-09-20",
+            "requirements": [
+              {
+                "pass_name": "Pine Pass",
+                "chain_required_from": "06:00",
+                "chain_required_until": "08:00",
+                "condition": "packed snow"
+              },
+              {
+                "pass_name": "Eagle Gap",
+                "chain_required_from": "09:45",
+                "chain_required_until": "12:00",
+                "condition": "freezing rain"
+              },
+              {
+                "pass_name": "Cloud Notch",
+                "chain_required_from": "12:00",
+                "chain_required_until": "15:00",
+                "condition": "heavy snow"
+              }
+            ],
+            "overlap_rule": "Chains are required if any part of the estimated entry-to-exit interval overlaps a requirement window; touching exactly at an endpoint does not count as overlap."
+          },
+          "waiting_speech_target": "正在一次核對 Pine Pass、Eagle Gap 和 Cloud Notch 當天的雪鏈管制時窗。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "travel_date",
+              "argument_name": "travel_date"
+            },
+            {
+              "step_index": 1,
+              "result_field": "pass_names",
+              "argument_name": "pass_names"
+            }
+          ],
+          "order_insensitive_arguments": [
+            "pass_names"
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "pass_names",
+            "result_field": "requirements",
+            "input_key_fields": [
+              "$value"
+            ],
+            "result_key_fields": [
+              "pass_name"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "You will need chains at Pine Pass and Eagle Gap. Pine Pass overlaps the requirement until 8:00 AM, and Eagle Gap overlaps from 9:45 to 9:50. You should clear Cloud Notch before its noon requirement begins.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Origin and destination are bounded semantic choices, while the date and departure time materially determine the pass schedule; all discovered pass names must then be forwarded as one semantic list.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步規劃路線並取得各山口通過時段；第二步一次查完全部山口的雪鏈管制窗；最後逐一判斷是否有實質時間重疊。",
+          "steps": [
+            "Step 1：以 Pine City to Lake Town、2026-09-20和07:00規劃路線，取得 Pine Pass 07:40至08:05、Eagle Gap 09:20至09:50、Cloud Notch 11:10至11:35。",
+            "Step 2：把2026-09-20與三個山口名稱組成同一個清單一次傳入；工具分別回傳 Pine Pass 06:00至08:00、Eagle Gap 09:45至12:00、Cloud Notch 12:00至15:00的雪鏈管制窗，並說明只有正時間重疊才算需要。",
+            "模型比較：Pine Pass 重疊20分鐘，Eagle Gap 重疊5分鐘，因此兩處需要雪鏈；Cloud Notch 在12:00管制前已於11:35離開，因此不需要。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_mountain_drive_schedule",
+            "input_example_zh": "選擇 Pine City to Lake Town，並傳入 2026-09-20 與07:00。",
+            "output_example_zh": "規劃路線並回傳三個山口名稱及各自進出時間。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_pass_winter_requirements",
+            "input_example_zh": "一次傳入日期與全部三個山口名稱。",
+            "output_example_zh": "分別回傳三個山口的雪鏈管制時窗，不替模型判斷是否遇到。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather_2step_cycling_crosswind_003",
+      "category": "weather",
+      "step_count": 2,
+      "user_prompt": "On my September 18 ride, which route segments exceed my crosswind-component limit, and for how long in total?",
+      "flow_summary": "先查本人路線、各段行進方位角、時窗及個人側風分量上限；再查逐時來風方位角與陣風，依夾角公式計算每段的側風分量。",
+      "tools": [
+        {
+          "name": "get_my_cycling_route_plan",
+          "description": "Return the signed-in rider's route segments, timing, travel direction, forecast location, and saved crosswind rule for the supplied date. It does not return weather or a verdict.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local ride date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "ride_date": {
+                "type": "string",
+                "description": "Returned ride date."
+              },
+              "location_name": {
+                "type": "string",
+                "description": "Returned location name."
+              },
+              "maximum_crosswind_component_kph": {
+                "type": "integer",
+                "description": "Returned maximum crosswind component kph."
+              },
+              "direction_convention": {
+                "type": "string",
+                "description": "Returned direction convention."
+              },
+              "crosswind_rule": {
+                "type": "string",
+                "description": "Returned crosswind rule."
+              },
+              "route_segments": {
+                "type": "array",
+                "description": "Returned route segments.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "segment_name": {
+                      "type": "string",
+                      "description": "Returned segment name."
+                    },
+                    "starts_at": {
+                      "type": "string",
+                      "description": "Returned starts at."
+                    },
+                    "ends_at": {
+                      "type": "string",
+                      "description": "Returned ends at."
+                    },
+                    "travel_direction": {
+                      "type": "string",
+                      "description": "Returned travel direction."
+                    },
+                    "travel_bearing_degrees": {
+                      "type": "integer",
+                      "description": "Returned travel bearing degrees."
+                    }
+                  },
+                  "required": [
+                    "segment_name",
+                    "starts_at",
+                    "ends_at",
+                    "travel_direction",
+                    "travel_bearing_degrees"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "ride_date",
+              "location_name",
+              "maximum_crosswind_component_kph",
+              "direction_convention",
+              "crosswind_rule",
+              "route_segments"
+            ]
+          }
+        },
+        {
+          "name": "get_hourly_wind_for_location",
+          "description": "Return hourly incoming wind direction and gust for the semantic location and date returned by the route service. It does not calculate crosswind exposure.",
+          "parameters": {
+            "location_name": {
+              "type": "string",
+              "description": "The semantic forecast location returned by the cycling route service."
+            },
+            "forecast_date": {
+              "type": "string",
+              "description": "The local ride date returned by the cycling route service, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "location_name": {
+                "type": "string",
+                "description": "Returned location name."
+              },
+              "forecast_date": {
+                "type": "string",
+                "description": "Returned forecast date."
+              },
+              "hourly_wind": {
+                "type": "array",
+                "description": "Returned hourly wind.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "hour_start": {
+                      "type": "string",
+                      "description": "Returned hour start."
+                    },
+                    "wind_from": {
+                      "type": "string",
+                      "description": "Returned wind from."
+                    },
+                    "wind_from_bearing_degrees": {
+                      "type": "integer",
+                      "description": "Returned wind from bearing degrees."
+                    },
+                    "gust_kph": {
+                      "type": "integer",
+                      "description": "Returned gust kph."
+                    }
+                  },
+                  "required": [
+                    "hour_start",
+                    "wind_from",
+                    "wind_from_bearing_degrees",
+                    "gust_kph"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "location_name",
+              "forecast_date",
+              "hourly_wind"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "route_plan",
+          "tool_name": "get_my_cycling_route_plan",
+          "tool_input": {
+            "event_date": "2026-09-18"
+          },
+          "mocked_result": {
+            "ride_date": "2026-09-18",
+            "location_name": "East River Corridor",
+            "maximum_crosswind_component_kph": 32,
+            "direction_convention": "Compass bearings use 0 degrees for north, 90 for east, 180 for south, and 270 for west.",
+            "crosswind_rule": "Crosswind component equals gust_kph multiplied by the absolute sine of the angle between travel bearing and wind-from bearing. Use the smaller equivalent angle from 0 to 180 degrees. A component equal to the limit is allowed; only a greater value exceeds it.",
+            "route_segments": [
+              {
+                "segment_name": "Riverside straight",
+                "starts_at": "08:00",
+                "ends_at": "09:00",
+                "travel_direction": "east",
+                "travel_bearing_degrees": 90
+              },
+              {
+                "segment_name": "Canal climb",
+                "starts_at": "09:00",
+                "ends_at": "10:00",
+                "travel_direction": "north",
+                "travel_bearing_degrees": 0
+              },
+              {
+                "segment_name": "Levee return",
+                "starts_at": "10:00",
+                "ends_at": "11:00",
+                "travel_direction": "west",
+                "travel_bearing_degrees": 270
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看九月十八日你的單車路段、行進方位角、時程與側風分量上限。"
+        },
+        {
+          "index": 2,
+          "label": "wind_forecast",
+          "tool_name": "get_hourly_wind_for_location",
+          "tool_input": {
+            "location_name": "East River Corridor",
+            "forecast_date": "2026-09-18"
+          },
+          "mocked_result": {
+            "location_name": "East River Corridor",
+            "forecast_date": "2026-09-18",
+            "hourly_wind": [
+              {
+                "hour_start": "08:00",
+                "wind_from": "north",
+                "wind_from_bearing_degrees": 0,
+                "gust_kph": 28
+              },
+              {
+                "hour_start": "09:00",
+                "wind_from": "west",
+                "wind_from_bearing_degrees": 270,
+                "gust_kph": 36
+              },
+              {
+                "hour_start": "10:00",
+                "wind_from": "south",
+                "wind_from_bearing_degrees": 180,
+                "gust_kph": 34
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 East River Corridor 騎乘期間的逐時風向與陣風。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "location_name",
+              "argument_name": "location_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "ride_date",
+              "argument_name": "forecast_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The Canal climb and Levee return exceed your crosswind-component limit, for two hours total. In all three intervals the wind is perpendicular to travel, so each crosswind component equals the full gust: 28, 36, and 34 kph respectively. Only the latter two exceed 32 kph.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The user says only the ride date; route geometry, forecast area, and the saved personal limit are account facts.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步取得路段方位與個人上限；第二步取得逐時來風方位與陣風；模型依夾角公式算側風分量，而不是把所有風速直接當成側風。",
+          "steps": [
+            "Step 1：以2026-09-18查詢本人路線，取得三段時窗、行進方位角、East River Corridor，以及側風分量上限32公里。工具同時定義側風分量為陣風乘上行進與來風夾角之正弦絕對值。",
+            "Step 2：把 East River Corridor 與2026-09-18傳入風況工具，取得08:00北風28、09:00西風36、10:00南風34公里，以及相應來風方位角。",
+            "模型計算：三個時段的來風都與行進方向相差90度，因此側風分量分別等於28、36、34公里。Riverside straight未超過32；Canal climb與Levee return超標，合計兩小時。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_cycling_route_plan",
+            "input_example_zh": "查 2026-09-18 的本人騎乘計畫。",
+            "output_example_zh": "回傳三段路線的行進方位角與時段、East River Corridor、32公里上限及側風分量公式。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_hourly_wind_for_location",
+            "input_example_zh": "傳入 East River Corridor 與 2026-09-18。",
+            "output_example_zh": "回傳08至11時的來風方位角與陣風28、36、34公里。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "weather_2step_observatory_clear_windows_005",
+      "category": "weather",
+      "step_count": 2,
+      "user_prompt": "I want to observe near Mount Aurora on September 22. Which of my saved targets will have a long enough clear window at the nearest observatory?",
+      "flow_summary": "先用山名與日期尋找最近的合作觀測站，並取得當晚可觀測時段及本人各目標所需的連續晴空時間；再以查到的觀測站與日期取得逐半小時雲量。",
+      "tools": [
+        {
+          "name": "find_nearest_observatory_plan",
+          "description": "Find the nearest participating observatory to the selected mountain and return its available observation window plus the signed-in user's saved targets and required continuous clear duration for the supplied date. It does not return cloud cover.",
+          "parameters": {
+            "mountain_name": {
+              "type": "string",
+              "description": "The mountain near which the user wants to observe.",
+              "enum": [
+                "Mount Aurora",
+                "Mount Cedar",
+                "Mount Willow"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local observation date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "mountain_name": {
+                "type": "string",
+                "description": "Returned mountain name."
+              },
+              "session_date": {
+                "type": "string",
+                "description": "Returned session date."
+              },
+              "nearest_observatory": {
+                "type": "string",
+                "description": "Returned nearest observatory."
+              },
+              "distance_from_mountain_km": {
+                "type": "number",
+                "description": "Returned distance from mountain km."
+              },
+              "observation_window": {
+                "type": "object",
+                "description": "Returned observation window.",
+                "properties": {
+                  "starts_at": {
+                    "type": "string",
+                    "description": "Returned starts at."
+                  },
+                  "ends_at": {
+                    "type": "string",
+                    "description": "Returned ends at."
+                  }
+                },
+                "required": [
+                  "starts_at",
+                  "ends_at"
+                ]
+              },
+              "clear_definition": {
+                "type": "string",
+                "description": "Returned clear definition."
+              },
+              "targets": {
+                "type": "array",
+                "description": "Returned targets.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "target_name": {
+                      "type": "string",
+                      "description": "Returned target name."
+                    },
+                    "required_continuous_clear_minutes": {
+                      "type": "integer",
+                      "description": "Returned required continuous clear minutes."
+                    }
+                  },
+                  "required": [
+                    "target_name",
+                    "required_continuous_clear_minutes"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "mountain_name",
+              "session_date",
+              "nearest_observatory",
+              "distance_from_mountain_km",
+              "observation_window",
+              "clear_definition",
+              "targets"
+            ]
+          }
+        },
+        {
+          "name": "get_observatory_cloud_forecast",
+          "description": "Return half-hour cloud cover for the observatory and date returned by the session service. It does not select targets or clear windows.",
+          "parameters": {
+            "observatory_name": {
+              "type": "string",
+              "description": "The semantic observatory name returned by the session service."
+            },
+            "forecast_date": {
+              "type": "string",
+              "description": "The local session date returned by the session service, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "observatory_name": {
+                "type": "string",
+                "description": "Returned observatory name."
+              },
+              "forecast_date": {
+                "type": "string",
+                "description": "Returned forecast date."
+              },
+              "interval_minutes": {
+                "type": "integer",
+                "description": "Returned interval minutes."
+              },
+              "cloud_cover_intervals": {
+                "type": "array",
+                "description": "Returned cloud cover intervals.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "starts_at": {
+                      "type": "string",
+                      "description": "Returned starts at."
+                    },
+                    "cloud_cover_percent": {
+                      "type": "integer",
+                      "description": "Returned cloud cover percent."
+                    }
+                  },
+                  "required": [
+                    "starts_at",
+                    "cloud_cover_percent"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "observatory_name",
+              "forecast_date",
+              "interval_minutes",
+              "cloud_cover_intervals"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "observation_plan",
+          "tool_name": "find_nearest_observatory_plan",
+          "tool_input": {
+            "mountain_name": "Mount Aurora",
+            "event_date": "2026-09-22"
+          },
+          "mocked_result": {
+            "mountain_name": "Mount Aurora",
+            "session_date": "2026-09-22",
+            "nearest_observatory": "Summit Sky Observatory",
+            "distance_from_mountain_km": 6.4,
+            "observation_window": {
+              "starts_at": "20:00",
+              "ends_at": "23:00"
+            },
+            "clear_definition": "An interval is clear when cloud cover is at most 30 percent.",
+            "targets": [
+              {
+                "target_name": "Saturn",
+                "required_continuous_clear_minutes": 30
+              },
+              {
+                "target_name": "Andromeda Galaxy",
+                "required_continuous_clear_minutes": 60
+              },
+              {
+                "target_name": "Orion Nebula",
+                "required_continuous_clear_minutes": 90
+              }
+            ]
+          },
+          "waiting_speech_target": "正在尋找 Mount Aurora 最近的合作觀測站，並查看九月二十二日的觀測時段與目標需求。"
+        },
+        {
+          "index": 2,
+          "label": "cloud_forecast",
+          "tool_name": "get_observatory_cloud_forecast",
+          "tool_input": {
+            "observatory_name": "Summit Sky Observatory",
+            "forecast_date": "2026-09-22"
+          },
+          "mocked_result": {
+            "observatory_name": "Summit Sky Observatory",
+            "forecast_date": "2026-09-22",
+            "interval_minutes": 30,
+            "cloud_cover_intervals": [
+              {
+                "starts_at": "20:00",
+                "cloud_cover_percent": 25
+              },
+              {
+                "starts_at": "20:30",
+                "cloud_cover_percent": 20
+              },
+              {
+                "starts_at": "21:00",
+                "cloud_cover_percent": 55
+              },
+              {
+                "starts_at": "21:30",
+                "cloud_cover_percent": 28
+              },
+              {
+                "starts_at": "22:00",
+                "cloud_cover_percent": 18
+              },
+              {
+                "starts_at": "22:30",
+                "cloud_cover_percent": 35
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 Summit Sky Observatory 晚間每半小時的雲量。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "nearest_observatory",
+              "argument_name": "observatory_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "session_date",
+              "argument_name": "forecast_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Saturn and the Andromeda Galaxy still have long enough clear windows. There is a 60-minute clear stretch from 8:00 to 9:00 PM, and another from 9:30 to 10:30 PM. Orion needs 90 continuous minutes, which is not available.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Mountain name is a bounded semantic choice and materially determines the nearest observatory; the account supplies saved targets, while the model must still combine adjacent clear intervals.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步由山名找到最近觀測站與目標需求；第二步查該站雲量；模型再合併相鄰晴朗格，而不是把零散的半小時相加。",
+          "steps": [
+            "Step 1：以 Mount Aurora 和2026-09-22查詢，得到最近的 Summit Sky Observatory、20:00至23:00觀測時段、雲量至多30%的晴朗定義，以及 Saturn、Andromeda Galaxy、Orion Nebula 分別需要連續30、60、90分鐘。",
+            "Step 2：把 Summit Sky Observatory 與2026-09-22傳入雲量工具，取得20:00至23:00每半小時的雲量。",
+            "模型合併連續時段：20:00和20:30形成60分鐘晴空；21:00的55%會中斷；21:30和22:00再形成60分鐘；22:30的35%再次中斷。因此30與60分鐘需求可滿足，90分鐘需求無法滿足。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "find_nearest_observatory_plan",
+            "input_example_zh": "傳入 Mount Aurora 與 2026-09-22。",
+            "output_example_zh": "回傳最近的 Summit Sky Observatory、20至23時的觀測窗及三個儲存目標所需30/60/90分鐘。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_observatory_cloud_forecast",
+            "input_example_zh": "傳入 Summit Sky Observatory 與 2026-09-22。",
+            "output_example_zh": "回傳六個半小時雲量區間，不替模型挑選目標。"
+          }
+        ]
+      }
+    }
+  ]
+}

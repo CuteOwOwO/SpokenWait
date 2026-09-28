@@ -1,0 +1,1014 @@
+{
+  "category": "restaurant_arrival",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "restaurant_arrival_2step_prepaid_hold_deadline_001",
+      "category": "restaurant_arrival",
+      "step_count": 2,
+      "user_prompt": "I have a prepaid dinner reservation at 7 PM on September 12 and expect to arrive at 7:14 PM. Will the restaurant still hold it, and how many minutes will be left before it is released?",
+      "flow_summary": "先依日期與餐期找到預付訂位及具語意的用餐方案，再查該方案的保留規則；由模型計算抵達是否仍有效及距釋出還有多久。",
+      "tools": [
+        {
+          "name": "find_my_restaurant_reservation",
+          "description": "Find the signed-in user's restaurant reservation for a local service date and meal period. Returns restaurant_name (string), reservation_start_local (ISO local datetime string), dining_plan (string), prepayment_status (string), party_size (integer), and reservation_status (string). It does not return a hold deadline or late-arrival verdict.",
+          "parameters": {
+            "service_date": {
+              "type": "string",
+              "description": "The local dining date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "meal_period": {
+              "type": "string",
+              "description": "The broad meal period stated by the user.",
+              "enum": [
+                "lunch",
+                "dinner"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "reservation_start_local": {
+                "type": "string",
+                "description": "Returned reservation start local."
+              },
+              "dining_plan": {
+                "type": "string",
+                "description": "Returned dining plan."
+              },
+              "prepayment_status": {
+                "type": "string",
+                "description": "Returned prepayment status."
+              },
+              "party_size": {
+                "type": "integer",
+                "description": "Returned party size."
+              },
+              "reservation_status": {
+                "type": "string",
+                "description": "Returned reservation status."
+              }
+            },
+            "required": [
+              "restaurant_name",
+              "reservation_start_local",
+              "dining_plan",
+              "prepayment_status",
+              "party_size",
+              "reservation_status"
+            ]
+          }
+        },
+        {
+          "name": "get_reservation_hold_policy",
+          "description": "Return the raw late-arrival hold rule for a restaurant, dining plan, and prepayment status. Returns hold_minutes_after_start (integer), arrival_at_deadline_is_accepted (boolean), and after_deadline_action (string). It does not calculate a deadline or decide whether a guest will be seated.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The human-readable restaurant name returned by the reservation lookup."
+            },
+            "dining_plan": {
+              "type": "string",
+              "description": "The human-readable dining plan returned by the reservation lookup."
+            },
+            "prepayment_status": {
+              "type": "string",
+              "description": "The reservation's prepayment status returned by the reservation lookup."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "hold_minutes_after_start": {
+                "type": "integer",
+                "description": "Returned hold minutes after start."
+              },
+              "arrival_at_deadline_is_accepted": {
+                "type": "boolean",
+                "description": "Returned arrival at deadline is accepted."
+              },
+              "after_deadline_action": {
+                "type": "string",
+                "description": "Returned after deadline action."
+              }
+            },
+            "required": [
+              "hold_minutes_after_start",
+              "arrival_at_deadline_is_accepted",
+              "after_deadline_action"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "reservation",
+          "tool_name": "find_my_restaurant_reservation",
+          "tool_input": {
+            "service_date": "2026-09-12",
+            "meal_period": "dinner"
+          },
+          "mocked_result": {
+            "restaurant_name": "Central Bistro",
+            "reservation_start_local": "2026-09-12T19:00:00+08:00",
+            "dining_plan": "Chef's Counter",
+            "prepayment_status": "prepaid",
+            "party_size": 2,
+            "reservation_status": "confirmed"
+          },
+          "waiting_speech_target": "正在查看九月十二日晚餐訂位的時間與用餐方案。",
+          "case_insensitive_arguments": [
+            "meal_period"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "hold_policy",
+          "tool_name": "get_reservation_hold_policy",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "dining_plan": "Chef's Counter",
+            "prepayment_status": "prepaid"
+          },
+          "mocked_result": {
+            "hold_minutes_after_start": 15,
+            "arrival_at_deadline_is_accepted": true,
+            "after_deadline_action": "reservation_released"
+          },
+          "waiting_speech_target": "正在查看這個預付用餐方案的遲到保留規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "restaurant_name",
+              "argument_name": "restaurant_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "dining_plan",
+              "argument_name": "dining_plan"
+            },
+            {
+              "step_index": 1,
+              "result_field": "prepayment_status",
+              "argument_name": "prepayment_status"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Yes. The reservation is held through 7:15 PM, so arriving at 7:14 PM is still valid and leaves 1 minute before release.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The spoken inputs are only an explicit date and the natural dinner selector. Capitalization of the user-originated meal period is ignored because it is inaudible. The plan and payment status originate in Step 1 and remain exact dependent business fields.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步確認是哪一種訂位；第二步取得該方案真正適用的遲到規則。",
+          "steps": [
+            "Step 1 以 2026-09-12 與 dinner 找到 19:00 的預付 Chef's Counter 訂位。",
+            "Step 2 原樣傳入 Central Bistro、Chef's Counter 與 prepaid，取得開始後保留 15 分鐘，且剛好截止時間仍接受。",
+            "19:00 加 15 分鐘是 19:15；預計 19:14 抵達仍有效，距釋出剩 1 分鐘。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_2step_secretary_service_timeline_002",
+      "category": "restaurant_arrival",
+      "step_count": 2,
+      "user_prompt": "I am Emma Chen's secretary. Please check her dinner reservation on September 12. She needs to leave by 8:40 PM. Based on the service stages for her booking, will she finish in time, and how much time will she have left?",
+      "flow_summary": "秘書先用老闆姓名與日期查訂位，再把餐廳、用餐方案與人數送去查各服務階段；模型加總連續工時並比較離店期限。",
+      "tools": [
+        {
+          "name": "find_guest_restaurant_reservation",
+          "description": "Find a restaurant reservation for a named guest on the signed-in business account and local service date. Returns guest_name (string), restaurant_name (string), reservation_start_local (ISO local datetime string), dining_format (string), party_size (integer), and reservation_status (string). It does not calculate the meal's finish time.",
+          "parameters": {
+            "guest_name": {
+              "type": "string",
+              "description": "The boss or guest's full name spoken by the user."
+            },
+            "service_date": {
+              "type": "string",
+              "description": "The local dining date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "guest_name": {
+                "type": "string",
+                "description": "Returned guest name."
+              },
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "reservation_start_local": {
+                "type": "string",
+                "description": "Returned reservation start local."
+              },
+              "dining_format": {
+                "type": "string",
+                "description": "Returned dining format."
+              },
+              "party_size": {
+                "type": "integer",
+                "description": "Returned party size."
+              },
+              "reservation_status": {
+                "type": "string",
+                "description": "Returned reservation status."
+              }
+            },
+            "required": [
+              "guest_name",
+              "restaurant_name",
+              "reservation_start_local",
+              "dining_format",
+              "party_size",
+              "reservation_status"
+            ]
+          }
+        },
+        {
+          "name": "get_dining_service_stages",
+          "description": "Return the ordered service stages for a restaurant's dining format and party size. Returns stages, each with stage_name (string) and duration_minutes (integer), plus stages_are_sequential (boolean). It does not sum the durations or calculate a finish time.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The human-readable restaurant name returned by the guest reservation lookup."
+            },
+            "dining_format": {
+              "type": "string",
+              "description": "The human-readable dining format returned by the guest reservation lookup."
+            },
+            "party_size": {
+              "type": "integer",
+              "description": "The party size returned by the guest reservation lookup."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "stages": {
+                "type": "array",
+                "description": "Returned stages.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "stage_name": {
+                      "type": "string",
+                      "description": "Returned stage name."
+                    },
+                    "duration_minutes": {
+                      "type": "integer",
+                      "description": "Returned duration minutes."
+                    }
+                  },
+                  "required": [
+                    "stage_name",
+                    "duration_minutes"
+                  ]
+                }
+              },
+              "stages_are_sequential": {
+                "type": "boolean",
+                "description": "Returned stages are sequential."
+              }
+            },
+            "required": [
+              "stages",
+              "stages_are_sequential"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "guest_reservation",
+          "tool_name": "find_guest_restaurant_reservation",
+          "tool_input": {
+            "guest_name": "Emma Chen",
+            "service_date": "2026-09-12"
+          },
+          "mocked_result": {
+            "guest_name": "Emma Chen",
+            "restaurant_name": "Central Bistro",
+            "reservation_start_local": "2026-09-12T18:30:00+08:00",
+            "dining_format": "five-course tasting menu",
+            "party_size": 4,
+            "reservation_status": "confirmed"
+          },
+          "waiting_speech_target": "正在查看 Emma Chen 九月十二日的晚餐訂位。",
+          "public_argument_requirements": {
+            "guest_name": {
+              "required_token_groups": [
+                [
+                  "Emma"
+                ],
+                [
+                  "Chen"
+                ]
+              ]
+            }
+          },
+          "case_insensitive_arguments": [
+            "guest_name"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "service_stages",
+          "tool_name": "get_dining_service_stages",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "dining_format": "five-course tasting menu",
+            "party_size": 4
+          },
+          "mocked_result": {
+            "stages": [
+              {
+                "stage_name": "welcome and seating",
+                "duration_minutes": 15
+              },
+              {
+                "stage_name": "opening courses",
+                "duration_minutes": 35
+              },
+              {
+                "stage_name": "main courses",
+                "duration_minutes": 45
+              },
+              {
+                "stage_name": "dessert and bill",
+                "duration_minutes": 25
+              }
+            ],
+            "stages_are_sequential": true
+          },
+          "waiting_speech_target": "正在查看這份四人 tasting menu 的各階段預計時間。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "restaurant_name",
+              "argument_name": "restaurant_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "dining_format",
+              "argument_name": "dining_format"
+            },
+            {
+              "step_index": 1,
+              "result_field": "party_size",
+              "argument_name": "party_size"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Yes. The four sequential stages take 120 minutes, so Emma's 6:30 PM reservation should finish at 8:30 PM, leaving 10 minutes before 8:40 PM.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The secretary explicitly names the boss and date. Emma Chen is short and speech-stable; the restaurant and dining format are returned by Step 1 rather than reconstructed from audio.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先找 Emma Chen 的訂位內容，再用該方案的 raw stages 算真正結束時間。",
+          "steps": [
+            "Step 1 傳入 Emma Chen 與 2026-09-12，查到 18:30、四人、five-course tasting menu。",
+            "Step 2 原樣傳入餐廳、dining_format 與 party_size，取得四個連續階段 15、35、45、25 分鐘。",
+            "總工時 120 分鐘；18:30 加兩小時是 20:30，早於 20:40，因此還有 10 分鐘。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_2step_walkin_menu_cutoff_003",
+      "category": "restaurant_arrival",
+      "step_count": 2,
+      "user_prompt": "Four of us will reach Central Bistro at 7:10 PM on September 12 without a reservation. We would like the seven-course menu, but if we are seated too late for it, choose the available fixed menu with the most courses that we can still start. Which menu can we have, and when would we be seated?",
+      "flow_summary": "先以餐廳、到店時間及人數取得現場候位後的預估入座時刻與區域，再查該區域各套餐的最晚開餐時間；由模型選仍來得及且道數最多者。",
+      "tools": [
+        {
+          "name": "get_walk_in_seating_quote",
+          "description": "Return the current walk-in seating quote for a restaurant, local arrival time, and party size. Returns restaurant_name (string), service_date (YYYY-MM-DD string), quoted_seating_local (ISO local datetime string), expected_seating_area (string), and quote_status (string). It does not evaluate menu cutoffs.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The restaurant name spoken by the user."
+            },
+            "arrival_time_local": {
+              "type": "string",
+              "description": "The user's stated venue-local arrival date and clock time as an ISO local datetime. The UTC offset is optional because the service interprets this field in the restaurant's local timezone.",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(?::\\d{2})?(?:Z|[+-]\\d{2}:\\d{2})?$"
+            },
+            "party_size": {
+              "type": "integer",
+              "description": "The number of diners stated by the user.",
+              "minimum": 1
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "quoted_seating_local": {
+                "type": "string",
+                "description": "Returned quoted seating local."
+              },
+              "expected_seating_area": {
+                "type": "string",
+                "description": "Returned expected seating area."
+              },
+              "quote_status": {
+                "type": "string",
+                "description": "Returned quote status."
+              }
+            },
+            "required": [
+              "restaurant_name",
+              "service_date",
+              "quoted_seating_local",
+              "expected_seating_area",
+              "quote_status"
+            ]
+          }
+        },
+        {
+          "name": "list_fixed_menu_start_rules",
+          "description": "List raw fixed-menu start rules for one restaurant, seating area, and local service date. Returns menus, each with menu_name (string), course_count (integer), latest_start_local (ISO local datetime string), and available (boolean). It does not compare a seating quote with cutoffs or recommend a menu.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The restaurant name returned by the walk-in quote."
+            },
+            "seating_area": {
+              "type": "string",
+              "description": "The expected seating area returned by the walk-in quote."
+            },
+            "service_date": {
+              "type": "string",
+              "description": "The local dining date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "menus": {
+                "type": "array",
+                "description": "Returned menus.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "menu_name": {
+                      "type": "string",
+                      "description": "Returned menu name."
+                    },
+                    "course_count": {
+                      "type": "integer",
+                      "description": "Returned course count."
+                    },
+                    "latest_start_local": {
+                      "type": "string",
+                      "description": "Returned latest start local."
+                    },
+                    "available": {
+                      "type": "boolean",
+                      "description": "Returned available."
+                    }
+                  },
+                  "required": [
+                    "menu_name",
+                    "course_count",
+                    "latest_start_local",
+                    "available"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "menus"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "walk_in_quote",
+          "tool_name": "get_walk_in_seating_quote",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "arrival_time_local": "2026-09-12T19:10:00",
+            "party_size": 4
+          },
+          "mocked_result": {
+            "restaurant_name": "Central Bistro",
+            "service_date": "2026-09-12",
+            "quoted_seating_local": "2026-09-12T20:05:00+08:00",
+            "expected_seating_area": "main dining room",
+            "quote_status": "available"
+          },
+          "waiting_speech_target": "正在查看 Central Bistro 四位現場候位的預估入座時間。",
+          "public_argument_requirements": {
+            "restaurant_name": {
+              "required_token_groups": [
+                [
+                  "Central"
+                ],
+                [
+                  "Bistro"
+                ]
+              ]
+            }
+          },
+          "case_insensitive_arguments": [
+            "restaurant_name"
+          ],
+          "local_datetime_arguments": [
+            "arrival_time_local"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "menu_rules",
+          "tool_name": "list_fixed_menu_start_rules",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "seating_area": "main dining room",
+            "service_date": "2026-09-12"
+          },
+          "mocked_result": {
+            "menus": [
+              {
+                "menu_name": "seven-course menu",
+                "course_count": 7,
+                "latest_start_local": "2026-09-12T19:45:00+08:00",
+                "available": true
+              },
+              {
+                "menu_name": "five-course menu",
+                "course_count": 5,
+                "latest_start_local": "2026-09-12T20:15:00+08:00",
+                "available": true
+              },
+              {
+                "menu_name": "three-course menu",
+                "course_count": 3,
+                "latest_start_local": "2026-09-12T20:45:00+08:00",
+                "available": true
+              },
+              {
+                "menu_name": "seasonal six-course menu",
+                "course_count": 6,
+                "latest_start_local": "2026-09-12T20:20:00+08:00",
+                "available": false
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看主餐廳各套固定菜單的最晚開餐時間。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "restaurant_name",
+              "argument_name": "restaurant_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "expected_seating_area",
+              "argument_name": "seating_area"
+            },
+            {
+              "step_index": 1,
+              "result_field": "service_date",
+              "argument_name": "service_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The quoted seating time is 8:05 PM. That is too late for the seven-course menu, while the six-course menu is unavailable. The five-course menu is the available option with the most courses that still accepts an 8:05 PM start.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Central Bistro consists of two common English words that Kokoro and English ASR preserve reliably. The venue-local arrival datetime and integer party size are explicitly spoken; the API does not require the model to invent an unstated UTC offset.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "候位時間不是答案本身；它會成為第二階段判斷套餐截止時間的關鍵。",
+          "steps": [
+            "Step 1 傳入 Central Bistro、19:10 與四人，回傳預估 20:05 入座、main dining room。",
+            "Step 2 用餐廳、區域與日期查 raw menu rules。七道套餐 19:45 截止，20:05 已太晚；六道套餐雖可到 20:20，但 available=false。",
+            "五道套餐 20:15 截止且有供應，三道也可選；依『仍可開始且道數最多』選五道套餐，入座時間為 20:05。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_2step_dining_plan_parking_004",
+      "category": "restaurant_arrival",
+      "step_count": 2,
+      "user_prompt": "For my anniversary dinner reservation on September 12, I expect to spend 2,400 Taiwan dollars and park in the partner garage from 6 PM until 8:30 PM. Under the dining plan attached to my reservation, how much will parking cost, and how much will the plan save me?",
+      "flow_summary": "先以日期與紀念日用途找出訂位所屬的具名用餐方案，再查該方案在合作車場的原始費率與消費折抵；模型計算原價、折抵後費用及節省金額。",
+      "tools": [
+        {
+          "name": "find_my_occasion_reservation",
+          "description": "Find the signed-in user's restaurant reservation using a local service date and occasion. Returns restaurant_name (string), reservation_start_local (ISO local datetime string), dining_plan (string), occasion (string), and reservation_status (string). It does not return parking benefits.",
+          "parameters": {
+            "service_date": {
+              "type": "string",
+              "description": "The local dining date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "occasion": {
+              "type": "string",
+              "description": "The ordinary occasion stated by the user.",
+              "enum": [
+                "anniversary",
+                "birthday",
+                "business dinner"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "reservation_start_local": {
+                "type": "string",
+                "description": "Returned reservation start local."
+              },
+              "dining_plan": {
+                "type": "string",
+                "description": "Returned dining plan."
+              },
+              "occasion": {
+                "type": "string",
+                "description": "Returned occasion."
+              },
+              "reservation_status": {
+                "type": "string",
+                "description": "Returned reservation status."
+              }
+            },
+            "required": [
+              "restaurant_name",
+              "reservation_start_local",
+              "dining_plan",
+              "occasion",
+              "reservation_status"
+            ]
+          }
+        },
+        {
+          "name": "get_dining_plan_parking_benefit",
+          "description": "Return the partner-garage rate and raw validation rule for a restaurant dining plan. Returns garage_name (string), billing_block_minutes (integer), fee_per_started_block (number), currency (string), minimum_spend_for_validation (number), free_parking_minutes (integer), and validation_applies_before_rounding (boolean). It does not calculate a parking fee or savings.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The restaurant name returned by the occasion reservation lookup."
+            },
+            "dining_plan": {
+              "type": "string",
+              "description": "The dining plan returned by the occasion reservation lookup."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "garage_name": {
+                "type": "string",
+                "description": "Returned garage name."
+              },
+              "billing_block_minutes": {
+                "type": "integer",
+                "description": "Returned billing block minutes."
+              },
+              "fee_per_started_block": {
+                "type": "integer",
+                "description": "Returned fee per started block."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "minimum_spend_for_validation": {
+                "type": "integer",
+                "description": "Returned minimum spend for validation."
+              },
+              "free_parking_minutes": {
+                "type": "integer",
+                "description": "Returned free parking minutes."
+              },
+              "validation_applies_before_rounding": {
+                "type": "boolean",
+                "description": "Returned validation applies before rounding."
+              }
+            },
+            "required": [
+              "garage_name",
+              "billing_block_minutes",
+              "fee_per_started_block",
+              "currency",
+              "minimum_spend_for_validation",
+              "free_parking_minutes",
+              "validation_applies_before_rounding"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "occasion_reservation",
+          "tool_name": "find_my_occasion_reservation",
+          "tool_input": {
+            "service_date": "2026-09-12",
+            "occasion": "anniversary"
+          },
+          "mocked_result": {
+            "restaurant_name": "Central Bistro",
+            "reservation_start_local": "2026-09-12T19:00:00+08:00",
+            "dining_plan": "Celebration Dinner",
+            "occasion": "anniversary",
+            "reservation_status": "confirmed"
+          },
+          "waiting_speech_target": "正在查看九月十二日紀念日晚餐的訂位方案。"
+        },
+        {
+          "index": 2,
+          "label": "parking_benefit",
+          "tool_name": "get_dining_plan_parking_benefit",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "dining_plan": "Celebration Dinner"
+          },
+          "mocked_result": {
+            "garage_name": "Central Partner Garage",
+            "billing_block_minutes": 30,
+            "fee_per_started_block": 30,
+            "currency": "TWD",
+            "minimum_spend_for_validation": 2000,
+            "free_parking_minutes": 90,
+            "validation_applies_before_rounding": true
+          },
+          "waiting_speech_target": "正在查看 Celebration Dinner 在合作車場的折抵規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "restaurant_name",
+              "argument_name": "restaurant_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "dining_plan",
+              "argument_name": "dining_plan"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Parking for 2.5 hours normally costs 150 TWD. The expected 2,400 TWD spend qualifies for 90 free minutes, leaving 60 minutes to charge, so parking costs 60 TWD and the plan saves 90 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The reservation is naturally selected by a clear date and small occasion enum. The dining plan is discovered by Step 1 and materially changes the parking rule returned by Step 2.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先找訂位上的用餐方案，再用方案取得折抵；預計消費與停車時間仍由模型自行套用。",
+          "steps": [
+            "Step 1 以 2026-09-12 與 anniversary 找到 Celebration Dinner。",
+            "Step 2 原樣傳入餐廳與 dining_plan，查到每開始 30 分鐘 30 元；消費滿 2,000 元折 90 分鐘。",
+            "18:00–20:30 共 150 分鐘，未折抵為 5 個區段、150 元。預計消費 2,400 元達門檻，折掉 90 分鐘後剩 60 分鐘，費用 60 元，因此省 90 元。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_2step_party_increase_table_batch_005",
+      "category": "restaurant_arrival",
+      "step_count": 2,
+      "user_prompt": "My patio reservation on September 12 is for four people, and one more person is joining. Keep everyone at one table and do not seat us after 7:15 PM. Which smallest table type can we switch to, and when can we be seated?",
+      "flow_summary": "先查露台訂位的餐廳、區域與目前人數；模型把四人加一人算成五人，再以餐廳、區域及 requested_party_size 查適合該人數的所有桌位，由模型套最晚時間並選最小容量。",
+      "tools": [
+        {
+          "name": "get_my_reservation_change_context",
+          "description": "Return the signed-in user's reservation context for a table change on the requested local service date and seating area. Returns restaurant_name (string), reservation_start_local (ISO local datetime string), current_party_size (integer), seating_area (string), and reservation_status (string). It does not return table availability or recommend a change.",
+          "parameters": {
+            "service_date": {
+              "type": "string",
+              "description": "The local dining date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "seating_area": {
+              "type": "string",
+              "description": "The seating area stated by the user.",
+              "enum": [
+                "patio",
+                "main dining room",
+                "private room"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "reservation_start_local": {
+                "type": "string",
+                "description": "Returned reservation start local."
+              },
+              "current_party_size": {
+                "type": "integer",
+                "description": "Returned current party size."
+              },
+              "seating_area": {
+                "type": "string",
+                "description": "Returned seating area."
+              },
+              "reservation_status": {
+                "type": "string",
+                "description": "Returned reservation status."
+              }
+            },
+            "required": [
+              "restaurant_name",
+              "reservation_start_local",
+              "current_party_size",
+              "seating_area",
+              "reservation_status"
+            ]
+          }
+        },
+        {
+          "name": "list_table_change_options_for_party_size",
+          "description": "Return every table-change option in one restaurant seating area that can seat the requested party size. Returns table_options, each with table_type (string), capacity (integer), earliest_seating_local (ISO local datetime string), and available (boolean). It does not apply the user's latest-seating deadline or choose the smallest table.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The restaurant name returned by the reservation change context."
+            },
+            "seating_area": {
+              "type": "string",
+              "description": "The seating area returned by the reservation change context."
+            },
+            "requested_party_size": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The total number of guests after applying the user's requested party-size change."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "requested_party_size": {
+                "type": "integer",
+                "description": "Returned requested party size."
+              },
+              "table_options": {
+                "type": "array",
+                "description": "Returned table options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "table_type": {
+                      "type": "string",
+                      "description": "Returned table type."
+                    },
+                    "capacity": {
+                      "type": "integer",
+                      "description": "Returned capacity."
+                    },
+                    "earliest_seating_local": {
+                      "type": "string",
+                      "description": "Returned earliest seating local."
+                    },
+                    "available": {
+                      "type": "boolean",
+                      "description": "Returned available."
+                    }
+                  },
+                  "required": [
+                    "table_type",
+                    "capacity",
+                    "earliest_seating_local",
+                    "available"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "requested_party_size",
+              "table_options"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "change_context",
+          "tool_name": "get_my_reservation_change_context",
+          "tool_input": {
+            "service_date": "2026-09-12",
+            "seating_area": "patio"
+          },
+          "mocked_result": {
+            "restaurant_name": "Central Bistro",
+            "reservation_start_local": "2026-09-12T19:00:00+08:00",
+            "current_party_size": 4,
+            "seating_area": "patio",
+            "reservation_status": "confirmed"
+          },
+          "waiting_speech_target": "正在查看九月十二日露台訂位與可替換的全部桌型。",
+          "case_insensitive_arguments": [
+            "seating_area"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "table_options",
+          "tool_name": "list_table_change_options_for_party_size",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "seating_area": "patio",
+            "requested_party_size": 5
+          },
+          "mocked_result": {
+            "requested_party_size": 5,
+            "table_options": [
+              {
+                "table_type": "standard six-seat table",
+                "capacity": 6,
+                "earliest_seating_local": "2026-09-12T19:10:00+08:00",
+                "available": true
+              },
+              {
+                "table_type": "large eight-seat table",
+                "capacity": 8,
+                "earliest_seating_local": "2026-09-12T19:00:00+08:00",
+                "available": true
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 Central Bistro patio 適合五人的所有換桌選項。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "restaurant_name",
+              "argument_name": "restaurant_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "seating_area",
+              "argument_name": "seating_area"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Switch to the standard six-seat table, which can seat all five people at one table at 7:10 PM. It is the smallest qualifying table and is available before the 7:15 PM deadline.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The first call uses only an explicit date and the speech-stable patio enum. Step 2 copies the restaurant and seating area, while requested_party_size is the natural total derived from the user's four-plus-one request; no reservation, table, or policy ID is exposed.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "API 直接依五人需求回適合該人數的所有桌型；模型不必重抄或猜測內部桌型清單。",
+          "steps": [
+            "Step 1 以日期與 patio 查到原訂位 19:00、目前四人、餐廳為 Central Bistro，而且 seating_area 為 patio。",
+            "使用者說再增加一人，所以 Step 2 的 requested_party_size 應是 5；restaurant_name 與 seating_area 則原樣取自 Step 1。",
+            "Step 2 一次回傳該區所有能坐五人的桌型：六人桌最早 19:10、八人桌最早 19:00。坐不下五人的四人桌不屬於這個 party-size 查詢結果。",
+            "兩個選項都不晚於 19:15；依最小容量選六人桌，最早 19:10 入座。"
+          ]
+        }
+      }
+    }
+  ]
+}

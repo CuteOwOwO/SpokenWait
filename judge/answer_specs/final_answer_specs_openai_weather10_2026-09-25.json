@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "generated_by": "scripts/materialize_openai_weather10_final_answer_specs.mjs",
+  "task_root": "data/spoken_tool_wait_tasks_openai_weather10_2026-09-25",
+  "scope": "10 frozen OpenAI Mini Weather tasks (five 1-step and five 2-step)",
+  "tasks": [
+    {
+      "task_id": "weather_1step_coating_cure_window_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The latest safe start is 10 AM. Application would run from 10 AM to noon, and the four full curing hours from noon through 4 PM stay rain-free at or below 75 percent humidity. Starting at 11 would make the curing period include the 4–5 PM hour at 82 percent humidity.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_1step_heat_work_rest_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: They can work 105 minutes and must take 75 minutes of breaks in total: 45/15 minutes for the 1 PM hour, then 30/30 for each of the next two hours.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_1step_rain_tank_overflow_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The roof should collect 384 liters. The tank can keep 240 liters, so 144 liters will overflow.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_1step_rotating_windbreak_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Close the west and north sides at 2 PM. At 4 PM, rotate to close the north and east sides, because that is when the incoming wind changes from west to north.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_1step_two_load_drying_windows_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest finish is 1:30 PM. Dry the first load from 9:30 to 11:00, then the second from noon to 1:30 PM; the rain and humidity between those windows prevent an earlier second slot.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_2step_cycling_crosswind_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The Canal climb and Levee return exceed your crosswind-component limit, for two hours total. In all three intervals the wind is perpendicular to travel, so each crosswind component equals the full gust: 28, 36, and 34 kph respectively. Only the latter two exceed 32 kph.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_2step_hike_phase_rain_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Starting at 7:00 AM, you finish at 1:30 PM. The ridge climb meets rain from 9:00 to 10:00 AM. The summit stop and upper descent meet snow from 10:10 to 11:50 AM. The lower descent meets rain from noon until you return at 1:30 PM. The lower approach stays dry.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_2step_mountain_pass_chains_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: You will need chains at Pine Pass and Eagle Gap. Pine Pass overlaps the requirement until 8:00 AM, and Eagle Gap overlaps from 9:45 to 9:50. You should clear Cloud Notch before its noon requirement begins.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_2step_observatory_clear_windows_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Saturn and the Andromeda Galaxy still have long enough clear windows. There is a 60-minute clear stretch from 8:00 to 9:00 PM, and another from 9:30 to 10:30 PM. Orion needs 90 continuous minutes, which is not available.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "weather_2step_surf_session_limits_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The whole lesson cannot run under the rules. The 10:00–10:30 interval fails because the 26 kph onshore gust tightens the wave limit to 0.9 meters, while waves are 1.1 meters. The 10:30–11:00 interval fails because the outgoing-tide height is 0.7 meters, below the 0.8-meter minimum. The first two intervals pass.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    }
+  ]
+}

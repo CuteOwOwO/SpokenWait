@@ -1,0 +1,853 @@
+{
+  "category": "retail_order",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "retail_order_1step_price_adjustment_001",
+      "category": "retail_order",
+      "step_count": 1,
+      "user_prompt": "I heard the phone case from my September 1 order goes on sale tomorrow, while the headphones are cheaper already. Should I request a price adjustment today or wait until tomorrow, and how much more would the better option give me?",
+      "flow_summary": "取得兩項商品的實付單價、數量、今天與明天價格、各自申請截止日，以及每張訂單只能申請一次的政策；模型比較今天與明天兩個互斥情境。",
+      "tools": [
+        {
+          "name": "get_my_price_adjustment_facts",
+          "description": "Return the signed-in user's purchase facts, prices and offer types for the service's current date and following date, item-specific adjustment deadlines, and the raw price-adjustment policy for a local order date and all item names being compared. It does not recommend a request date or calculate either scenario total.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "item_names": {
+              "type": "array",
+              "description": "Every natural item name the user wants checked, sent together in one call.",
+              "items": {
+                "type": "string",
+                "description": "A natural item name spoken by the user."
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "prices_include_tax": {
+                "type": "boolean",
+                "description": "Returned prices include tax."
+              },
+              "current_date": {
+                "type": "string",
+                "description": "Returned current date."
+              },
+              "following_date": {
+                "type": "string",
+                "description": "Returned following date."
+              },
+              "order_lines": {
+                "type": "array",
+                "description": "Returned order lines.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "item_name": {
+                      "type": "string",
+                      "description": "Returned item name."
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "description": "Returned quantity."
+                    },
+                    "price_paid_per_unit": {
+                      "type": "integer",
+                      "description": "Returned price paid per unit."
+                    },
+                    "price_on_current_date_per_unit": {
+                      "type": "integer",
+                      "description": "Returned price on current date per unit."
+                    },
+                    "offer_type_on_current_date": {
+                      "type": "string",
+                      "description": "Returned offer type on current date."
+                    },
+                    "price_on_following_date_per_unit": {
+                      "type": "integer",
+                      "description": "Returned price on following date per unit."
+                    },
+                    "offer_type_on_following_date": {
+                      "type": "string",
+                      "description": "Returned offer type on following date."
+                    },
+                    "adjustment_request_deadline": {
+                      "type": "string",
+                      "description": "Returned adjustment request deadline."
+                    }
+                  },
+                  "required": [
+                    "item_name",
+                    "quantity",
+                    "price_paid_per_unit",
+                    "price_on_current_date_per_unit",
+                    "offer_type_on_current_date",
+                    "price_on_following_date_per_unit",
+                    "offer_type_on_following_date",
+                    "adjustment_request_deadline"
+                  ]
+                }
+              },
+              "policy": {
+                "type": "object",
+                "description": "Returned policy.",
+                "properties": {
+                  "maximum_requests_per_order": {
+                    "type": "integer",
+                    "description": "Returned maximum requests per order."
+                  },
+                  "deadline_is_inclusive": {
+                    "type": "boolean",
+                    "description": "Returned deadline is inclusive."
+                  },
+                  "eligible_offer_types": {
+                    "type": "array",
+                    "description": "Returned eligible offer types.",
+                    "items": {
+                      "type": "string",
+                      "description": "Returned item."
+                    }
+                  },
+                  "excluded_offer_types": {
+                    "type": "array",
+                    "description": "Returned excluded offer types.",
+                    "items": {
+                      "type": "string",
+                      "description": "Returned item."
+                    }
+                  },
+                  "maximum_adjustment_per_unit": {
+                    "type": "integer",
+                    "description": "Returned maximum adjustment per unit."
+                  },
+                  "calculation_rule": {
+                    "type": "string",
+                    "description": "Returned calculation rule."
+                  }
+                },
+                "required": [
+                  "maximum_requests_per_order",
+                  "deadline_is_inclusive",
+                  "eligible_offer_types",
+                  "excluded_offer_types",
+                  "maximum_adjustment_per_unit",
+                  "calculation_rule"
+                ]
+              }
+            },
+            "required": [
+              "currency",
+              "prices_include_tax",
+              "current_date",
+              "following_date",
+              "order_lines",
+              "policy"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "retail_order_facts",
+          "tool_name": "get_my_price_adjustment_facts",
+          "tool_input": {
+            "order_date": "2026-09-01",
+            "item_names": [
+              "headphones",
+              "phone case"
+            ]
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "prices_include_tax": true,
+            "current_date": "2026-09-07",
+            "following_date": "2026-09-08",
+            "order_lines": [
+              {
+                "item_name": "headphones",
+                "quantity": 1,
+                "price_paid_per_unit": 2400,
+                "price_on_current_date_per_unit": 2050,
+                "offer_type_on_current_date": "regular sale",
+                "price_on_following_date_per_unit": 2050,
+                "offer_type_on_following_date": "regular sale",
+                "adjustment_request_deadline": "2026-09-07"
+              },
+              {
+                "item_name": "phone case",
+                "quantity": 2,
+                "price_paid_per_unit": 600,
+                "price_on_current_date_per_unit": 600,
+                "offer_type_on_current_date": "regular price",
+                "price_on_following_date_per_unit": 450,
+                "offer_type_on_following_date": "regular sale",
+                "adjustment_request_deadline": "2026-09-10"
+              }
+            ],
+            "policy": {
+              "maximum_requests_per_order": 1,
+              "deadline_is_inclusive": true,
+              "eligible_offer_types": [
+                "regular sale"
+              ],
+              "excluded_offer_types": [
+                "clearance"
+              ],
+              "maximum_adjustment_per_unit": 400,
+              "calculation_rule": "A single request covers all requested items that are eligible on its submission date. For each eligible unit, use the price active on that date and refund the smaller of the paid-to-active price difference and the per-unit maximum. An item submitted after its deadline or under an excluded offer type receives no adjustment."
+            }
+          },
+          "waiting_speech_target": "正在查看九月一日訂單兩項商品今天與明天的價格和退價差期限。",
+          "case_insensitive_arguments": [
+            "item_names"
+          ],
+          "order_insensitive_arguments": [
+            "item_names"
+          ]
+        }
+      ],
+      "expected_final_answer": "Requesting today yields 350 TWD for the headphones and zero for the phone cases, totaling 350 TWD. Waiting until tomorrow makes the headphones one day late, while the two phone cases yield 300 TWD, totaling 300 TWD. Because the order permits only one request, submit today; it pays 50 TWD more.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The user explicitly supplies the order date and the complete item-name list. The service does not require an order or line-item ID.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "分別建立今天與明天的申請情境；每個情境都要檢查品項截止日、當日價格、數量與單件上限，最後在一次申請限制下比較。",
+          "steps": [
+            "今天9月7日申請：耳機尚在含當日的截止期限內，退2,400減2,050等於350元；手機殼今天未降價，所以合計350元。",
+            "明天9月8日申請：耳機已超過9月7日截止日，退0元；兩個手機殼各退600減450等於150元，合計300元。",
+            "每張訂單只能申請一次，不能把兩天的金額合併；今天申請350元，比明天300元多50元。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "retail_order_1step_split_shipment_tiered_delay_refund_002",
+      "category": "retail_order",
+      "step_count": 1,
+      "user_prompt": "My September 1 order arrived in three separate packages. Under the delivery guarantee, which packages qualify for a shipping refund, and how much should I receive in total?",
+      "flow_summary": "取得各分箱的承諾日、實際送達日、分攤運費與延遲天數分級賠付；模型逐箱計算後加總。",
+      "tools": [
+        {
+          "name": "get_my_split_delivery_facts",
+          "description": "Return every package in the signed-in user's split order and the raw shipping-fee compensation tiers for its local order date. Each package includes promised and delivered local dates plus its allocated shipping fee. It does not label a package late, choose a tier, or calculate a refund.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "lateness_unit": {
+                "type": "string",
+                "description": "Returned lateness unit."
+              },
+              "delivery_on_promised_date_is_late": {
+                "type": "boolean",
+                "description": "Returned delivery on promised date is late."
+              },
+              "packages": {
+                "type": "array",
+                "description": "Returned packages.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "package_name": {
+                      "type": "string",
+                      "description": "Returned package name."
+                    },
+                    "promised_date": {
+                      "type": "string",
+                      "description": "Returned promised date."
+                    },
+                    "delivered_date": {
+                      "type": "string",
+                      "description": "Returned delivered date."
+                    },
+                    "allocated_shipping_fee": {
+                      "type": "integer",
+                      "description": "Returned allocated shipping fee."
+                    }
+                  },
+                  "required": [
+                    "package_name",
+                    "promised_date",
+                    "delivered_date",
+                    "allocated_shipping_fee"
+                  ]
+                }
+              },
+              "compensation_tiers": {
+                "type": "array",
+                "description": "Returned compensation tiers.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "minimum_days_late": {
+                      "type": "integer",
+                      "description": "Returned minimum days late."
+                    },
+                    "maximum_days_late": {
+                      "type": "integer",
+                      "description": "Returned maximum days late."
+                    },
+                    "shipping_fee_refund_percent": {
+                      "type": "integer",
+                      "description": "Returned shipping fee refund percent."
+                    }
+                  },
+                  "required": [
+                    "minimum_days_late",
+                    "maximum_days_late",
+                    "shipping_fee_refund_percent"
+                  ]
+                }
+              },
+              "order_level_cap": {
+                "type": "object",
+                "description": "Returned order level cap.",
+                "properties": {
+                  "maximum_refund_percent_of_total_allocated_shipping_fees": {
+                    "type": "integer",
+                    "description": "Returned maximum refund percent of total allocated shipping fees."
+                  },
+                  "application_order": {
+                    "type": "string",
+                    "description": "Returned application order."
+                  }
+                },
+                "required": [
+                  "maximum_refund_percent_of_total_allocated_shipping_fees",
+                  "application_order"
+                ]
+              }
+            },
+            "required": [
+              "currency",
+              "lateness_unit",
+              "delivery_on_promised_date_is_late",
+              "packages",
+              "compensation_tiers",
+              "order_level_cap"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "retail_order_facts",
+          "tool_name": "get_my_split_delivery_facts",
+          "tool_input": {
+            "order_date": "2026-09-01"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "lateness_unit": "calendar days after promised date",
+            "delivery_on_promised_date_is_late": false,
+            "packages": [
+              {
+                "package_name": "kitchen scale package",
+                "promised_date": "2026-09-02",
+                "delivered_date": "2026-09-02",
+                "allocated_shipping_fee": 60
+              },
+              {
+                "package_name": "coffee grinder package",
+                "promised_date": "2026-09-02",
+                "delivered_date": "2026-09-04",
+                "allocated_shipping_fee": 80
+              },
+              {
+                "package_name": "kettle package",
+                "promised_date": "2026-09-02",
+                "delivered_date": "2026-09-07",
+                "allocated_shipping_fee": 140
+              }
+            ],
+            "compensation_tiers": [
+              {
+                "minimum_days_late": 1,
+                "maximum_days_late": 2,
+                "shipping_fee_refund_percent": 25
+              },
+              {
+                "minimum_days_late": 3,
+                "maximum_days_late": 4,
+                "shipping_fee_refund_percent": 50
+              },
+              {
+                "minimum_days_late": 5,
+                "maximum_days_late": 999,
+                "shipping_fee_refund_percent": 100
+              }
+            ],
+            "order_level_cap": {
+              "maximum_refund_percent_of_total_allocated_shipping_fees": 50,
+              "application_order": "First calculate each package's tier refund and add them. Then cap that combined refund at the stated percentage of all packages' allocated shipping fees."
+            }
+          },
+          "waiting_speech_target": "正在查看九月一日訂單三個包裹的送達日期與分級運費賠付。"
+        }
+      ],
+      "expected_final_answer": "The coffee grinder and kettle packages qualify. Their tier refunds are 20 TWD and 140 TWD, for 160 TWD before the order cap. Total allocated shipping fees are 280 TWD, so the 50% cap is 140 TWD. The final shipping refund is 140 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The explicit order date selects the signed-in user's split order; package names and delivery facts come from the service.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "每箱分別算日曆日延遲與級距退款，加總後還要套整單總運費50%的上限。",
+          "steps": [
+            "電子秤承諾日當天送達，不算遲到，退款0元。",
+            "磨豆機晚2天，落在1至2天級距，80元的25%是20元。",
+            "熱水壺晚5天，落在5天以上級距，140元全退；逐箱合計160元。",
+            "三箱總運費為60加80加140等於280元；整單上限是50%，即140元，因此最終退140元。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "retail_order_1step_bundle_return_repricing_003",
+      "category": "retail_order",
+      "step_count": 1,
+      "user_prompt": "From my September 2 buy-three-pay-for-two order, I want to return the jacket and keep the scarf and hat. After the bundle is repriced, how much will I be refunded?",
+      "flow_summary": "取得組合內各品項原價、原實付與部分退貨重算規則；模型重算保留品項後，用原實付減去新保留金額。",
+      "tools": [
+        {
+          "name": "get_my_bundle_return_facts",
+          "description": "Return the signed-in user's bundle items, original amount paid, and complete partial-return repricing rule for a local order date and returned item name. It does not calculate the retained-item price or refund.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "return_item_name": {
+              "type": "string",
+              "description": "The natural item name the user explicitly wants to return."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "bundle_items": {
+                "type": "array",
+                "description": "Returned bundle items.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "item_name": {
+                      "type": "string",
+                      "description": "Returned item name."
+                    },
+                    "regular_price": {
+                      "type": "integer",
+                      "description": "Returned regular price."
+                    }
+                  },
+                  "required": [
+                    "item_name",
+                    "regular_price"
+                  ]
+                }
+              },
+              "original_amount_paid": {
+                "type": "integer",
+                "description": "Returned original amount paid."
+              },
+              "promotion_rule": {
+                "type": "string",
+                "description": "Returned promotion rule."
+              },
+              "partial_return_rule": {
+                "type": "string",
+                "description": "Returned partial return rule."
+              }
+            },
+            "required": [
+              "currency",
+              "bundle_items",
+              "original_amount_paid",
+              "promotion_rule",
+              "partial_return_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "retail_order_facts",
+          "tool_name": "get_my_bundle_return_facts",
+          "tool_input": {
+            "order_date": "2026-09-02",
+            "return_item_name": "jacket"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "bundle_items": [
+              {
+                "item_name": "jacket",
+                "regular_price": 900
+              },
+              {
+                "item_name": "scarf",
+                "regular_price": 700
+              },
+              {
+                "item_name": "hat",
+                "regular_price": 500
+              }
+            ],
+            "original_amount_paid": 1600,
+            "promotion_rule": "With three qualifying items, the lowest-priced item is free.",
+            "partial_return_rule": "Reprice only the retained qualifying items under the same promotion. If fewer than three remain, no bundle discount applies. Refund equals original amount paid minus the repriced retained items; it is not the returned item's regular price."
+          },
+          "waiting_speech_target": "正在查看九月二日買三付二組合的部分退貨重算規則。",
+          "case_insensitive_arguments": [
+            "return_item_name"
+          ]
+        }
+      ],
+      "expected_final_answer": "The retained scarf and hat no longer qualify for the three-item promotion, so they are repriced at 700 plus 500, or 1,200 TWD. Since the original amount paid was 1,600 TWD, the refund is 400 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The order date and returned jacket are explicit natural selectors. No bundle or line-item ID is exposed.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "不能直接退外套標價；要先按規則重算留下的兩件商品。",
+          "steps": [
+            "原三件價格900、700、500元；最低價500元免費，所以原實付1,600元。",
+            "退掉外套後只留圍巾與帽子，少於三件，不再符合買三付二，保留金額重算為700加500等於1,200元。",
+            "退款是原實付1,600減重算後保留金額1,200，等於400元。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "retail_order_1step_mixed_tender_refund_routing_004",
+      "category": "retail_order",
+      "step_count": 1,
+      "user_prompt": "For my September 3 order, I am returning the speaker because I changed my mind. After the return-shipping deduction, how much goes back to each payment method, and is any of the refund lost?",
+      "flow_summary": "取得退貨品金額、運費扣除、三種原付款來源的可恢復性與退款順序；模型先算淨退款，再依各來源上限分流並判斷剩餘無法退回的金額。",
+      "tools": [
+        {
+          "name": "get_my_mixed_tender_return_facts",
+          "description": "Return the signed-in user's returned-item amount, applicable return deduction, original tender contributions with restoration eligibility, and the complete refund-routing order for a local order date and returned item. It does not calculate the net refund, allocate money, or determine any unrestorable remainder.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "return_item_name": {
+              "type": "string",
+              "description": "The natural item name the user explicitly wants to return."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "returned_item_amount": {
+                "type": "integer",
+                "description": "Returned returned item amount."
+              },
+              "return_reason": {
+                "type": "string",
+                "description": "Returned return reason."
+              },
+              "return_shipping_deduction": {
+                "type": "integer",
+                "description": "Returned return shipping deduction."
+              },
+              "original_tenders": {
+                "type": "array",
+                "description": "Returned original tenders.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "tender_type": {
+                      "type": "string",
+                      "description": "Returned tender type."
+                    },
+                    "amount_applied": {
+                      "type": "integer",
+                      "description": "Returned amount applied."
+                    },
+                    "restorable": {
+                      "type": "boolean",
+                      "description": "Returned restorable."
+                    }
+                  },
+                  "required": [
+                    "tender_type",
+                    "amount_applied",
+                    "restorable"
+                  ]
+                }
+              },
+              "refund_routing_rule": {
+                "type": "string",
+                "description": "Returned refund routing rule."
+              }
+            },
+            "required": [
+              "currency",
+              "returned_item_amount",
+              "return_reason",
+              "return_shipping_deduction",
+              "original_tenders",
+              "refund_routing_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "retail_order_facts",
+          "tool_name": "get_my_mixed_tender_return_facts",
+          "tool_input": {
+            "order_date": "2026-09-03",
+            "return_item_name": "speaker"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "returned_item_amount": 2300,
+            "return_reason": "changed mind",
+            "return_shipping_deduction": 150,
+            "original_tenders": [
+              {
+                "tender_type": "promotional store credit",
+                "amount_applied": 300,
+                "restorable": false
+              },
+              {
+                "tender_type": "stored balance",
+                "amount_applied": 500,
+                "restorable": true
+              },
+              {
+                "tender_type": "credit card",
+                "amount_applied": 1500,
+                "restorable": true
+              }
+            ],
+            "refund_routing_rule": "First subtract the return-shipping deduction from the returned merchandise amount. Then route that net refund only to restorable tenders, in this order: stored balance, then credit card. Never restore more to a tender than its original contribution. After every restorable tender reaches its original contribution, any net refund still remaining is not returned because promotional store credit is non-restorable."
+          },
+          "waiting_speech_target": "正在查看九月三日喇叭退貨的扣款與原付款退款順序。",
+          "case_insensitive_arguments": [
+            "return_item_name"
+          ]
+        }
+      ],
+      "expected_final_answer": "After the 150 TWD return-shipping deduction, the net refund basis is 2,150 TWD. Restore 500 TWD to stored balance and 1,500 TWD to the credit card, reaching both original-contribution limits. The remaining 150 TWD cannot be returned because the promotional store credit is non-restorable.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The user explicitly supplies the order date and returned item name; tender details are account data returned by the service.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先扣退貨運費，再只對可恢復的付款來源依序分配；兩個可恢復來源都達原投入上限後，剩餘才是無法退回的金額。",
+          "steps": [
+            "喇叭金額2,300元，先扣改變心意的退貨運費150元，得到淨退款基礎2,150元。",
+            "促銷購物金不可恢復；依序先恢復stored balance 500元，再退信用卡，最多1,500元。",
+            "兩個可恢復來源共退2,000元，仍剩150元；因促銷購物金不可恢復，這150元無法退回。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "retail_order_1step_multi_item_cancellation_stages_005",
+      "category": "retail_order",
+      "step_count": 1,
+      "user_prompt": "For my September 4 order, cancel everything that can still be cancelled now. Which items will be cancelled, which item will still ship, and what is my total refund?",
+      "flow_summary": "取得每項商品目前履約階段及各階段取消規則；模型逐項套用、計算退款，並辨認仍會寄出的品項。",
+      "tools": [
+        {
+          "name": "get_my_order_cancellation_facts",
+          "description": "Return every item in the signed-in user's order, its current fulfillment stage and paid amount, plus the raw cancellation rule for each stage. It does not choose items to cancel, calculate refunds, or identify what will still ship.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "order_items": {
+                "type": "array",
+                "description": "Returned order items.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "item_name": {
+                      "type": "string",
+                      "description": "Returned item name."
+                    },
+                    "paid_amount": {
+                      "type": "integer",
+                      "description": "Returned paid amount."
+                    },
+                    "fulfillment_stage": {
+                      "type": "string",
+                      "description": "Returned fulfillment stage."
+                    }
+                  },
+                  "required": [
+                    "item_name",
+                    "paid_amount",
+                    "fulfillment_stage"
+                  ]
+                }
+              },
+              "cancellation_rules": {
+                "type": "array",
+                "description": "Returned cancellation rules.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "fulfillment_stage": {
+                      "type": "string",
+                      "description": "Returned fulfillment stage."
+                    },
+                    "cancellable": {
+                      "type": "boolean",
+                      "description": "Returned cancellable."
+                    },
+                    "cancellation_fee": {
+                      "type": "integer",
+                      "description": "Returned cancellation fee."
+                    }
+                  },
+                  "required": [
+                    "fulfillment_stage",
+                    "cancellable",
+                    "cancellation_fee"
+                  ]
+                }
+              },
+              "refund_formula": {
+                "type": "string",
+                "description": "Returned refund formula."
+              }
+            },
+            "required": [
+              "currency",
+              "order_items",
+              "cancellation_rules",
+              "refund_formula"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "retail_order_facts",
+          "tool_name": "get_my_order_cancellation_facts",
+          "tool_input": {
+            "order_date": "2026-09-04"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "order_items": [
+              {
+                "item_name": "desk lamp",
+                "paid_amount": 1200,
+                "fulfillment_stage": "picking"
+              },
+              {
+                "item_name": "rug",
+                "paid_amount": 1800,
+                "fulfillment_stage": "packed"
+              },
+              {
+                "item_name": "vase",
+                "paid_amount": 700,
+                "fulfillment_stage": "handed to carrier"
+              }
+            ],
+            "cancellation_rules": [
+              {
+                "fulfillment_stage": "picking",
+                "cancellable": true,
+                "cancellation_fee": 0
+              },
+              {
+                "fulfillment_stage": "packed",
+                "cancellable": true,
+                "cancellation_fee": 100
+              },
+              {
+                "fulfillment_stage": "handed to carrier",
+                "cancellable": false,
+                "cancellation_fee": 0
+              }
+            ],
+            "refund_formula": "For a cancellable item, refund its paid amount minus that stage's cancellation fee. An item in a non-cancellable stage cannot be cancelled and continues shipping."
+          },
+          "waiting_speech_target": "正在查看九月四日訂單各品項的履約階段與取消規則。"
+        }
+      ],
+      "expected_final_answer": "The desk lamp and rug can be cancelled, while the vase has already been handed to the carrier and will still ship. After the rug's 100 TWD cancellation fee, the total refund is 2,900 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The order date is an explicit natural selector. The service returns the complete item list so the model can apply the user's request to cancel everything still cancellable.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "逐項按目前階段處理，退款總額與剩餘負擔必須互相對得上。",
+          "steps": [
+            "桌燈在picking階段，可免費取消，退款1,200元。",
+            "地毯已packed，仍可取消但扣100元，退款1,700元；花瓶已交物流，不能取消且仍會寄出。",
+            "桌燈退款1,200元、地毯退款1,700元，合計退款2,900元。"
+          ]
+        }
+      }
+    }
+  ]
+}

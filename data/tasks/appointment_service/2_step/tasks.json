@@ -1,0 +1,900 @@
+{
+  "category": "appointment_service",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "appointment_service_2step_followup_fitting_001",
+      "category": "appointment_service",
+      "step_count": 2,
+      "user_prompt": "Once my eye exam tomorrow is finished, I would like a contact lens fitting at the same clinic, and I need to leave by noon. I would prefer the same optometrist; if they cannot finish in time, choose another available optometrist who finishes earliest. Who should I see, when would I finish, and how much time would I have before noon?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The user states the existing service and relative day. The first result supplies the clinic, service date, incumbent optometrist, and the non-overlap boundary needed to evaluate raw follow-up options.",
+      "flow_summary": "先查明日眼科檢查的醫師、診所與結束時間，再以診所及日期查隱形眼鏡驗配時段；排除與原預約重疊、不可用或超過中午的選項，先嘗試同一醫師，否則選最早完成者。",
+      "tools": [
+        {
+          "name": "find_my_appointment",
+          "description": "Find the signed-in user's appointment using a service name and relative day. Returns service_name (string), provider_name (string), branch_name (string), service_date (YYYY-MM-DD string), start_local (ISO local datetime string), and appointment_end_local (ISO local datetime string).",
+          "parameters": {
+            "service_name": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "service_name": {
+                "type": "string",
+                "description": "Returned service name."
+              },
+              "provider_name": {
+                "type": "string",
+                "description": "Returned provider name."
+              },
+              "branch_name": {
+                "type": "string",
+                "description": "Returned branch name."
+              },
+              "service_date": {
+                "type": "string",
+                "description": "Returned service date."
+              },
+              "start_local": {
+                "type": "string",
+                "description": "Returned start local."
+              },
+              "appointment_end_local": {
+                "type": "string",
+                "description": "Returned appointment end local."
+              }
+            },
+            "required": [
+              "service_name",
+              "provider_name",
+              "branch_name",
+              "service_date",
+              "start_local",
+              "appointment_end_local"
+            ]
+          }
+        },
+        {
+          "name": "list_followup_appointment_options",
+          "description": "List raw follow-up appointment options for a service at one branch on one service date. Returns options, each with provider_name (string), start_local (ISO local datetime string), duration_minutes (number), and available (boolean). Options may overlap another appointment or finish after the user's deadline; the tool does not filter, rank, or select them.",
+          "parameters": {
+            "branch_name": "string",
+            "service_date": "string",
+            "service_name": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "options": {
+                "type": "array",
+                "description": "Returned options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "provider_name": {
+                      "type": "string",
+                      "description": "Returned provider name."
+                    },
+                    "start_local": {
+                      "type": "string",
+                      "description": "Returned start local."
+                    },
+                    "duration_minutes": {
+                      "type": "number",
+                      "description": "Returned duration minutes."
+                    },
+                    "available": {
+                      "type": "boolean",
+                      "description": "Returned available."
+                    }
+                  },
+                  "required": [
+                    "provider_name",
+                    "start_local",
+                    "duration_minutes",
+                    "available"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "options"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "appointment",
+          "tool_name": "find_my_appointment",
+          "tool_input": {
+            "service_name": "eye exam",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "service_name": "eye exam",
+            "provider_name": "Dr. Lin",
+            "branch_name": "Northside Eye Center",
+            "service_date": "2026-09-08",
+            "start_local": "2026-09-08T09:45:00+08:00",
+            "appointment_end_local": "2026-09-08T10:35:00+08:00"
+          },
+          "waiting_speech_target": "正在查看你明天眼科檢查的醫師、診所與結束時間。"
+        },
+        {
+          "index": 2,
+          "label": "followup_options",
+          "tool_name": "list_followup_appointment_options",
+          "tool_input": {
+            "branch_name": "Northside Eye Center",
+            "service_date": "2026-09-08",
+            "service_name": "contact lens fitting"
+          },
+          "mocked_result": {
+            "options": [
+              {
+                "provider_name": "Dr. Kao",
+                "start_local": "2026-09-08T10:15:00+08:00",
+                "duration_minutes": 30,
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Lin",
+                "start_local": "2026-09-08T11:25:00+08:00",
+                "duration_minutes": 45,
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Chen",
+                "start_local": "2026-09-08T10:50:00+08:00",
+                "duration_minutes": 50,
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Wu",
+                "start_local": "2026-09-08T11:00:00+08:00",
+                "duration_minutes": 35,
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Hsu",
+                "start_local": "2026-09-08T10:45:00+08:00",
+                "duration_minutes": 40,
+                "available": false
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查 Northside Eye Center 明天的 contact lens fitting 時段。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "branch_name",
+              "argument_name": "branch_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "service_date",
+              "argument_name": "service_date"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "應選 Dr. Wu。原眼科檢查 10:35 才結束，所以 Dr. Kao 的時段重疊；Dr. Lin 要到 12:10 才完成。Dr. Wu 可在 11:00 開始並於 11:35 完成，是其餘可用且符合期限的醫師中最早完成者，距離中午還有 25 分鐘。"
+    },
+    {
+      "id": "appointment_service_2step_addon_selection_002",
+      "category": "appointment_service",
+      "step_count": 2,
+      "user_prompt": "After my haircut tomorrow, I want to add a scalp treatment, but I need to leave by 5 PM. Among the available options that finish by then, choose the cheapest one; if prices tie, choose the one that finishes earlier. What time would I finish, and what would the total price be?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user states the base service and relative day. The first result supplies the branch, original end time, and existing price needed to evaluate compatible add-ons.",
+      "flow_summary": "先查原預約的門市、服務、結束時間與價格，再查該門市相容的加購選項，依五點期限、供應狀態、價格與完成時間選出唯一答案。",
+      "tools": [
+        {
+          "name": "find_my_appointment",
+          "description": "Find the signed-in user's appointment using a service name and relative day. Returns branch_name (string), base_service (string), original_end_local (ISO local datetime string), current_price (number), and currency (string).",
+          "parameters": {
+            "service_name": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "branch_name": {
+                "type": "string",
+                "description": "Returned branch name."
+              },
+              "base_service": {
+                "type": "string",
+                "description": "Returned base service."
+              },
+              "original_end_local": {
+                "type": "string",
+                "description": "Returned original end local."
+              },
+              "current_price": {
+                "type": "number",
+                "description": "Returned current price."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              }
+            },
+            "required": [
+              "branch_name",
+              "base_service",
+              "original_end_local",
+              "current_price",
+              "currency"
+            ]
+          }
+        },
+        {
+          "name": "list_compatible_addons",
+          "description": "List add-ons compatible with a base service at one branch. Returns options, each with name (string), earliest_start_local (ISO local datetime string), duration_minutes (number), price (number), currency (string), and staff_available (boolean). It does not choose or rank an option.",
+          "parameters": {
+            "branch_name": "string",
+            "base_service": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "options": {
+                "type": "array",
+                "description": "Returned options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Returned name."
+                    },
+                    "earliest_start_local": {
+                      "type": "string",
+                      "description": "Returned earliest start local."
+                    },
+                    "duration_minutes": {
+                      "type": "number",
+                      "description": "Returned duration minutes."
+                    },
+                    "price": {
+                      "type": "number",
+                      "description": "Returned price."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Returned currency."
+                    },
+                    "staff_available": {
+                      "type": "boolean",
+                      "description": "Returned staff available."
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "earliest_start_local",
+                    "duration_minutes",
+                    "price",
+                    "currency",
+                    "staff_available"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "options"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "appointment",
+          "tool_name": "find_my_appointment",
+          "tool_input": {
+            "service_name": "haircut",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "branch_name": "Central Salon",
+            "base_service": "haircut",
+            "original_end_local": "2026-09-08T16:00:00+08:00",
+            "current_price": 700,
+            "currency": "TWD"
+          },
+          "waiting_speech_target": "正在查看你明天 haircut 預約的結束時間與目前價格。"
+        },
+        {
+          "index": 2,
+          "label": "addons",
+          "tool_name": "list_compatible_addons",
+          "tool_input": {
+            "branch_name": "Central Salon",
+            "base_service": "haircut"
+          },
+          "mocked_result": {
+            "options": [
+              {
+                "name": "refresh scalp care",
+                "earliest_start_local": "2026-09-08T16:10:00+08:00",
+                "duration_minutes": 30,
+                "price": 400,
+                "currency": "TWD",
+                "staff_available": true
+              },
+              {
+                "name": "quick cooling scalp care",
+                "earliest_start_local": "2026-09-08T16:15:00+08:00",
+                "duration_minutes": 20,
+                "price": 400,
+                "currency": "TWD",
+                "staff_available": true
+              },
+              {
+                "name": "deep scalp treatment",
+                "earliest_start_local": "2026-09-08T16:05:00+08:00",
+                "duration_minutes": 50,
+                "price": 450,
+                "currency": "TWD",
+                "staff_available": true
+              },
+              {
+                "name": "herbal scalp treatment",
+                "earliest_start_local": "2026-09-08T16:10:00+08:00",
+                "duration_minutes": 60,
+                "price": 350,
+                "currency": "TWD",
+                "staff_available": true
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查 Central Salon 在 haircut 後可加購的 scalp treatment。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "branch_name",
+              "argument_name": "branch_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "base_service",
+              "argument_name": "base_service"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "應選 quick cooling scalp care。它在 16:35 完成，符合 17:00 前離開；加上原預約後總價是 1,100 元。"
+    },
+    {
+      "id": "appointment_service_2step_cancellation_refund_003",
+      "category": "appointment_service",
+      "step_count": 2,
+      "user_prompt": "If I cancel my hair coloring appointment at 9 AM on September 9, 2026, and the appointment is at 10 AM on September 11, how much of my deposit would I get back, and how much would I lose?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The user gives an unambiguous service and absolute appointment date. The first result provides the exact appointment timestamp, deposit, and policy selectors; the cancellation timestamp remains a user fact.",
+      "flow_summary": "先依服務與絕對日期查預約、訂金及政策所需欄位，再查分段退款規則，由模型計算相隔 49 小時、退款與損失。",
+      "tools": [
+        {
+          "name": "find_my_appointment",
+          "description": "Find the signed-in user's appointment using a service name and service date. service_date must be the user's stated calendar date in YYYY-MM-DD format. Returns appointment_start_local (ISO local datetime string), deposit_paid (number), currency (string), branch_name (string), service_category (string), and booking_channel (string).",
+          "parameters": {
+            "service_name": "string",
+            "service_date": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "The appointment date stated by the user, converted to YYYY-MM-DD format."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "appointment_start_local": {
+                "type": "string",
+                "description": "Returned appointment start local."
+              },
+              "deposit_paid": {
+                "type": "number",
+                "description": "Returned deposit paid."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "branch_name": {
+                "type": "string",
+                "description": "Returned branch name."
+              },
+              "service_category": {
+                "type": "string",
+                "description": "Returned service category."
+              },
+              "booking_channel": {
+                "type": "string",
+                "description": "Returned booking channel."
+              }
+            },
+            "required": [
+              "appointment_start_local",
+              "deposit_paid",
+              "currency",
+              "branch_name",
+              "service_category",
+              "booking_channel"
+            ]
+          }
+        },
+        {
+          "name": "get_cancellation_policy",
+          "description": "Retrieve the cancellation policy for a branch, service category, and booking channel. Returns refund_tiers ordered by minimum_hours_before, each with minimum_hours_before (number) and refund_percentage (number). It does not calculate elapsed time, a refund, or a loss.",
+          "parameters": {
+            "branch_name": "string",
+            "service_category": "string",
+            "booking_channel": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "refund_tiers": {
+                "type": "array",
+                "description": "Returned refund tiers.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "minimum_hours_before": {
+                      "type": "number",
+                      "description": "Returned minimum hours before."
+                    },
+                    "refund_percentage": {
+                      "type": "number",
+                      "description": "Returned refund percentage."
+                    }
+                  },
+                  "required": [
+                    "minimum_hours_before",
+                    "refund_percentage"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "refund_tiers"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "appointment",
+          "tool_name": "find_my_appointment",
+          "tool_input": {
+            "service_name": "hair coloring",
+            "service_date": "2026-09-11"
+          },
+          "mocked_result": {
+            "appointment_start_local": "2026-09-11T10:00:00+08:00",
+            "deposit_paid": 1200,
+            "currency": "TWD",
+            "branch_name": "Central Salon",
+            "service_category": "hair coloring",
+            "booking_channel": "online"
+          },
+          "waiting_speech_target": "正在查看你 2026 年 9 月 11 日的 hair coloring 預約與訂金。"
+        },
+        {
+          "index": 2,
+          "label": "cancellation_policy",
+          "tool_name": "get_cancellation_policy",
+          "tool_input": {
+            "branch_name": "Central Salon",
+            "service_category": "hair coloring",
+            "booking_channel": "online"
+          },
+          "mocked_result": {
+            "refund_tiers": [
+              {
+                "minimum_hours_before": 72,
+                "refund_percentage": 100
+              },
+              {
+                "minimum_hours_before": 48,
+                "refund_percentage": 75
+              },
+              {
+                "minimum_hours_before": 24,
+                "refund_percentage": 50
+              },
+              {
+                "minimum_hours_before": 0,
+                "refund_percentage": 0
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查 Central Salon 線上預約 hair coloring 的取消規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "branch_name",
+              "argument_name": "branch_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "service_category",
+              "argument_name": "service_category"
+            },
+            {
+              "step_index": 1,
+              "result_field": "booking_channel",
+              "argument_name": "booking_channel"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "取消時間距預約 49 小時，符合提前至少 48 小時但不足 72 小時可退 75% 的規則，因此會退回 900 元，損失 300 元。"
+    },
+    {
+      "id": "appointment_service_2step_photo_overtime_004",
+      "category": "appointment_service",
+      "step_count": 2,
+      "user_prompt": "For my family photo session on Saturday, September 12, we will shoot for 70 minutes across three scenes with two scene changes. If we use two scenes instead, the shooting time stays at 70 minutes and there is only one scene change. Under my package, what is the overtime fee in each case, and how much would I save?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The user supplies an explicit calendar date and service name. The first result exposes the human-readable package, studio, and included minutes needed to retrieve and apply the overtime policy.",
+      "flow_summary": "先查家庭攝影預約的方案、攝影棚及內含棚時，再查換景與超時區段規則，由模型計算兩個情境的棚時、進位費用與差額。",
+      "tools": [
+        {
+          "name": "find_my_appointment",
+          "description": "Find the signed-in user's appointment using a service name and service date. service_date must be the user's stated calendar date in YYYY-MM-DD format. Returns photo_package (string), studio_type (string), included_studio_minutes (number), and currency (string).",
+          "parameters": {
+            "service_name": "string",
+            "service_date": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "The appointment date stated by the user, converted to YYYY-MM-DD format."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "photo_package": {
+                "type": "string",
+                "description": "Returned photo package."
+              },
+              "studio_type": {
+                "type": "string",
+                "description": "Returned studio type."
+              },
+              "included_studio_minutes": {
+                "type": "number",
+                "description": "Returned included studio minutes."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              }
+            },
+            "required": [
+              "photo_package",
+              "studio_type",
+              "included_studio_minutes",
+              "currency"
+            ]
+          }
+        },
+        {
+          "name": "get_photo_overtime_policy",
+          "description": "Retrieve raw overtime rules for a photo package and studio type. Returns scene_change_minutes (number), scene_changes_count_toward_studio_time (boolean), overtime_block_minutes (number), fee_per_started_block (number), and currency (string). It does not calculate total studio time or fees.",
+          "parameters": {
+            "photo_package": "string",
+            "studio_type": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "scene_change_minutes": {
+                "type": "number",
+                "description": "Returned scene change minutes."
+              },
+              "scene_changes_count_toward_studio_time": {
+                "type": "boolean",
+                "description": "Returned scene changes count toward studio time."
+              },
+              "overtime_block_minutes": {
+                "type": "number",
+                "description": "Returned overtime block minutes."
+              },
+              "fee_per_started_block": {
+                "type": "number",
+                "description": "Returned fee per started block."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              }
+            },
+            "required": [
+              "scene_change_minutes",
+              "scene_changes_count_toward_studio_time",
+              "overtime_block_minutes",
+              "fee_per_started_block",
+              "currency"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "appointment",
+          "tool_name": "find_my_appointment",
+          "tool_input": {
+            "service_name": "family photo session",
+            "service_date": "2026-09-12"
+          },
+          "mocked_result": {
+            "photo_package": "Family Story",
+            "studio_type": "Main Stage",
+            "included_studio_minutes": 60,
+            "currency": "TWD"
+          },
+          "waiting_speech_target": "正在查看你 2026 年 9 月 12 日家庭攝影預約的方案與內含棚時。"
+        },
+        {
+          "index": 2,
+          "label": "overtime_policy",
+          "tool_name": "get_photo_overtime_policy",
+          "tool_input": {
+            "photo_package": "Family Story",
+            "studio_type": "Main Stage"
+          },
+          "mocked_result": {
+            "scene_change_minutes": 12,
+            "scene_changes_count_toward_studio_time": true,
+            "overtime_block_minutes": 15,
+            "fee_per_started_block": 500,
+            "currency": "TWD"
+          },
+          "waiting_speech_target": "正在查 Family Story 在 Main Stage 的換景與超時計費規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "photo_package",
+              "argument_name": "photo_package"
+            },
+            {
+              "step_index": 1,
+              "result_field": "studio_type",
+              "argument_name": "studio_type"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "三個景共用棚 94 分鐘，超時 34 分鐘，按三個 15 分鐘區段收 1,500 元；兩個景共用棚 82 分鐘，超時 22 分鐘，按兩個區段收 1,000 元，因此可省 500 元。"
+    },
+    {
+      "id": "appointment_service_2step_maintenance_deadline_005",
+      "category": "appointment_service",
+      "step_count": 2,
+      "user_prompt": "For my maintenance appointment today, will my car be ready by 5 PM, and if so, how much earlier?",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The account-scoped lookup uses the ordinary service selector maintenance and the user-stated day. It confirms the drop-off time, vehicle, branch, and job list before job-specific scheduling rules are retrieved.",
+      "flow_summary": "先查今日汽車保養的送車時間、車型、門市與確認項目，再查各項工時及先後關係，由模型計算並行段、串行段、交車檢查與完成時間。",
+      "tools": [
+        {
+          "name": "find_my_appointment",
+          "description": "Find the signed-in user's appointment using a service name and relative day. Returns branch_name (string), vehicle_model (string), scheduled_drop_off_local (ISO local datetime string), and confirmed_service_jobs (array of strings).",
+          "parameters": {
+            "service_name": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "branch_name": {
+                "type": "string",
+                "description": "Returned branch name."
+              },
+              "vehicle_model": {
+                "type": "string",
+                "description": "Returned vehicle model."
+              },
+              "scheduled_drop_off_local": {
+                "type": "string",
+                "description": "Returned scheduled drop off local."
+              },
+              "confirmed_service_jobs": {
+                "type": "array",
+                "description": "Returned confirmed service jobs.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "branch_name",
+              "vehicle_model",
+              "scheduled_drop_off_local",
+              "confirmed_service_jobs"
+            ]
+          }
+        },
+        {
+          "name": "get_maintenance_schedule_rules",
+          "description": "Retrieve job durations and scheduling relationships for a branch, vehicle model, and confirmed job list. Returns job_durations_minutes (object), parallel_groups (array), sequential_constraints (array), and final_inspection_minutes (number). It does not calculate total duration or pickup time.",
+          "parameters": {
+            "branch_name": "string",
+            "vehicle_model": "string",
+            "confirmed_service_jobs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "job_durations_minutes": {
+                "type": "object",
+                "description": "Returned job durations minutes.",
+                "additionalProperties": {
+                  "type": "number",
+                  "description": "Returned duration minutes."
+                }
+              },
+              "parallel_groups": {
+                "type": "array",
+                "description": "Returned parallel groups.",
+                "items": {
+                  "type": "array",
+                  "description": "Returned item.",
+                  "items": {
+                    "type": "string",
+                    "description": "Returned item."
+                  }
+                }
+              },
+              "sequential_constraints": {
+                "type": "array",
+                "description": "Returned sequential constraints.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "job": {
+                      "type": "string",
+                      "description": "Returned job."
+                    },
+                    "after_jobs": {
+                      "type": "array",
+                      "description": "Returned after jobs.",
+                      "items": {
+                        "type": "string",
+                        "description": "Returned item."
+                      }
+                    }
+                  },
+                  "required": [
+                    "job",
+                    "after_jobs"
+                  ]
+                }
+              },
+              "final_inspection_minutes": {
+                "type": "number",
+                "description": "Returned final inspection minutes."
+              }
+            },
+            "required": [
+              "job_durations_minutes",
+              "parallel_groups",
+              "sequential_constraints",
+              "final_inspection_minutes"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "appointment",
+          "tool_name": "find_my_appointment",
+          "tool_input": {
+            "service_name": "maintenance",
+            "relative_day": "today"
+          },
+          "mocked_result": {
+            "branch_name": "Central Auto Service",
+            "vehicle_model": "compact sedan",
+            "scheduled_drop_off_local": "2026-09-07T13:00:00+08:00",
+            "confirmed_service_jobs": [
+              "oil change",
+              "cabin air filter replacement",
+              "wheel alignment"
+            ]
+          },
+          "waiting_speech_target": "正在查看你今天下午汽車保養的送車時間與確認項目。"
+        },
+        {
+          "index": 2,
+          "label": "schedule_rules",
+          "tool_name": "get_maintenance_schedule_rules",
+          "tool_input": {
+            "branch_name": "Central Auto Service",
+            "vehicle_model": "compact sedan",
+            "confirmed_service_jobs": [
+              "oil change",
+              "cabin air filter replacement",
+              "wheel alignment"
+            ]
+          },
+          "mocked_result": {
+            "job_durations_minutes": {
+              "oil change": 40,
+              "cabin air filter replacement": 25,
+              "wheel alignment": 55
+            },
+            "parallel_groups": [
+              [
+                "oil change",
+                "cabin air filter replacement"
+              ]
+            ],
+            "sequential_constraints": [
+              {
+                "job": "wheel alignment",
+                "after_jobs": [
+                  "oil change",
+                  "cabin air filter replacement"
+                ]
+              }
+            ],
+            "final_inspection_minutes": 15
+          },
+          "waiting_speech_target": "正在查 Central Auto Service 處理這三項工作的工時與施工順序。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "branch_name",
+              "argument_name": "branch_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "vehicle_model",
+              "argument_name": "vehicle_model"
+            },
+            {
+              "step_index": 1,
+              "result_field": "confirmed_service_jobs",
+              "argument_name": "confirmed_service_jobs"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "可以。換機油與換濾網並行需 40 分鐘，接著輪胎定位 55 分鐘、交車檢查 15 分鐘，共 110 分鐘；13:00 開始會在 14:50 完成，比 17:00 早 2 小時 10 分鐘。"
+    }
+  ]
+}

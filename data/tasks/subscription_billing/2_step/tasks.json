@@ -1,0 +1,1247 @@
+{
+  "category": "subscription_billing",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "subscription_billing_2step_sla_credit_001",
+      "category": "subscription_billing",
+      "step_count": 2,
+      "user_prompt": "Our workspace had several outages in August. Under our subscription, how much service credit should come off the next bill?",
+      "flow_summary": "先查八月實際事故、方案與可折抵月費，再用第一步揭露的方案及服務類型查 SLA；模型排除不合格事件、合併重疊中斷區間並套級距。",
+      "tools": [
+        {
+          "name": "get_my_service_incident_facts",
+          "description": "Return the signed-in account's confirmed workspace incidents, current plan, service category, and eligible monthly charge for a billing month. It does not decide SLA eligibility, merge overlapping intervals, total outage minutes, select a credit bracket, or calculate a credit.",
+          "parameters": {
+            "billing_month": {
+              "type": "string",
+              "description": "The local billing month stated by the user, in YYYY-MM format.",
+              "pattern": "^\\d{4}-\\d{2}$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "billing_month": {
+                "type": "string",
+                "description": "Returned billing month."
+              },
+              "plan_name": {
+                "type": "string",
+                "description": "Returned plan name."
+              },
+              "service_category": {
+                "type": "string",
+                "description": "Returned service category."
+              },
+              "eligible_monthly_charge_twd": {
+                "type": "integer",
+                "description": "Returned eligible monthly charge twd."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "time_zone": {
+                "type": "string",
+                "description": "Returned time zone."
+              },
+              "incidents": {
+                "type": "array",
+                "description": "Returned incidents.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "incident_type": {
+                      "type": "string",
+                      "description": "Returned incident type."
+                    },
+                    "started_at": {
+                      "type": "string",
+                      "description": "Returned started at."
+                    },
+                    "ended_at": {
+                      "type": "string",
+                      "description": "Returned ended at."
+                    }
+                  },
+                  "required": [
+                    "incident_type",
+                    "started_at",
+                    "ended_at"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "billing_month",
+              "plan_name",
+              "service_category",
+              "eligible_monthly_charge_twd",
+              "currency",
+              "time_zone",
+              "incidents"
+            ]
+          }
+        },
+        {
+          "name": "get_service_credit_policy",
+          "description": "Return the raw workspace SLA event-eligibility rules, overlap rule, credit brackets, and cap for one human-readable subscription plan. It does not receive incident intervals or calculate eligible minutes or money.",
+          "parameters": {
+            "plan_name": {
+              "type": "string",
+              "description": "The complete human-readable plan name returned by the incident service."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "eligible_incident_types": {
+                "type": "array",
+                "description": "Returned eligible incident types.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              },
+              "excluded_incident_types": {
+                "type": "array",
+                "description": "Returned excluded incident types.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              },
+              "aggregation_rule": {
+                "type": "string",
+                "description": "Returned aggregation rule."
+              },
+              "credit_brackets": {
+                "type": "array",
+                "description": "Returned credit brackets.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "minimum_minutes_inclusive": {
+                      "type": "integer",
+                      "description": "Returned minimum minutes inclusive."
+                    },
+                    "maximum_minutes_exclusive": {
+                      "type": "integer",
+                      "description": "Returned maximum minutes exclusive."
+                    },
+                    "credit_percent": {
+                      "type": "integer",
+                      "description": "Returned credit percent."
+                    }
+                  },
+                  "required": [
+                    "minimum_minutes_inclusive",
+                    "maximum_minutes_exclusive",
+                    "credit_percent"
+                  ]
+                }
+              },
+              "credit_base": {
+                "type": "string",
+                "description": "Returned credit base."
+              },
+              "maximum_credit_percent": {
+                "type": "integer",
+                "description": "Returned maximum credit percent."
+              }
+            },
+            "required": [
+              "eligible_incident_types",
+              "excluded_incident_types",
+              "aggregation_rule",
+              "credit_brackets",
+              "credit_base",
+              "maximum_credit_percent"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "incident_facts",
+          "tool_name": "get_my_service_incident_facts",
+          "tool_input": {
+            "billing_month": "2026-08"
+          },
+          "mocked_result": {
+            "billing_month": "2026-08",
+            "plan_name": "Business Plus",
+            "service_category": "collaboration workspace",
+            "eligible_monthly_charge_twd": 1200,
+            "currency": "TWD",
+            "time_zone": "Asia/Taipei",
+            "incidents": [
+              {
+                "incident_type": "unplanned full outage",
+                "started_at": "2026-08-12T10:00:00+08:00",
+                "ended_at": "2026-08-12T11:20:00+08:00"
+              },
+              {
+                "incident_type": "unplanned full outage",
+                "started_at": "2026-08-12T11:00:00+08:00",
+                "ended_at": "2026-08-12T12:10:00+08:00"
+              },
+              {
+                "incident_type": "scheduled maintenance",
+                "started_at": "2026-08-19T02:00:00+08:00",
+                "ended_at": "2026-08-19T03:30:00+08:00"
+              },
+              {
+                "incident_type": "partial degradation",
+                "started_at": "2026-08-25T16:00:00+08:00",
+                "ended_at": "2026-08-25T16:30:00+08:00"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看工作區八月的實際中斷紀錄、方案與可折抵月費。"
+        },
+        {
+          "index": 2,
+          "label": "sla_policy",
+          "tool_name": "get_service_credit_policy",
+          "tool_input": {
+            "plan_name": "Business Plus"
+          },
+          "mocked_result": {
+            "eligible_incident_types": [
+              "unplanned full outage"
+            ],
+            "excluded_incident_types": [
+              "scheduled maintenance",
+              "partial degradation"
+            ],
+            "aggregation_rule": "Take the union of overlapping eligible outage intervals within the billing month, then total the union duration in minutes.",
+            "credit_brackets": [
+              {
+                "minimum_minutes_inclusive": 60,
+                "maximum_minutes_exclusive": 120,
+                "credit_percent": 10
+              },
+              {
+                "minimum_minutes_inclusive": 120,
+                "maximum_minutes_exclusive": 240,
+                "credit_percent": 20
+              },
+              {
+                "minimum_minutes_inclusive": 240,
+                "maximum_minutes_exclusive": 100000,
+                "credit_percent": 25
+              }
+            ],
+            "credit_base": "eligible monthly charge",
+            "maximum_credit_percent": 25
+          },
+          "waiting_speech_target": "正在查看 Business Plus 方案的工作區 SLA 合格事件、區間合併與折抵級距。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "plan_name",
+              "argument_name": "plan_name"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "plan_name"
+          ]
+        }
+      ],
+      "expected_final_answer": "Only the two unplanned full outages qualify. Because they overlap, their union runs from 10:00 AM to 12:10 PM, or 130 minutes, rather than 150 minutes. That falls in the 20% bracket, so the next bill should receive a 240 TWD service credit based on the 1,200 TWD eligible monthly charge.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The account-scoped tool is specifically for workspace incidents, so the completed billing month is sufficient; Step 1 reveals the human-readable plan needed for the separate workspace SLA policy lookup.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "事故事實與 SLA 合約分屬兩個來源；核心是排除事件、合併重疊區間後才選級距。",
+          "steps": [
+            "Step 1 得到兩段互相重疊的full outage，以及一段排定維護和一段部分降級；同時取得Business Plus及可折抵月費1,200元。",
+            "Step 2 只需傳入Business Plus方案；工作區SLA政策只承認unplanned full outage，且重疊區間要取聯集。",
+            "兩段合格中斷的聯集為10:00至12:10，共130分鐘，不是直接相加的150分鐘。",
+            "130分鐘落在20%級距；1,200×20%=240元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_service_incident_facts",
+            "input_example_zh": "只用 2026 年 8 月查登入帳戶的工作區事故紀錄。",
+            "output_example_zh": "回傳 Business Plus、可折抵月費 1,200 元，以及兩段互相重疊的完全中斷、一段排定維護和一段部分降級；不判斷 SLA。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_service_credit_policy",
+            "input_example_zh": "拿第一步的 Business Plus 方案查工作區 SLA。",
+            "output_example_zh": "只有非預期完全中斷合格，重疊區間取聯集；60–120 分鐘為 10%，120–240 分鐘為 20%。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_2step_annual_cancellation_003",
+      "category": "subscription_billing",
+      "step_count": 2,
+      "user_prompt": "If I end my current annual subscription on October 1, how much would be refunded, and how much would the service through then effectively have cost?",
+      "flow_summary": "第一步無參數取得登入者目前預付合約；第二步用具名方案、優惠與銷售通路查取消政策，模型以使用者指定的結束日計算完整月份並判斷折扣追回。",
+      "tools": [
+        {
+          "name": "get_my_current_prepaid_subscription",
+          "description": "Return the signed-in user's current prepaid subscription term, plan, offer, sales channel, and amount paid. It takes no arguments and does not calculate service months through a hypothetical end date, cancellation eligibility, effective cost, or refund.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "plan_name": {
+                "type": "string",
+                "description": "Returned plan name."
+              },
+              "offer_name": {
+                "type": "string",
+                "description": "Returned offer name."
+              },
+              "sales_channel": {
+                "type": "string",
+                "description": "Returned sales channel."
+              },
+              "term_start": {
+                "type": "string",
+                "description": "Returned term start."
+              },
+              "term_end_exclusive": {
+                "type": "string",
+                "description": "Returned term end exclusive."
+              },
+              "prepaid_amount_twd": {
+                "type": "integer",
+                "description": "Returned prepaid amount twd."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              }
+            },
+            "required": [
+              "plan_name",
+              "offer_name",
+              "sales_channel",
+              "term_start",
+              "term_end_exclusive",
+              "prepaid_amount_twd",
+              "currency"
+            ]
+          }
+        },
+        {
+          "name": "get_prepaid_cancellation_policy",
+          "description": "Return the raw early-cancellation and promotional-clawback rules for a human-readable plan, offer, and sales channel. It does not receive the user's hypothetical end date, count completed months, or calculate cost or refund.",
+          "parameters": {
+            "plan_name": {
+              "type": "string",
+              "description": "The complete human-readable plan name returned by the current prepaid subscription."
+            },
+            "offer_name": {
+              "type": "string",
+              "description": "The complete human-readable offer name returned by the current prepaid subscription."
+            },
+            "sales_channel": {
+              "type": "string",
+              "description": "The human-readable sales channel returned by the current prepaid subscription."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "requested_end_date_semantics": {
+                "type": "string",
+                "description": "Returned requested end date semantics."
+              },
+              "full_month_definition": {
+                "type": "string",
+                "description": "Returned full month definition."
+              },
+              "clawback_threshold_completed_months": {
+                "type": "integer",
+                "description": "Returned clawback threshold completed months."
+              },
+              "before_threshold_rule": {
+                "type": "string",
+                "description": "Returned before threshold rule."
+              },
+              "standard_monthly_rate_twd": {
+                "type": "integer",
+                "description": "Returned standard monthly rate twd."
+              },
+              "at_or_after_threshold_rule": {
+                "type": "string",
+                "description": "Returned at or after threshold rule."
+              },
+              "fixed_cancellation_fee_twd": {
+                "type": "integer",
+                "description": "Returned fixed cancellation fee twd."
+              }
+            },
+            "required": [
+              "requested_end_date_semantics",
+              "full_month_definition",
+              "clawback_threshold_completed_months",
+              "before_threshold_rule",
+              "standard_monthly_rate_twd",
+              "at_or_after_threshold_rule",
+              "fixed_cancellation_fee_twd"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "prepaid_term",
+          "tool_name": "get_my_current_prepaid_subscription",
+          "tool_input": {},
+          "mocked_result": {
+            "plan_name": "Studio Annual",
+            "offer_name": "Annual Saver",
+            "sales_channel": "direct",
+            "term_start": "2026-01-01",
+            "term_end_exclusive": "2027-01-01",
+            "prepaid_amount_twd": 9600,
+            "currency": "TWD"
+          },
+          "waiting_speech_target": "正在查看目前年繳方案的合約期間、優惠、通路與預付金額。"
+        },
+        {
+          "index": 2,
+          "label": "cancellation_policy",
+          "tool_name": "get_prepaid_cancellation_policy",
+          "tool_input": {
+            "plan_name": "Studio Annual",
+            "offer_name": "Annual Saver",
+            "sales_channel": "direct"
+          },
+          "mocked_result": {
+            "requested_end_date_semantics": "The requested end date is exclusive: service is provided before that date, not on or after it.",
+            "full_month_definition": "Count consecutive full monthly intervals starting at the term start whose interval end is no later than the exclusive requested end date. For example, January 1 inclusive through February 1 exclusive is exactly one completed service month.",
+            "clawback_threshold_completed_months": 10,
+            "before_threshold_rule": "Reprice every completed service month at the standard monthly rate, then refund prepaid amount minus repriced service cost.",
+            "standard_monthly_rate_twd": 1000,
+            "at_or_after_threshold_rule": "Keep the annual discounted monthly basis for completed months.",
+            "fixed_cancellation_fee_twd": 0
+          },
+          "waiting_speech_target": "正在查看 Studio Annual 搭配 Annual Saver 於官網直訂時的提前取消與折扣追回規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "plan_name",
+              "argument_name": "plan_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "offer_name",
+              "argument_name": "offer_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "sales_channel",
+              "argument_name": "sales_channel"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "plan_name",
+            "offer_name",
+            "sales_channel"
+          ]
+        }
+      ],
+      "expected_final_answer": "October 1 is the ninth monthly anniversary after the January 1 start, so 9 complete service months have elapsed. Because that is below the 10-month threshold, the Annual Saver discount is clawed back and those months are repriced at 1,000 TWD each. The service through October 1 therefore effectively costs 9,000 TWD, and the refund is 9,600 - 9,000 = 600 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The current prepaid contract belongs to the signed-in user, so Step 1 appropriately takes no argument. October 1 remains a user-supplied hypothetical date used by the model rather than a lookup key.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "合約查詢不吃假設日期；模型在取得合約與政策後，自己用十月一日計算完整月份和折扣追回。",
+          "steps": [
+            "Step 1 無參數取得1月1日至隔年1月1日的Studio Annual合約、Annual Saver優惠與預付9,600元。",
+            "Step 2 用方案、優惠及通路查得：未滿10個完整月取消，已使用月份改按每月1,000元重算。",
+            "10月1日是第9個月週年，因此完成9個月，仍落在折扣追回分支。",
+            "使用成本9×1,000=9,000元；退款9,600−9,000=600元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_current_prepaid_subscription",
+            "input_example_zh": "不帶參數，查登入者目前的預付年繳合約。",
+            "output_example_zh": "回傳 Studio Annual、Annual Saver、官網直訂、合約 1 月 1 日起算，以及預付 9,600 元。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_prepaid_cancellation_policy",
+            "input_example_zh": "拿第一步的方案、優惠與通路查提前取消政策。",
+            "output_example_zh": "未滿 10 個完整月會追回年繳優惠，已用月份按每月 1,000 元重算；不替模型計算月份或退款。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_2step_secretary_upgrade_004",
+      "category": "subscription_billing",
+      "step_count": 2,
+      "user_prompt": "I am Daniel's secretary. If I switch his subscription from its current plan to Team on September 16, how much would be charged immediately, and what would a full month cost afterward?",
+      "flow_summary": "先用老闆姓名取得目前方案、優惠、實付月費及帳期；第二步公開輸入只有變更前後兩個方案，回傳方案間轉換規則，模型判斷優惠可否延續並做雙邊比例計費。",
+      "tools": [
+        {
+          "name": "get_account_holder_subscription_context",
+          "description": "Return the matching account holder's current plan, active offer, net recurring price, and current billing-cycle boundaries. It does not quote a target plan, decide whether an offer transfers, or calculate a plan-change charge.",
+          "parameters": {
+            "account_holder_name": {
+              "type": "string",
+              "description": "The ordinary person name spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "account_holder_name": {
+                "type": "string",
+                "description": "Returned account holder name."
+              },
+              "current_plan": {
+                "type": "string",
+                "description": "Returned current plan."
+              },
+              "active_offer": {
+                "type": "string",
+                "description": "Returned active offer."
+              },
+              "current_plan_list_price_twd": {
+                "type": "integer",
+                "description": "Returned current plan list price twd."
+              },
+              "current_net_recurring_price_twd": {
+                "type": "integer",
+                "description": "Returned current net recurring price twd."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "cycle_start": {
+                "type": "string",
+                "description": "Returned cycle start."
+              },
+              "cycle_end_exclusive": {
+                "type": "string",
+                "description": "Returned cycle end exclusive."
+              },
+              "cycle_day_count": {
+                "type": "integer",
+                "description": "Returned cycle day count."
+              }
+            },
+            "required": [
+              "account_holder_name",
+              "current_plan",
+              "active_offer",
+              "current_plan_list_price_twd",
+              "current_net_recurring_price_twd",
+              "currency",
+              "cycle_start",
+              "cycle_end_exclusive",
+              "cycle_day_count"
+            ]
+          }
+        },
+        {
+          "name": "get_plan_transition_terms",
+          "description": "Return the target list price and raw transition rules between two human-readable plans, including which named offers transfer and how old-plan credit and new-plan charge are prorated. Its only public inputs are the before and after plan names. It does not receive a person, date, billing cycle, or calculate money.",
+          "parameters": {
+            "before_plan": {
+              "type": "string",
+              "description": "The complete current plan name returned by the account-holder lookup."
+            },
+            "after_plan": {
+              "type": "string",
+              "description": "The human-readable target plan name spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "after_plan_list_price_twd": {
+                "type": "integer",
+                "description": "Returned after plan list price twd."
+              },
+              "transferable_offer_names": {
+                "type": "array",
+                "description": "Returned transferable offer names.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              },
+              "offer_application_rule": {
+                "type": "string",
+                "description": "Returned offer application rule."
+              },
+              "old_plan_credit_rule": {
+                "type": "string",
+                "description": "Returned old plan credit rule."
+              },
+              "new_plan_charge_rule": {
+                "type": "string",
+                "description": "Returned new plan charge rule."
+              },
+              "service_day_rule": {
+                "type": "string",
+                "description": "Returned service day rule."
+              },
+              "rounding_rule": {
+                "type": "string",
+                "description": "Returned rounding rule."
+              }
+            },
+            "required": [
+              "after_plan_list_price_twd",
+              "transferable_offer_names",
+              "offer_application_rule",
+              "old_plan_credit_rule",
+              "new_plan_charge_rule",
+              "service_day_rule",
+              "rounding_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "account_context",
+          "tool_name": "get_account_holder_subscription_context",
+          "tool_input": {
+            "account_holder_name": "Daniel"
+          },
+          "mocked_result": {
+            "account_holder_name": "Daniel",
+            "current_plan": "Solo Plus",
+            "active_offer": "Founding 20%",
+            "current_plan_list_price_twd": 600,
+            "current_net_recurring_price_twd": 480,
+            "currency": "TWD",
+            "cycle_start": "2026-09-01",
+            "cycle_end_exclusive": "2026-10-01",
+            "cycle_day_count": 30
+          },
+          "waiting_speech_target": "正在查看 Daniel 目前的方案、優惠、實付月費與九月帳期。",
+          "case_insensitive_arguments": [
+            "account_holder_name"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "transition_terms",
+          "tool_name": "get_plan_transition_terms",
+          "tool_input": {
+            "before_plan": "Solo Plus",
+            "after_plan": "Team"
+          },
+          "mocked_result": {
+            "after_plan_list_price_twd": 900,
+            "transferable_offer_names": [
+              "Founding 20%"
+            ],
+            "offer_application_rule": "If the account's active offer appears in transferable_offer_names, apply its percentage to the after-plan list price for both the remaining interval and future full cycles.",
+            "old_plan_credit_rule": "Prorate the account's current net recurring price over unused service days.",
+            "new_plan_charge_rule": "Prorate the discounted after-plan monthly price over the same unused service days.",
+            "service_day_rule": "The change date is included in the new plan; cycle end is exclusive.",
+            "rounding_rule": "Round only the final immediate charge to whole TWD, half up."
+          },
+          "waiting_speech_target": "正在查看 Solo Plus 升級到 Team 時的優惠延續與新舊方案比例計費規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "current_plan",
+              "argument_name": "before_plan"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "before_plan",
+            "after_plan"
+          ]
+        }
+      ],
+      "expected_final_answer": "Daniel's Founding 20% offer transfers to Team, making the full monthly price 900 × 80% = 720 TWD. September 16 through September 30 is 15 of the 30 cycle days. The new-plan charge is 720 × 15/30 = 360 TWD, while the unused Solo Plus credit is 480 × 15/30 = 240 TWD. The immediate charge is therefore 120 TWD, and a later full month costs 720 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "Daniel is a natural account-holder selector appropriate to the secretary scenario. The second API deliberately accepts only before_plan and after_plan; person, date, offer, and cycle math stay outside that call.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "姓名只用來取得帳戶事實；第二步只描述兩方案之間的轉換，模型再把日期、優惠與帳期合併。",
+          "steps": [
+            "Step 1 用Daniel查到Solo Plus、Founding 20%、實付480元，以及9月1日至10月1日共30天的帳期。",
+            "Step 2 只傳before_plan=Solo Plus與after_plan=Team；結果顯示Team原價900元且Founding 20%可延續。",
+            "Team完整月為900×80%=720元；9月16日至30日為15天，新方案半月費360元。",
+            "舊方案未使用credit為480×15/30=240元，因此立即補扣120元；未來完整月為720元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_account_holder_subscription_context",
+            "input_example_zh": "用 Daniel 的姓名查目前帳務狀態。",
+            "output_example_zh": "回傳 Solo Plus、Founding 20%、實付月費 480 元，以及 9 月 1 日至 10 月 1 日的帳期。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_plan_transition_terms",
+            "input_example_zh": "只傳 before plan Solo Plus 和 after plan Team。",
+            "output_example_zh": "回傳 Team 原價 900 元、Founding 20% 可延續，以及新舊方案都按剩餘天數比例計費；不接收 Daniel 或變更日期。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_2step_partial_payment_005",
+      "category": "subscription_billing",
+      "step_count": 2,
+      "user_prompt": "My September subscription payments use Bank of Taiwan. If I pay 1,000 TWD today, which overdue charges will be cleared, how much will remain, and will uploads be restored?",
+      "flow_summary": "先以月份和銀行名稱定位付款設定並取得逐筆欠款；第二步以方案與催收階段查沖銷及復權政策，模型依順序分配假設付款並判斷功能是否恢復。",
+      "tools": [
+        {
+          "name": "get_subscription_arrears",
+          "description": "Return the signed-in user's subscription arrears through a billing month after resolving the named bank payment profile, including each unpaid charge, collection stage, and posting behavior. It does not allocate a hypothetical payment, calculate the remaining balance, or decide whether service is restored.",
+          "parameters": {
+            "billing_month_name": {
+              "type": "string",
+              "description": "The natural local month name spoken by the user, such as September. The signed-in account and benchmark current date resolve the year."
+            },
+            "bank_name": {
+              "type": "string",
+              "description": "The ordinary bank name spoken by the user; it selects the matching subscription payment profile."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "resolved_billing_month": {
+                "type": "string",
+                "description": "Returned resolved billing month."
+              },
+              "matched_payment_profile": {
+                "type": "object",
+                "description": "Returned matched payment profile.",
+                "properties": {
+                  "bank_name": {
+                    "type": "string",
+                    "description": "Returned bank name."
+                  },
+                  "posting_behavior": {
+                    "type": "string",
+                    "description": "Returned posting behavior."
+                  }
+                },
+                "required": [
+                  "bank_name",
+                  "posting_behavior"
+                ]
+              },
+              "plan_name": {
+                "type": "string",
+                "description": "Returned plan name."
+              },
+              "collection_stage": {
+                "type": "string",
+                "description": "Returned collection stage."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "unpaid_charges": {
+                "type": "array",
+                "description": "Returned unpaid charges.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "billing_month": {
+                      "type": "string",
+                      "description": "Returned billing month."
+                    },
+                    "charge_type": {
+                      "type": "string",
+                      "description": "Returned charge type."
+                    },
+                    "outstanding_twd": {
+                      "type": "integer",
+                      "description": "Returned outstanding twd."
+                    }
+                  },
+                  "required": [
+                    "billing_month",
+                    "charge_type",
+                    "outstanding_twd"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "resolved_billing_month",
+              "matched_payment_profile",
+              "plan_name",
+              "collection_stage",
+              "currency",
+              "unpaid_charges"
+            ]
+          }
+        },
+        {
+          "name": "get_partial_payment_policy",
+          "description": "Return raw allocation priority and service-restoration rules for a plan and collection stage. It does not receive a payment amount or arrears list and does not allocate money or determine the resulting account state.",
+          "parameters": {
+            "plan_name": {
+              "type": "string",
+              "description": "The complete human-readable plan name returned by the arrears lookup."
+            },
+            "collection_stage": {
+              "type": "string",
+              "description": "The collection stage returned by the arrears lookup."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "allocation_order": {
+                "type": "array",
+                "description": "Returned allocation order.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              },
+              "upload_restoration_rule": {
+                "type": "string",
+                "description": "Returned upload restoration rule."
+              },
+              "newer_month_balance_may_remain": {
+                "type": "boolean",
+                "description": "Returned newer month balance may remain."
+              },
+              "partial_payment_fee_twd": {
+                "type": "integer",
+                "description": "Returned partial payment fee twd."
+              }
+            },
+            "required": [
+              "allocation_order",
+              "upload_restoration_rule",
+              "newer_month_balance_may_remain",
+              "partial_payment_fee_twd"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "arrears",
+          "tool_name": "get_subscription_arrears",
+          "tool_input": {
+            "billing_month_name": "September",
+            "bank_name": "Bank of Taiwan"
+          },
+          "mocked_result": {
+            "resolved_billing_month": "2026-09",
+            "matched_payment_profile": {
+              "bank_name": "Bank of Taiwan",
+              "posting_behavior": "payments made today post immediately"
+            },
+            "plan_name": "Cloud Team",
+            "collection_stage": "restricted",
+            "currency": "TWD",
+            "unpaid_charges": [
+              {
+                "billing_month": "2026-08",
+                "charge_type": "late fee",
+                "outstanding_twd": 100
+              },
+              {
+                "billing_month": "2026-08",
+                "charge_type": "subscription principal",
+                "outstanding_twd": 700
+              },
+              {
+                "billing_month": "2026-09",
+                "charge_type": "subscription principal",
+                "outstanding_twd": 700
+              }
+            ]
+          },
+          "waiting_speech_target": "正在用九月與 Bank of Taiwan 付款設定查看逐筆訂閱欠款和目前催收狀態。",
+          "case_insensitive_arguments": [
+            "bank_name"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "payment_policy",
+          "tool_name": "get_partial_payment_policy",
+          "tool_input": {
+            "plan_name": "Cloud Team",
+            "collection_stage": "restricted"
+          },
+          "mocked_result": {
+            "allocation_order": [
+              "Apply payment to older billing months before newer billing months.",
+              "Within the same billing month, clear late fees before subscription principal."
+            ],
+            "upload_restoration_rule": "Restore uploads as soon as every charge in the oldest outstanding billing month is fully cleared.",
+            "newer_month_balance_may_remain": true,
+            "partial_payment_fee_twd": 0
+          },
+          "waiting_speech_target": "正在查看 Cloud Team 處於 restricted 階段時的部分付款沖銷順序與上傳復權門檻。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "plan_name",
+              "argument_name": "plan_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "collection_stage",
+              "argument_name": "collection_stage"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "plan_name",
+            "collection_stage"
+          ]
+        }
+      ],
+      "expected_final_answer": "The 1,000 TWD payment first clears the August late fee of 100 TWD, then the August subscription principal of 700 TWD, and applies the remaining 200 TWD to September principal. The remaining balance is 500 TWD. Because every August charge, the oldest outstanding month, is fully cleared and this bank profile posts today's payment immediately, uploads are restored even though 500 TWD from September remains unpaid.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "Natural month name plus the spoken bank name identifies the relevant payment profile and arrears without forcing the model to translate speech into a rigid YYYY-MM argument. Bank of Taiwan materially establishes immediate posting, which is necessary for answering whether uploads return today.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先依政策把一千元逐筆沖銷，再用最舊月份是否全清與銀行入帳速度判斷復權。",
+          "steps": [
+            "Step 1 用September與Bank of Taiwan取得2026年9月的三筆欠款：八月延遲費100、八月本金700、九月本金700；並確認今日付款即時入帳。",
+            "Step 2 用Cloud Team與restricted查得先舊後新、同月先費用後本金，以及最舊欠款月份全清就恢復上傳。",
+            "1,000元先清八月100+700，再沖九月200，因此九月仍欠500元。",
+            "八月已全清且款項即時入帳，所以即使九月仍欠500元，上傳仍會恢復。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_subscription_arrears",
+            "input_example_zh": "直接用使用者說的 September 和 Bank of Taiwan 查訂閱欠款，不要求模型改寫成 YYYY-MM。",
+            "output_example_zh": "解析為 2026 年 9 月，回傳八月延遲費 100、八月本金 700、九月本金 700，並確認今日付款即時入帳。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_partial_payment_policy",
+            "input_example_zh": "拿 Cloud Team 與 restricted 查部分付款政策。",
+            "output_example_zh": "先舊後新、同月先延遲費後本金；最舊欠款月份全部清掉就恢復上傳。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_2step_upgrade_selection_006",
+      "category": "subscription_billing",
+      "step_count": 2,
+      "user_prompt": "I am close to my limits and want to upgrade to a plan that can support everything I already use. Which available upgrade would actually be cheapest per month, and how much more would it cost than I pay now?",
+      "flow_summary": "先無參數取得目前方案、真實用量、有效優惠與實付月費，再用這些具語意帳務欄位查可升級方案；模型以多項容量篩選，套用各方案的優惠延續資格後比較淨價。",
+      "tools": [
+        {
+          "name": "get_my_subscription_usage_snapshot",
+          "description": "Return the signed-in user's current plan, active offer, current list and net prices, billing market and cadence, and raw current usage across all capacity dimensions. It takes no arguments and does not recommend an upgrade.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "current_plan": {
+                "type": "string",
+                "description": "Returned current plan."
+              },
+              "active_offer": {
+                "type": "string",
+                "description": "Returned active offer."
+              },
+              "offer_discount_percent": {
+                "type": "integer",
+                "description": "Returned offer discount percent."
+              },
+              "current_list_price_twd": {
+                "type": "integer",
+                "description": "Returned current list price twd."
+              },
+              "current_net_price_twd": {
+                "type": "integer",
+                "description": "Returned current net price twd."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "billing_market": {
+                "type": "string",
+                "description": "Returned billing market."
+              },
+              "billing_cadence": {
+                "type": "string",
+                "description": "Returned billing cadence."
+              },
+              "current_usage": {
+                "type": "object",
+                "description": "Returned current usage.",
+                "properties": {
+                  "storage_gb": {
+                    "type": "integer",
+                    "description": "Returned storage gb."
+                  },
+                  "members": {
+                    "type": "integer",
+                    "description": "Returned members."
+                  },
+                  "monthly_automation_runs": {
+                    "type": "integer",
+                    "description": "Returned monthly automation runs."
+                  }
+                },
+                "required": [
+                  "storage_gb",
+                  "members",
+                  "monthly_automation_runs"
+                ]
+              }
+            },
+            "required": [
+              "current_plan",
+              "active_offer",
+              "offer_discount_percent",
+              "current_list_price_twd",
+              "current_net_price_twd",
+              "currency",
+              "billing_market",
+              "billing_cadence",
+              "current_usage"
+            ]
+          }
+        },
+        {
+          "name": "list_subscription_upgrade_options",
+          "description": "Return all available upgrades and each option's raw capacities, list price, and whether the supplied active offer carries over, for the supplied current plan, offer, and market while preserving the signed-in account's billing cadence. It does not receive usage, decide which options fit, calculate discounted prices, rank plans, or calculate a price increase.",
+          "parameters": {
+            "current_plan": {
+              "type": "string",
+              "description": "The complete current plan name returned by the usage snapshot."
+            },
+            "active_offer": {
+              "type": "string",
+              "description": "The complete active offer name returned by the usage snapshot."
+            },
+            "billing_market": {
+              "type": "string",
+              "description": "The billing market returned by the usage snapshot."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "options": {
+                "type": "array",
+                "description": "Returned options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "plan_name": {
+                      "type": "string",
+                      "description": "Returned plan name."
+                    },
+                    "monthly_list_price_twd": {
+                      "type": "integer",
+                      "description": "Returned monthly list price twd."
+                    },
+                    "storage_limit_gb": {
+                      "type": "integer",
+                      "description": "Returned storage limit gb."
+                    },
+                    "member_limit": {
+                      "type": "integer",
+                      "description": "Returned member limit."
+                    },
+                    "monthly_automation_run_limit": {
+                      "type": "integer",
+                      "description": "Returned monthly automation run limit."
+                    },
+                    "active_offer_carries_over": {
+                      "type": "boolean",
+                      "description": "Returned active offer carries over."
+                    }
+                  },
+                  "required": [
+                    "plan_name",
+                    "monthly_list_price_twd",
+                    "storage_limit_gb",
+                    "member_limit",
+                    "monthly_automation_run_limit",
+                    "active_offer_carries_over"
+                  ]
+                }
+              },
+              "offer_rule": {
+                "type": "string",
+                "description": "Returned offer rule."
+              }
+            },
+            "required": [
+              "currency",
+              "options",
+              "offer_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "usage_snapshot",
+          "tool_name": "get_my_subscription_usage_snapshot",
+          "tool_input": {},
+          "mocked_result": {
+            "current_plan": "Creator Basic",
+            "active_offer": "Founding 20%",
+            "offer_discount_percent": 20,
+            "current_list_price_twd": 480,
+            "current_net_price_twd": 384,
+            "currency": "TWD",
+            "billing_market": "TW",
+            "billing_cadence": "monthly",
+            "current_usage": {
+              "storage_gb": 760,
+              "members": 6,
+              "monthly_automation_runs": 1300
+            }
+          },
+          "waiting_speech_target": "正在查看目前方案、實際用量、有效優惠與每月實付金額。"
+        },
+        {
+          "index": 2,
+          "label": "upgrade_options",
+          "tool_name": "list_subscription_upgrade_options",
+          "tool_input": {
+            "current_plan": "Creator Basic",
+            "active_offer": "Founding 20%",
+            "billing_market": "TW"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "options": [
+              {
+                "plan_name": "Creator Plus",
+                "monthly_list_price_twd": 650,
+                "storage_limit_gb": 1000,
+                "member_limit": 5,
+                "monthly_automation_run_limit": 2000,
+                "active_offer_carries_over": true
+              },
+              {
+                "plan_name": "Studio",
+                "monthly_list_price_twd": 800,
+                "storage_limit_gb": 1000,
+                "member_limit": 8,
+                "monthly_automation_run_limit": 1500,
+                "active_offer_carries_over": false
+              },
+              {
+                "plan_name": "Business",
+                "monthly_list_price_twd": 900,
+                "storage_limit_gb": 2000,
+                "member_limit": 10,
+                "monthly_automation_run_limit": 3000,
+                "active_offer_carries_over": true
+              }
+            ],
+            "offer_rule": "When active_offer_carries_over is true, apply the supplied offer's percentage to the option's list price; otherwise charge list price."
+          },
+          "waiting_speech_target": "正在查看 Creator Basic 搭配 Founding 20% 在台灣月繳帳戶可用的升級方案、容量與優惠延續資格。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "current_plan",
+              "argument_name": "current_plan"
+            },
+            {
+              "step_index": 1,
+              "result_field": "active_offer",
+              "argument_name": "active_offer"
+            },
+            {
+              "step_index": 1,
+              "result_field": "billing_market",
+              "argument_name": "billing_market"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "current_plan",
+            "active_offer",
+            "billing_market"
+          ]
+        }
+      ],
+      "expected_final_answer": "Choose Business. Creator Plus has enough storage and automation runs but its 5-member limit is below the current 6 members. Studio fits all current usage but its Founding offer does not carry over, so it costs its 800 TWD list price. Business also fits and looks more expensive at a 900 TWD list price, but the Founding 20% offer carries over, reducing it to 720 TWD. Business is therefore cheapest and costs 720 - 384 = 336 TWD more per month than the current subscription.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The signed-in account has one current usage snapshot, so Step 1 needs no artificial selector. Step 2 depends on three meaningful account facts and preserves the signed-in cadence; it deliberately never receives the usage values it must not pre-evaluate.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "不能只看空間或標價；必須逐項檢查容量，再依每個方案能否延續優惠比較實付價。",
+          "steps": [
+            "Step 1 無參數取得Creator Basic、Founding 20%、目前實付384元，以及760GB、6人、每月1,300次automation的真實用量。",
+            "Step 2 用目前方案、優惠與市場取得三個升級選項，並沿用登入帳戶的月繳週期；工具不接收用量，也不判斷是否符合。",
+            "Creator Plus雖滿足空間與automation，但最多5人，低於目前6人；必須淘汰。",
+            "Studio三項皆符合，但優惠不能延續，所以仍需800元；Business標價較高為900元，但優惠可延續，淨價900×80%=720元。",
+            "因此表面較貴的Business反而最便宜，每月比目前384元多336元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_subscription_usage_snapshot",
+            "input_example_zh": "不帶參數，查登入者目前方案、用量、優惠與實付月費。",
+            "output_example_zh": "回傳 Creator Basic、Founding 20%、實付 384 元，以及 760 GB、6 人、每月 1,300 次 automation。"
+          },
+          {
+            "step": 2,
+            "tool_name": "list_subscription_upgrade_options",
+            "input_example_zh": "拿目前方案、有效優惠與 TW 市場查所有升級方案，月繳週期由登入帳戶沿用。",
+            "output_example_zh": "回傳 Creator Plus、Studio、Business 的容量、標價和優惠能否延續；不判斷哪個符合目前用量。"
+          }
+        ]
+      }
+    }
+  ]
+}

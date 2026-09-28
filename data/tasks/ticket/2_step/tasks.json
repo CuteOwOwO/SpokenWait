@@ -1,0 +1,1464 @@
+{
+  "category": "ticket",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "ticket_2step_intervenue_connection_001",
+      "category": "ticket",
+      "step_count": 2,
+      "user_prompt": "I have two events on October 3. Can I stay through the matinee curtain call and still get into the concert on time? If not, how many minutes early should I leave?",
+      "flow_summary": "先按日期取得本人兩張票的場館、結束時間與最晚入場時間；再把兩個場館及日期傳入銜接服務，取得退場、交通與安檢耗時，反推最晚離席時間。",
+      "tools": [
+        {
+          "name": "get_my_ticket_schedule_for_date",
+          "description": "Return every ticket on the signed-in user's calendar for the supplied local date, including venue, scheduled timing, and any ticket-specific last-entry time. It does not estimate travel or decide whether the connection is possible.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local ticket date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "schedule_date": {
+                "type": "string",
+                "description": "Returned schedule date."
+              },
+              "tickets": {
+                "type": "array",
+                "description": "Returned tickets.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "event_name": {
+                      "type": "string",
+                      "description": "Returned event name."
+                    },
+                    "venue_name": {
+                      "type": "string",
+                      "description": "Returned venue name."
+                    },
+                    "starts_at": {
+                      "type": "string",
+                      "description": "Returned starts at."
+                    },
+                    "scheduled_end_at": {
+                      "type": "string",
+                      "description": "Returned scheduled end at."
+                    },
+                    "entry_scan_deadline": {
+                      "type": "string",
+                      "description": "Returned entry scan deadline."
+                    },
+                    "schedule_note": {
+                      "type": "string",
+                      "description": "Returned schedule note."
+                    }
+                  },
+                  "required": [
+                    "event_name",
+                    "venue_name",
+                    "starts_at",
+                    "scheduled_end_at",
+                    "entry_scan_deadline",
+                    "schedule_note"
+                  ]
+                }
+              },
+              "origin_venue": {
+                "type": "string",
+                "description": "Returned origin venue."
+              },
+              "destination_venue": {
+                "type": "string",
+                "description": "Returned destination venue."
+              }
+            },
+            "required": [
+              "schedule_date",
+              "tickets",
+              "origin_venue",
+              "destination_venue"
+            ]
+          }
+        },
+        {
+          "name": "get_intervenue_transfer_requirements",
+          "description": "Return the venue-exit, intervenue travel, and destination-entry durations for a semantic venue pair on a supplied date. It does not calculate a departure deadline or compare the transfer with ticket times.",
+          "parameters": {
+            "travel_date": {
+              "type": "string",
+              "description": "The local transfer date returned by the ticket schedule service, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "origin_venue": {
+              "type": "string",
+              "description": "The human-readable venue of the earlier ticket returned by the ticket schedule service."
+            },
+            "destination_venue": {
+              "type": "string",
+              "description": "The human-readable venue of the later ticket returned by the ticket schedule service."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "service_window": {
+                "type": "string",
+                "description": "Returned service window."
+              },
+              "origin_seat_to_venue_exit_minutes": {
+                "type": "integer",
+                "description": "Returned origin seat to venue exit minutes."
+              },
+              "venue_to_venue_travel_minutes": {
+                "type": "integer",
+                "description": "Returned venue to venue travel minutes."
+              },
+              "destination_security_to_completed_entry_minutes": {
+                "type": "integer",
+                "description": "Returned destination security to completed entry minutes."
+              },
+              "duration_rule": {
+                "type": "string",
+                "description": "Returned duration rule."
+              }
+            },
+            "required": [
+              "service_window",
+              "origin_seat_to_venue_exit_minutes",
+              "venue_to_venue_travel_minutes",
+              "destination_security_to_completed_entry_minutes",
+              "duration_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "ticket_schedule",
+          "tool_name": "get_my_ticket_schedule_for_date",
+          "tool_input": {
+            "event_date": "2026-10-03"
+          },
+          "mocked_result": {
+            "schedule_date": "2026-10-03",
+            "tickets": [
+              {
+                "event_name": "The Glass Garden matinee",
+                "venue_name": "Blue Hall",
+                "starts_at": "2026-10-03T14:30:00+08:00",
+                "scheduled_end_at": "2026-10-03T16:50:00+08:00",
+                "entry_scan_deadline": "not applicable",
+                "schedule_note": "The scheduled end includes the curtain call."
+              },
+              {
+                "event_name": "Harbor Lights concert",
+                "venue_name": "Harbor Arena",
+                "starts_at": "2026-10-03T18:00:00+08:00",
+                "scheduled_end_at": "2026-10-03T20:30:00+08:00",
+                "entry_scan_deadline": "2026-10-03T17:50:00+08:00",
+                "schedule_note": "Entry is refused after the ticket-specific scan deadline."
+              }
+            ],
+            "origin_venue": "Blue Hall",
+            "destination_venue": "Harbor Arena"
+          },
+          "waiting_speech_target": "正在查看十月三日兩張票的場館、結束時間與最晚入場時間。"
+        },
+        {
+          "index": 2,
+          "label": "connection_requirements",
+          "tool_name": "get_intervenue_transfer_requirements",
+          "tool_input": {
+            "travel_date": "2026-10-03",
+            "origin_venue": "Blue Hall",
+            "destination_venue": "Harbor Arena"
+          },
+          "mocked_result": {
+            "service_window": "2026-10-03 16:00-18:00 local time",
+            "origin_seat_to_venue_exit_minutes": 12,
+            "venue_to_venue_travel_minutes": 38,
+            "destination_security_to_completed_entry_minutes": 25,
+            "duration_rule": "Add all three durations; they do not overlap."
+          },
+          "waiting_speech_target": "正在核對 Blue Hall 到 Harbor Arena 當天下午的退場、交通與安檢時間。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "schedule_date",
+              "argument_name": "travel_date"
+            },
+            {
+              "step_index": 1,
+              "result_field": "origin_venue",
+              "argument_name": "origin_venue"
+            },
+            {
+              "step_index": 1,
+              "result_field": "destination_venue",
+              "argument_name": "destination_venue"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "No. Leaving after the 4:50 PM curtain call would complete entry at 6:05 PM. The transfer takes 75 minutes in total, so to complete entry by 5:50 PM you must leave your seat by 4:35 PM, 15 minutes before the matinee ends.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "October 3 is explicit and resolves the signed-in user's two-ticket schedule without any order code.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先找出票券時間界線，再用兩個語意場館查完整銜接耗時，從最晚入場時間反推最晚離席。",
+          "steps": [
+            "第二步三段時間為12＋38＋25＝75分鐘，不能只算場館間車程。",
+            "演唱會入場必須在17:50完成，因此最晚離席是17:50減75分鐘＝16:35。",
+            "午場含謝幕到16:50，故不能看完；必須提早15分鐘離開。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_ticket_schedule_for_date",
+            "input_example_zh": "查 2026-10-03 的本人票券行程。",
+            "output_example_zh": "回傳 Blue Hall 午場 16:50 結束及 Harbor Arena 演唱會 17:50 前完成入場。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_intervenue_transfer_requirements",
+            "input_example_zh": "原樣傳入日期、Blue Hall 與 Harbor Arena。",
+            "output_example_zh": "回傳退場12分鐘、交通38分鐘、安檢至完成入場25分鐘，不替模型算離席時間。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_2step_weekend_disruption_credit_002",
+      "category": "ticket",
+      "step_count": 2,
+      "user_prompt": "I bought a weekend pass for Coastline Live, but the festival did not go smoothly. Based on the official event record and my attendance, how much credit should I receive?",
+      "flow_summary": "第一步只用音樂祭名稱查本人套票、實際掃描與官方三日營運紀錄；第二步把查得的套票名稱及完整異常類型一次傳入規則服務，再以每日不同權重與完成比例計算。",
+      "tools": [
+        {
+          "name": "get_my_festival_weekend_record",
+          "description": "Return the signed-in attendee's pass, paid price, admission scans, and official operating record for every festival day. It does not classify compensation or calculate credit.",
+          "parameters": {
+            "festival_name": {
+              "type": "string",
+              "description": "The public festival name spoken by the user.",
+              "enum": [
+                "Coastline Live",
+                "River Fest",
+                "Moonfield Weekend"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "festival_name": {
+                "type": "string",
+                "description": "Returned festival name."
+              },
+              "pass_type": {
+                "type": "string",
+                "description": "Returned pass type."
+              },
+              "amount_paid_twd": {
+                "type": "integer",
+                "description": "Returned amount paid twd."
+              },
+              "daily_records": {
+                "type": "array",
+                "description": "Returned daily records.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "festival_day": {
+                      "type": "string",
+                      "description": "Returned festival day."
+                    },
+                    "attendee_scan_status": {
+                      "type": "string",
+                      "description": "Returned attendee scan status."
+                    },
+                    "official_status": {
+                      "type": "string",
+                      "description": "Returned official status."
+                    },
+                    "scheduled_program_hours": {
+                      "type": "integer",
+                      "description": "Returned scheduled program hours."
+                    },
+                    "completed_program_hours": {
+                      "type": "integer",
+                      "description": "Returned completed program hours."
+                    },
+                    "disruption_type": {
+                      "type": "string",
+                      "description": "Returned disruption type."
+                    }
+                  },
+                  "required": [
+                    "festival_day",
+                    "attendee_scan_status",
+                    "official_status",
+                    "scheduled_program_hours",
+                    "completed_program_hours",
+                    "disruption_type"
+                  ]
+                }
+              },
+              "disruption_types": {
+                "type": "array",
+                "description": "Returned disruption types.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "festival_name",
+              "pass_type",
+              "amount_paid_twd",
+              "daily_records",
+              "disruption_types"
+            ]
+          }
+        },
+        {
+          "name": "get_pass_disruption_credit_rules",
+          "description": "Return the daily value allocation and raw credit rules for the supplied pass type and every supplied official disruption type. It does not inspect attendance, apply completion ratios, or calculate total credit.",
+          "parameters": {
+            "pass_type": {
+              "type": "string",
+              "description": "The semantic pass type returned by the festival record service."
+            },
+            "disruption_types": {
+              "type": "array",
+              "description": "Every official disruption type returned by the festival record service, supplied together in one call.",
+              "items": {
+                "type": "string",
+                "description": "One official disruption type."
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "pass_type": {
+                "type": "string",
+                "description": "Returned pass type."
+              },
+              "daily_value_allocation_twd": {
+                "type": "array",
+                "description": "Returned daily value allocation twd.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "festival_day": {
+                      "type": "string",
+                      "description": "Returned festival day."
+                    },
+                    "allocated_value_twd": {
+                      "type": "integer",
+                      "description": "Returned allocated value twd."
+                    }
+                  },
+                  "required": [
+                    "festival_day",
+                    "allocated_value_twd"
+                  ]
+                }
+              },
+              "disruption_rules": {
+                "type": "array",
+                "description": "Returned disruption rules.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "disruption_type": {
+                      "type": "string",
+                      "description": "Returned disruption type."
+                    },
+                    "qualification": {
+                      "type": "string",
+                      "description": "Returned qualification."
+                    },
+                    "credit_percent_of_that_day_allocation": {
+                      "type": "integer",
+                      "description": "Returned credit percent of that day allocation."
+                    }
+                  },
+                  "required": [
+                    "disruption_type",
+                    "qualification",
+                    "credit_percent_of_that_day_allocation"
+                  ]
+                }
+              },
+              "normal_completion_rule": {
+                "type": "string",
+                "description": "Returned normal completion rule."
+              },
+              "attendance_rule": {
+                "type": "string",
+                "description": "Returned attendance rule."
+              }
+            },
+            "required": [
+              "pass_type",
+              "daily_value_allocation_twd",
+              "disruption_rules",
+              "normal_completion_rule",
+              "attendance_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "festival_record",
+          "tool_name": "get_my_festival_weekend_record",
+          "tool_input": {
+            "festival_name": "Coastline Live"
+          },
+          "mocked_result": {
+            "festival_name": "Coastline Live",
+            "pass_type": "Weekend Plus",
+            "amount_paid_twd": 3000,
+            "daily_records": [
+              {
+                "festival_day": "Friday",
+                "attendee_scan_status": "entered",
+                "official_status": "completed normally",
+                "scheduled_program_hours": 8,
+                "completed_program_hours": 8,
+                "disruption_type": "none"
+              },
+              {
+                "festival_day": "Saturday",
+                "attendee_scan_status": "entered",
+                "official_status": "evacuated",
+                "scheduled_program_hours": 10,
+                "completed_program_hours": 4,
+                "disruption_type": "evacuated"
+              },
+              {
+                "festival_day": "Sunday",
+                "attendee_scan_status": "no entry before cancellation",
+                "official_status": "cancelled before opening",
+                "scheduled_program_hours": 9,
+                "completed_program_hours": 0,
+                "disruption_type": "cancelled"
+              }
+            ],
+            "disruption_types": [
+              "evacuated",
+              "cancelled"
+            ]
+          },
+          "waiting_speech_target": "正在查看 Coastline Live 三天的官方營運紀錄與你的實際入場掃描。",
+          "case_insensitive_arguments": [
+            "festival_name"
+          ],
+          "argument_aliases": {
+            "festival_name": [
+              "Coastline Festival",
+              "Coast Line Live"
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "label": "credit_rules",
+          "tool_name": "get_pass_disruption_credit_rules",
+          "tool_input": {
+            "pass_type": "Weekend Plus",
+            "disruption_types": [
+              "evacuated",
+              "cancelled"
+            ]
+          },
+          "mocked_result": {
+            "pass_type": "Weekend Plus",
+            "daily_value_allocation_twd": [
+              {
+                "festival_day": "Friday",
+                "allocated_value_twd": 800
+              },
+              {
+                "festival_day": "Saturday",
+                "allocated_value_twd": 1200
+              },
+              {
+                "festival_day": "Sunday",
+                "allocated_value_twd": 1000
+              }
+            ],
+            "disruption_rules": [
+              {
+                "disruption_type": "evacuated",
+                "qualification": "Official evacuation after less than 50 percent of scheduled program hours are completed",
+                "credit_percent_of_that_day_allocation": 50
+              },
+              {
+                "disruption_type": "cancelled",
+                "qualification": "Official cancellation before opening",
+                "credit_percent_of_that_day_allocation": 100
+              }
+            ],
+            "normal_completion_rule": "A day completed normally receives no credit.",
+            "attendance_rule": "A valid entry scan does not remove disruption credit when the official completion threshold is met; a cancellation before opening does not require an entry scan."
+          },
+          "waiting_speech_target": "正在查 Weekend Plus 對撤場與開場前取消的每日補償規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "pass_type",
+              "argument_name": "pass_type"
+            },
+            {
+              "step_index": 1,
+              "result_field": "disruption_types",
+              "argument_name": "disruption_types"
+            }
+          ],
+          "order_insensitive_arguments": [
+            "disruption_types"
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "disruption_types",
+            "result_field": "disruption_rules",
+            "input_key_fields": [
+              "$value"
+            ],
+            "result_key_fields": [
+              "disruption_type"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "You should receive 1,600 TWD in credit. Friday earns no credit because it completed normally. Saturday completed 4 of 10 hours, under 50%, so it earns 50% of its 1,200 TWD allocation, or 600 TWD. Sunday was cancelled before opening, so it earns 100% of its 1,000 TWD allocation.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Coastline Live is a short public festival choice; the private attendance scans and official disruptions are discovered by the service rather than spoken by the user.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "使用者不先說每天發生什麼；先重建三日事實，再把完整異常集合一次交給套票規則服務。",
+          "steps": [
+            "星期五正常完成，依規則補償0元。",
+            "星期六完成4/10＝40%，符合未滿50%的撤場分支，補1200×50%＝600元；入場過不會取消資格。",
+            "星期日開場前取消，補1000×100%＝1000元；合計1600元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_festival_weekend_record",
+            "input_example_zh": "查 Coastline Live 的本人套票、掃描與官方三日紀錄。",
+            "output_example_zh": "回傳 Friday 正常、Saturday 完成4/10小時後撤場、Sunday 開場前取消，以及 Weekend Plus。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_pass_disruption_credit_rules",
+            "input_example_zh": "一次傳 Weekend Plus 與 evacuated、cancelled 全部異常類型。",
+            "output_example_zh": "回傳每日800/1200/1000元權重及撤場50%、取消100%的原始規則，不回總額。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_2step_rotating_stage_sightline_003",
+      "category": "ticket",
+      "step_count": 2,
+      "user_prompt": "For my Orbit concert on October tenth, will I have a clear view for the headliner, and during how many of the five sets will my view be completely clear?",
+      "flow_summary": "第一步依公開演唱會選項與日期查本人座位區、場館、舞台配置及每組固定朝向；第二步必須承接這些未知資訊，一次查完整方向集合的座位視野，模型再逐組映射與計數。",
+      "tools": [
+        {
+          "name": "get_my_concert_stage_schedule",
+          "description": "Return the signed-in user's seat section plus the venue, named stage layout, and fixed stage orientation for every set at the selected concert. It does not return sightline quality or count clear sets.",
+          "parameters": {
+            "event_name": {
+              "type": "string",
+              "description": "The public concert name spoken by the user. Choose the matching canonical name.",
+              "enum": [
+                "Orbit",
+                "Luna Tour",
+                "Winter Lights",
+                "Nova Live"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local concert date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "event_name": {
+                "type": "string",
+                "description": "Returned event name."
+              },
+              "event_date": {
+                "type": "string",
+                "description": "Returned event date."
+              },
+              "seat_location": {
+                "type": "object",
+                "description": "Returned seat location.",
+                "properties": {
+                  "venue_name": {
+                    "type": "string",
+                    "description": "Returned venue name."
+                  },
+                  "seat_section": {
+                    "type": "string",
+                    "description": "Returned seat section."
+                  }
+                },
+                "required": [
+                  "venue_name",
+                  "seat_section"
+                ]
+              },
+              "stage_layout": {
+                "type": "string",
+                "description": "Returned stage layout."
+              },
+              "rotation_note": {
+                "type": "string",
+                "description": "Returned rotation note."
+              },
+              "set_orientations": {
+                "type": "array",
+                "description": "Returned set orientations.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "set_name": {
+                      "type": "string",
+                      "description": "Returned set name."
+                    },
+                    "performer_role": {
+                      "type": "string",
+                      "description": "Returned performer role."
+                    },
+                    "stage_orientation": {
+                      "type": "string",
+                      "description": "Returned stage orientation."
+                    }
+                  },
+                  "required": [
+                    "set_name",
+                    "performer_role",
+                    "stage_orientation"
+                  ]
+                }
+              },
+              "distinct_stage_orientations": {
+                "type": "array",
+                "description": "Returned distinct stage orientations.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "event_name",
+              "event_date",
+              "seat_location",
+              "stage_layout",
+              "rotation_note",
+              "set_orientations",
+              "distinct_stage_orientations"
+            ]
+          }
+        },
+        {
+          "name": "get_seat_sightlines_for_orientations",
+          "description": "Return the sightline classification from a supplied seat section for every supplied orientation under a named stage layout. Stage-layout names are unique in the venue service. It does not know the performance order, identify the headliner, or count clear sets.",
+          "parameters": {
+            "seat_location": {
+              "type": "object",
+              "description": "The attendee's semantic venue and seat section returned by the concert schedule service.",
+              "properties": {
+                "venue_name": {
+                  "type": "string",
+                  "description": "The human-readable venue name."
+                },
+                "seat_section": {
+                  "type": "string",
+                  "description": "The human-readable seat section."
+                }
+              },
+              "required": [
+                "venue_name",
+                "seat_section"
+              ]
+            },
+            "stage_layout": {
+              "type": "string",
+              "description": "The named stage layout returned by the concert schedule service."
+            },
+            "stage_orientations": {
+              "type": "array",
+              "description": "Every distinct stage orientation returned by the concert schedule service, supplied together in one call.",
+              "items": {
+                "type": "string",
+                "description": "One cardinal stage orientation."
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "venue_name": {
+                "type": "string",
+                "description": "Returned venue name."
+              },
+              "seat_section": {
+                "type": "string",
+                "description": "Returned seat section."
+              },
+              "stage_layout": {
+                "type": "string",
+                "description": "Returned stage layout."
+              },
+              "sightlines": {
+                "type": "array",
+                "description": "Returned sightlines.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "stage_orientation": {
+                      "type": "string",
+                      "description": "Returned stage orientation."
+                    },
+                    "sightline": {
+                      "type": "string",
+                      "description": "Returned sightline."
+                    }
+                  },
+                  "required": [
+                    "stage_orientation",
+                    "sightline"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "venue_name",
+              "seat_section",
+              "stage_layout",
+              "sightlines"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "stage_schedule",
+          "tool_name": "get_my_concert_stage_schedule",
+          "tool_input": {
+            "event_name": "Orbit",
+            "event_date": "2026-10-10"
+          },
+          "mocked_result": {
+            "event_name": "Orbit",
+            "event_date": "2026-10-10",
+            "seat_location": {
+              "venue_name": "Harbor Arena",
+              "seat_section": "East Lower"
+            },
+            "stage_layout": "Compass rotation",
+            "rotation_note": "The stage rotates between sets and remains fixed during each set.",
+            "set_orientations": [
+              {
+                "set_name": "Set 1",
+                "performer_role": "opening",
+                "stage_orientation": "south"
+              },
+              {
+                "set_name": "Set 2",
+                "performer_role": "support",
+                "stage_orientation": "east"
+              },
+              {
+                "set_name": "Set 3",
+                "performer_role": "support",
+                "stage_orientation": "north"
+              },
+              {
+                "set_name": "Set 4",
+                "performer_role": "support",
+                "stage_orientation": "west"
+              },
+              {
+                "set_name": "Headliner",
+                "performer_role": "headliner",
+                "stage_orientation": "east"
+              }
+            ],
+            "distinct_stage_orientations": [
+              "south",
+              "east",
+              "north",
+              "west"
+            ]
+          },
+          "waiting_speech_target": "正在查看十月十日 Orbit 的本人座位與五組演出的舞台朝向。",
+          "case_insensitive_arguments": [
+            "event_name"
+          ],
+          "argument_aliases": {
+            "event_name": [
+              "Orbit concert",
+              "The Orbit"
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "label": "seat_sightlines",
+          "tool_name": "get_seat_sightlines_for_orientations",
+          "tool_input": {
+            "seat_location": {
+              "venue_name": "Harbor Arena",
+              "seat_section": "East Lower"
+            },
+            "stage_layout": "Compass rotation",
+            "stage_orientations": [
+              "south",
+              "east",
+              "north",
+              "west"
+            ]
+          },
+          "mocked_result": {
+            "venue_name": "Harbor Arena",
+            "seat_section": "East Lower",
+            "stage_layout": "Compass rotation",
+            "sightlines": [
+              {
+                "stage_orientation": "south",
+                "sightline": "clear"
+              },
+              {
+                "stage_orientation": "east",
+                "sightline": "clear"
+              },
+              {
+                "stage_orientation": "north",
+                "sightline": "partially obstructed"
+              },
+              {
+                "stage_orientation": "west",
+                "sightline": "blocked"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在把 East Lower 座位套入這場演出的全部舞台方向視野表。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "seat_location",
+              "argument_name": "seat_location"
+            },
+            {
+              "step_index": 1,
+              "result_field": "stage_layout",
+              "argument_name": "stage_layout"
+            },
+            {
+              "step_index": 1,
+              "result_field": "distinct_stage_orientations",
+              "argument_name": "stage_orientations"
+            }
+          ],
+          "order_insensitive_arguments": [
+            "stage_orientations"
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "stage_orientations",
+            "result_field": "sightlines",
+            "input_key_fields": [
+              "$value"
+            ],
+            "result_key_fields": [
+              "stage_orientation"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Yes. The headliner faces east, which is clear from your East Lower seat. Mapping all five sets gives clear, clear, partially obstructed, blocked, and clear, so your view is completely clear for 3 of the 5 sets.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Orbit is selected from four public concert names and paired with an explicit date; the user's seat and every stage orientation are deliberately unknown until step 1.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步揭露座位與逐組朝向，第二步才可形成場館視野查詢；任一工具都不直接回壓軸答案或三組總數。",
+          "steps": [
+            "第一步五組朝向依序為south、east、north、west、east，且最後一組才是headliner。",
+            "第二步對East Lower的映射是south/east clear、north partial、west blocked。",
+            "逐組套用得到三組clear；headliner為east，因此壓軸視野完整。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_concert_stage_schedule",
+            "input_example_zh": "從四個演唱會選 Orbit，日期為 2026-10-10。",
+            "output_example_zh": "回傳本人 East Lower、Compass rotation，以及五組表演各自朝向；不回視野。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_seat_sightlines_for_orientations",
+            "input_example_zh": "原樣傳入場館、座位區、舞台配置與全部四種方向。",
+            "output_example_zh": "只回方向到clear/partial/blocked的映射，不回哪組表演或clear總數。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_2step_delay_protection_004",
+      "category": "ticket",
+      "step_count": 2,
+      "user_prompt": "The September sixth baseball game started much later than scheduled. I added delay protection to my ticket. How much should I receive?",
+      "flow_summary": "先依已發生的9月6日球賽查原定與實際開賽時間、票面價、保障方案與異常類型；第二步只用語意方案、活動類別和異常類型查完整級距，模型自行算延誤分鐘與上限。",
+      "tools": [
+        {
+          "name": "get_my_event_delay_record",
+          "description": "Return the signed-in user's ticket face value, protection plan, scheduled start, actual start, event category, and official disruption type for a past event. It does not calculate delay duration or benefit.",
+          "parameters": {
+            "event_category": {
+              "type": "string",
+              "description": "The natural event category spoken by the user.",
+              "enum": [
+                "baseball",
+                "concert",
+                "theater"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local event date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "event_name": {
+                "type": "string",
+                "description": "Returned event name."
+              },
+              "event_category": {
+                "type": "string",
+                "description": "Returned event category."
+              },
+              "event_date": {
+                "type": "string",
+                "description": "Returned event date."
+              },
+              "scheduled_start_at": {
+                "type": "string",
+                "description": "Returned scheduled start at."
+              },
+              "actual_start_at": {
+                "type": "string",
+                "description": "Returned actual start at."
+              },
+              "ticket_face_value_twd": {
+                "type": "integer",
+                "description": "Returned ticket face value twd."
+              },
+              "protection_plan": {
+                "type": "string",
+                "description": "Returned protection plan."
+              },
+              "disruption_type": {
+                "type": "string",
+                "description": "Returned disruption type."
+              }
+            },
+            "required": [
+              "event_name",
+              "event_category",
+              "event_date",
+              "scheduled_start_at",
+              "actual_start_at",
+              "ticket_face_value_twd",
+              "protection_plan",
+              "disruption_type"
+            ]
+          }
+        },
+        {
+          "name": "get_event_protection_terms",
+          "description": "Return every benefit tier and cap for a semantic protection plan, event category, and disruption type. It does not receive ticket price or delay duration and does not calculate a payout.",
+          "parameters": {
+            "plan_name": {
+              "type": "string",
+              "description": "The public protection-plan name returned by the event record service."
+            },
+            "event_category": {
+              "type": "string",
+              "description": "The event category returned by the event record service."
+            },
+            "disruption_type": {
+              "type": "string",
+              "description": "The official disruption type returned by the event record service. Choose the matching canonical type.",
+              "enum": [
+                "cancelled",
+                "postponed",
+                "late start"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "plan_name": {
+                "type": "string",
+                "description": "Returned plan name."
+              },
+              "covered_event_category": {
+                "type": "string",
+                "description": "Returned covered event category."
+              },
+              "covered_disruption_type": {
+                "type": "string",
+                "description": "Returned covered disruption type."
+              },
+              "benefit_tiers": {
+                "type": "array",
+                "description": "Returned benefit tiers.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "minimum_delay_minutes": {
+                      "type": "integer",
+                      "description": "Returned minimum delay minutes."
+                    },
+                    "maximum_delay_minutes": {
+                      "type": "integer",
+                      "description": "Returned maximum delay minutes."
+                    },
+                    "percent_of_ticket_face_value": {
+                      "type": "integer",
+                      "description": "Returned percent of ticket face value."
+                    }
+                  },
+                  "required": [
+                    "minimum_delay_minutes",
+                    "maximum_delay_minutes",
+                    "percent_of_ticket_face_value"
+                  ]
+                }
+              },
+              "maximum_benefit_per_ticket_twd": {
+                "type": "integer",
+                "description": "Returned maximum benefit per ticket twd."
+              },
+              "calculation_rule": {
+                "type": "string",
+                "description": "Returned calculation rule."
+              }
+            },
+            "required": [
+              "plan_name",
+              "covered_event_category",
+              "covered_disruption_type",
+              "benefit_tiers",
+              "maximum_benefit_per_ticket_twd",
+              "calculation_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "delay_record",
+          "tool_name": "get_my_event_delay_record",
+          "tool_input": {
+            "event_category": "baseball",
+            "event_date": "2026-09-06"
+          },
+          "mocked_result": {
+            "event_name": "Harbor Hawks home game",
+            "event_category": "baseball",
+            "event_date": "2026-09-06",
+            "scheduled_start_at": "2026-09-06T18:00:00+08:00",
+            "actual_start_at": "2026-09-06T19:35:00+08:00",
+            "ticket_face_value_twd": 1800,
+            "protection_plan": "Event Guard Basic",
+            "disruption_type": "late start"
+          },
+          "waiting_speech_target": "正在查看九月六日球賽的官方開賽時間、票面價與你加購的保障方案。",
+          "case_insensitive_arguments": [
+            "event_category"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "protection_terms",
+          "tool_name": "get_event_protection_terms",
+          "tool_input": {
+            "plan_name": "Event Guard Basic",
+            "event_category": "baseball",
+            "disruption_type": "late start"
+          },
+          "mocked_result": {
+            "plan_name": "Event Guard Basic",
+            "covered_event_category": "baseball",
+            "covered_disruption_type": "late start",
+            "benefit_tiers": [
+              {
+                "minimum_delay_minutes": 0,
+                "maximum_delay_minutes": 59,
+                "percent_of_ticket_face_value": 0
+              },
+              {
+                "minimum_delay_minutes": 60,
+                "maximum_delay_minutes": 119,
+                "percent_of_ticket_face_value": 25
+              },
+              {
+                "minimum_delay_minutes": 120,
+                "maximum_delay_minutes": 999,
+                "percent_of_ticket_face_value": 50
+              }
+            ],
+            "maximum_benefit_per_ticket_twd": 500,
+            "calculation_rule": "Apply the matching percentage to ticket face value, then cap the result at the per-ticket maximum."
+          },
+          "waiting_speech_target": "正在查 Event Guard Basic 對 baseball late start 的全部賠付級距與上限。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "protection_plan",
+              "argument_name": "plan_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "event_category",
+              "argument_name": "event_category"
+            },
+            {
+              "step_index": 1,
+              "result_field": "disruption_type",
+              "argument_name": "disruption_type"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The game started 95 minutes late, so the 60-to-119-minute tier applies. Twenty-five percent of the 1,800 TWD face value is 450 TWD, below the 500 TWD cap, so you should receive 450 TWD.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "September 6 is the day before the fixed September 7 reference date, so the user's past-tense question and the official delay record are temporally consistent.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第二步不接收票價或算好的延誤分鐘；它只按第一步揭露的方案與異常類型回完整規則，最後計算仍由模型完成。",
+          "steps": [
+            "19:35減18:00＝延誤95分鐘。",
+            "95分鐘落在60至119分鐘級距，比例為票面價25%。",
+            "1800×25%＝450元，低於每張500元上限，所以實付450元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_event_delay_record",
+            "input_example_zh": "查 2026-09-06 的 baseball 延誤紀錄。",
+            "output_example_zh": "回傳18:00原定、19:35實際、票面1800元、Event Guard Basic及late start；不算分鐘。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_event_protection_terms",
+            "input_example_zh": "傳入 Event Guard Basic、baseball、late start，不傳票價或延誤分鐘。",
+            "output_example_zh": "回傳三段延誤級距及500元上限，不回適用級距或金額。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_2step_lottery_quantity_005",
+      "category": "ticket",
+      "step_count": 2,
+      "user_prompt": "My membership number is twenty-seven. I want three tickets together for a Saturday Luna Tour show. Can I apply in the earliest lottery, or do I need to wait for a later round?",
+      "flow_summary": "先以短數字會員號查有效狀態、層級及近12月完成購票次數；再把層級與次數連同使用者說的活動名稱傳入抽選服務，模型分開判斷早鳥資格與三張數量上限。",
+      "tools": [
+        {
+          "name": "get_ticket_member_qualification",
+          "description": "Return the membership status, semantic tier, and completed-purchase count used by ticket lotteries for a short numeric membership number. It does not return event rules or decide lottery eligibility.",
+          "parameters": {
+            "membership_number": {
+              "type": "integer",
+              "description": "The short numeric membership number spoken by the user.",
+              "minimum": 1
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "membership_number": {
+                "type": "integer",
+                "description": "Returned membership number."
+              },
+              "membership_status": {
+                "type": "string",
+                "description": "Returned membership status."
+              },
+              "membership_tier": {
+                "type": "string",
+                "description": "Returned membership tier."
+              },
+              "completed_purchase_count": {
+                "type": "integer",
+                "description": "Returned completed purchase count."
+              },
+              "purchase_count_window": {
+                "type": "string",
+                "description": "Returned purchase count window."
+              }
+            },
+            "required": [
+              "membership_number",
+              "membership_status",
+              "membership_tier",
+              "completed_purchase_count",
+              "purchase_count_window"
+            ]
+          }
+        },
+        {
+          "name": "get_event_lottery_rules_for_member_profile",
+          "description": "Return the chronological lottery rounds and their raw qualification and Saturday-ticket quantity rules for a public event and supplied semantic member factors. It does not decide qualification, compare the user's requested quantity, or recommend a round.",
+          "parameters": {
+            "event_name": {
+              "type": "string",
+              "description": "The public event name spoken by the user. Choose the matching canonical name.",
+              "enum": [
+                "Luna Tour",
+                "Orbit",
+                "Winter Lights",
+                "Nova Live"
+              ]
+            },
+            "membership_tier": {
+              "type": "string",
+              "description": "The semantic membership tier returned by the membership service."
+            },
+            "completed_purchase_count": {
+              "type": "integer",
+              "description": "The completed-purchase count returned by the membership service.",
+              "minimum": 0
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "event_name": {
+                "type": "string",
+                "description": "Returned event name."
+              },
+              "supplied_member_factors": {
+                "type": "object",
+                "description": "Returned supplied member factors.",
+                "properties": {
+                  "membership_tier": {
+                    "type": "string",
+                    "description": "Returned membership tier."
+                  },
+                  "completed_purchase_count": {
+                    "type": "integer",
+                    "description": "Returned completed purchase count."
+                  }
+                },
+                "required": [
+                  "membership_tier",
+                  "completed_purchase_count"
+                ]
+              },
+              "lottery_rounds": {
+                "type": "array",
+                "description": "Returned lottery rounds.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "round_name": {
+                      "type": "string",
+                      "description": "Returned round name."
+                    },
+                    "opens_at": {
+                      "type": "string",
+                      "description": "Returned opens at."
+                    },
+                    "qualification_rule": {
+                      "type": "string",
+                      "description": "Returned qualification rule."
+                    },
+                    "saturday_max_tickets_per_application": {
+                      "type": "integer",
+                      "description": "Returned saturday max tickets per application."
+                    }
+                  },
+                  "required": [
+                    "round_name",
+                    "opens_at",
+                    "qualification_rule",
+                    "saturday_max_tickets_per_application"
+                  ]
+                }
+              },
+              "application_rule": {
+                "type": "string",
+                "description": "Returned application rule."
+              }
+            },
+            "required": [
+              "event_name",
+              "supplied_member_factors",
+              "lottery_rounds",
+              "application_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "member_qualification",
+          "tool_name": "get_ticket_member_qualification",
+          "tool_input": {
+            "membership_number": 27
+          },
+          "mocked_result": {
+            "membership_number": 27,
+            "membership_status": "active",
+            "membership_tier": "Gold",
+            "completed_purchase_count": 2,
+            "purchase_count_window": "the preceding 12 months"
+          },
+          "waiting_speech_target": "正在查看會員二十七號的有效狀態、會員層級與近期完成購票次數。"
+        },
+        {
+          "index": 2,
+          "label": "lottery_rules",
+          "tool_name": "get_event_lottery_rules_for_member_profile",
+          "tool_input": {
+            "event_name": "Luna Tour",
+            "membership_tier": "Gold",
+            "completed_purchase_count": 2
+          },
+          "mocked_result": {
+            "event_name": "Luna Tour",
+            "supplied_member_factors": {
+              "membership_tier": "Gold",
+              "completed_purchase_count": 2
+            },
+            "lottery_rounds": [
+              {
+                "round_name": "Early Gold draw",
+                "opens_at": "2026-09-10T10:00:00+08:00",
+                "qualification_rule": "Gold membership with at least two completed purchases in the preceding 12 months",
+                "saturday_max_tickets_per_application": 2
+              },
+              {
+                "round_name": "General member draw",
+                "opens_at": "2026-09-13T10:00:00+08:00",
+                "qualification_rule": "Any active ticket member",
+                "saturday_max_tickets_per_application": 4
+              }
+            ],
+            "application_rule": "Tickets requested together must be submitted in one application and cannot be split across lottery rounds."
+          },
+          "waiting_speech_target": "正在核對 Luna Tour 各輪抽選對 Gold 會員的資格與星期六場張數上限。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "membership_tier",
+              "argument_name": "membership_tier"
+            },
+            {
+              "step_index": 1,
+              "result_field": "completed_purchase_count",
+              "argument_name": "completed_purchase_count"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "event_name"
+          ],
+          "argument_aliases": {
+            "event_name": [
+              "Luna concert",
+              "Luna"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "You qualify for the earliest Early Gold draw, but that round allows at most two Saturday tickets in one application. Because you want three together and applications cannot be split across rounds, you need to wait until the General member draw on September 13, which allows up to four.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Membership number 27 is a short speech-safe account selector; tier and purchase count are meaningful business facts rather than an opaque handoff token.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "符合最早一輪的身分門檻，不代表想要的三張也符合數量上限；兩件事必須分開判斷。",
+          "steps": [
+            "會員為active Gold且近12月完成兩次購票，符合Early Gold資格。",
+            "Early Gold的星期六場每次最多兩張，少於使用者要一起申請的三張。",
+            "General member在9月13日開放且最多四張；因不可跨輪拆單，必須等這一輪。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_ticket_member_qualification",
+            "input_example_zh": "輸入短數字會員號27。",
+            "output_example_zh": "回傳active、Gold與近12月完成兩次購票，不回任何Luna Tour規則。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_event_lottery_rules_for_member_profile",
+            "input_example_zh": "傳入 Luna Tour，以及第一步的Gold與2次完成購票。",
+            "output_example_zh": "依時間回傳Early Gold與General member的資格及星期六張數上限，不替模型比較使用者要的三張。"
+          }
+        ]
+      }
+    }
+  ]
+}

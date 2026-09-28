@@ -1,0 +1,337 @@
+{
+  "schema_version": "final_answer_spec_draft.airline_joint_v1",
+  "status": "draft_for_human_review",
+  "source_task_root": "data/spoken_tool_wait_tasks_v17_airline_joint_design_v1",
+  "source_pointer_scope": "Each JSON Pointer is relative to the individual task object in its tasks.json file.",
+  "scope": {
+    "category": "airline_travel",
+    "step_counts": [1, 2],
+    "task_count": 10
+  },
+  "rubric_convention": {
+    "required_slots": "Every required slot must be answered semantically; verbatim wording is not required.",
+    "optional_slots": "Omission is allowed, but any asserted optional fact must be correct.",
+    "extra_claims": "Any other material factual claim must be supported by the user request and accepted tool results.",
+    "identifiers": "Harmless spacing or hyphenation variation is allowed only when identity is unchanged."
+  },
+  "tasks": [
+    {
+      "task_id": "airline_travel_1step_budget_arrival_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "qualifying_flight",
+            "description": "Identify AW218 as the flight that matches the Taipei-to-Osaka route, arrival deadline, and tax-inclusive budget.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/flights/2/flight_number",
+              "/steps/0/mocked_result/flights/2/origin",
+              "/steps/0/mocked_result/flights/2/destination",
+              "/steps/0/mocked_result/flights/2/arrival_local",
+              "/steps/0/mocked_result/flights/2/total_price_including_taxes",
+              "/steps/0/mocked_result/flights/2/currency"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "qualifying_flight_details",
+            "description": "May state that AW218 arrives at 14:40 Osaka local time and costs 215 USD including taxes.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/flights/2/arrival_local",
+              "/steps/0/mocked_result/flights/2/total_price_including_taxes",
+              "/steps/0/mocked_result/flights/2/currency"
+            ]
+          }
+        ],
+        "conditional_requirements": [],
+        "identifier_policy": "AW218 must denote the same flight; harmless spacing or hyphenation differences alone are not errors."
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_gate_context_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "gate",
+            "description": "Tell the user that the gate is B7.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/gate"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "terminal",
+            "description": "May additionally state that the departure terminal is Terminal 1.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/departure_terminal"
+            ]
+          },
+          {
+            "name": "boarding_time",
+            "description": "May additionally state the 08:10 local boarding time.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/boarding_local"
+            ]
+          },
+          {
+            "name": "operating_status",
+            "description": "May additionally state that the flight is on time.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/operating_status"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_baggage_fee_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "total_checked_baggage_fee",
+            "description": "State that the two bags cost 120 USD in total: the second-bag base fee is 45 USD and its 29 kg weight incurs a 75 USD overweight fee.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/currency",
+              "/steps/0/mocked_result/standard_weight_limit_kg",
+              "/steps/0/mocked_result/bag_base_fees/0/fee",
+              "/steps/0/mocked_result/bag_base_fees/1/fee",
+              "/steps/0/mocked_result/overweight_fee_per_bag"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "fee_breakdown",
+            "description": "May explicitly explain the 45 USD second-bag fee plus the 75 USD overweight fee.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/bag_base_fees/1/fee",
+              "/steps/0/mocked_result/overweight_fee_per_bag"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_timezone_arrival_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "tokyo_local_arrival_time",
+            "description": "State that the flight arrives at 14:30 in Tokyo local time after applying the duration and the one-hour offset difference.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/departure_local_time",
+              "/steps/0/mocked_result/duration_minutes",
+              "/steps/0/mocked_result/origin_utc_offset",
+              "/steps/0/mocked_result/destination_utc_offset",
+              "/steps/0/mocked_result/destination"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "arrival_date",
+            "description": "May additionally state that the destination-local arrival date is 2026-09-08.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/departure_local_date"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      }
+    },
+    {
+      "task_id": "airline_travel_1step_meeting_buffer_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "available_travel_time",
+            "description": "State that 1 hour 20 minutes (80 minutes) remain between the 13:10 Tokyo-local arrival and the user's 14:30 meeting.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/arrival_local_time",
+              "/steps/0/mocked_result/arrival_time_zone"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "arrival_airport",
+            "description": "May additionally identify the arrival airport as Haneda.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/arrival_airport"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_context_gate_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "gate",
+            "description": "Tell the user to go to gate B7.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/gate"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "terminal",
+            "description": "May additionally state that the gate is in Terminal 1.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/departure_terminal"
+            ]
+          },
+          {
+            "name": "boarding_time",
+            "description": "May additionally state the 08:10 local boarding time.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/boarding_local"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_change_tradeoff_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "additional_total_payment",
+            "description": "State that changing to the qualifying flight costs 50 USD extra in total: 205 USD new fare plus the 25 USD change fee minus the 180 USD already paid.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/paid_fare_including_taxes",
+              "/steps/0/mocked_result/change_fee",
+              "/steps/0/mocked_result/currency",
+              "/steps/1/mocked_result/flights/1/total_price_including_taxes"
+            ]
+          },
+          {
+            "name": "earlier_arrival_amount",
+            "description": "State that the qualifying flight arrives 55 minutes earlier than the current 18:20 arrival.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/current_arrival_local",
+              "/steps/1/mocked_result/flights/1/arrival_local"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "qualifying_flight",
+            "description": "May identify AW306 as the available flight leaving after 15:00 that arrives earlier.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/flights/1/flight_number",
+              "/steps/1/mocked_result/flights/1/departure_local",
+              "/steps/1/mocked_result/flights/1/arrival_local",
+              "/steps/1/mocked_result/flights/1/availability"
+            ]
+          }
+        ],
+        "conditional_requirements": [],
+        "identifier_policy": "AW306 must denote the same flight; harmless spacing or hyphenation differences alone are not errors."
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_meeting_alternative_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "meeting_feasible_alternative",
+            "description": "Answer yes and identify AW412 as the available alternative arriving at 15:25 New York local time, before the 16:00 meeting.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/flights/0/flight_number",
+              "/steps/1/mocked_result/flights/0/arrival_local_time",
+              "/steps/1/mocked_result/flights/0/arrival_time_zone",
+              "/steps/1/mocked_result/flights/0/availability"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "alternative_price",
+            "description": "May additionally state that AW412 costs 190 USD including taxes.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/flights/0/total_price_including_taxes",
+              "/steps/1/mocked_result/flights/0/currency"
+            ]
+          }
+        ],
+        "conditional_requirements": [],
+        "identifier_policy": "AW412 must denote the same flight; harmless spacing or hyphenation differences alone are not errors."
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_last_rail_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "last_train_feasibility",
+            "description": "Answer yes: a 22:05 arrival plus 35 minutes to exit and 12 minutes to reach the station gives a 22:52 platform arrival, leaving 8 minutes before the 23:00 last departure.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/estimated_arrival_local_time",
+              "/steps/1/mocked_result/arrival_exit_buffer_minutes",
+              "/steps/1/mocked_result/terminal_to_station_minutes",
+              "/steps/1/mocked_result/last_departure_local_time",
+              "/steps/1/mocked_result/service_time_zone"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "airport_and_terminal",
+            "description": "May additionally identify JFK Terminal 4.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result/arrival_airport",
+              "/steps/0/mocked_result/arrival_terminal"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      }
+    },
+    {
+      "task_id": "airline_travel_2step_baggage_plan_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "current_total_fee",
+            "description": "State that the current 23 kg and 29 kg bags cost 120 USD in total: 45 USD second-bag fee plus 75 USD overweight fee.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/currency",
+              "/steps/1/mocked_result/standard_weight_limit_kg",
+              "/steps/1/mocked_result/bag_base_fees/0/fee",
+              "/steps/1/mocked_result/bag_base_fees/1/fee",
+              "/steps/1/mocked_result/overweight_fee_per_bag"
+            ]
+          },
+          {
+            "name": "savings_after_reducing_second_bag",
+            "description": "State that reducing the second bag to 23 kg saves 75 USD.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/standard_weight_limit_kg",
+              "/steps/1/mocked_result/overweight_fee_per_bag"
+            ]
+          }
+        ],
+        "optional_slots": [
+          {
+            "name": "reduced_total_fee",
+            "description": "May additionally state that the reduced total would be 45 USD.",
+            "source_json_pointers": [
+              "/steps/1/mocked_result/bag_base_fees/0/fee",
+              "/steps/1/mocked_result/bag_base_fees/1/fee",
+              "/steps/1/mocked_result/currency"
+            ]
+          }
+        ],
+        "conditional_requirements": []
+      }
+    }
+  ]
+}

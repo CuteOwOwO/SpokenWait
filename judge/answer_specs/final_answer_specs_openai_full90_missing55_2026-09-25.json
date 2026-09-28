@@ -1,0 +1,1183 @@
+{
+  "schema_version": 1,
+  "generated_by": "scripts/materialize_openai_full90_final_answer_specs.mjs",
+  "task_root": "data/spoken_tool_wait_tasks_openai_full100_2026-09-25",
+  "scope": "55 current OpenAI full-90 tasks not covered by the five reviewed domain spec files",
+  "tasks": [
+    {
+      "task_id": "calendar_1step_contiguous_latest_start",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The latest start is 3:30 PM, with revision from 3:30 to 4:40 PM and proofreading from 4:40 to 5 PM.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_1step_cross_timezone_overlap",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest meeting is 4:15 to 5 PM in Taipei, which is 9:15 to 10 AM in London.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_1step_hypothetical_event_move",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The 2 PM event lasts one hour, so ending at 1:30 PM would move it to 12:30 to 1:30 PM. That overlaps the Team review from 12:30 to 1 PM by 30 minutes. The original 2 to 3 PM slot would be free, but the proposed move is not conflict-free.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_1step_meeting_type_buffers",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest valid time is 3:15 to 4:30 PM.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_1step_ordered_split_work",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Prepare the data from 10:10 to 10:55 AM, wait until 11:25 AM, and analyze from 11:25 AM to 12:25 PM. The earliest completion time is 12:25 PM.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_2step_business_day_deadline",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The latest date is September 24. September 29 is the first prior working day, September 28 is the second, and September 24 is the third after skipping the company trip and weekend.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_2step_first_pending_required_invite",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The first required meeting with no response yet is Vendor Call at 2:30 PM.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_2step_meeting_type_buffer_rules",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest valid time is 3:15 to 4:30 PM.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_2step_people_then_room",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest qualifying time is 2:10 to 2:55 PM in Huddle Room 2.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "calendar_2step_three_person_reschedule",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest valid time for the Design review is 2:20 to 3:10 PM on September 15.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_authorized_fill_option",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Use the 45-tablet option. It is ready before the deadline and has a 160 TWD copay; the 60-tablet option has the same copay but more extra tablets.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_partial_fill_cumulative_ready",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The pharmacy first has enough at 3:40 PM on September 12, leaving 1 hour and 20 minutes before the 5 PM train.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_printed_morning_sequence",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: No. The White tablet at 7:10 AM and the Green capsule at 8 AM follow their printed timing rules, but the Oral liquid at 8:45 AM is too early. Its earliest valid time is 9 AM.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_ready_hold_baseline",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Yes. It is ready at the Consultation Counter at Main Pharmacy and must be collected by 6 PM on September 13.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_1step_trip_supply_shortfall",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: No. Eighteen tablets are needed from the evening of September 10 through the morning of September 19, so the supply is one tablet short. The last available tablet is for the evening dose on September 18.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_all_refills_common_pickup",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Yes. All three refills are available together starting at 1:20 PM on September 12.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_liquid_prescription_then_packages",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Choose one 150 mL bottle for 115 TWD. It covers the 140 mL requirement and leaves 10 mL, less than the equally priced 60 mL plus 100 mL combination.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_prescription_then_branch_fulfillment",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: East Pharmacy can prepare the complete refill earliest, at 4:45 PM on September 12.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_supply_then_coverage_window",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Insurance first covers the next fill on September 19. At the start of that day, 12 tablets remain.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "pharmacy_2step_synchronize_covered_refills",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: September 23 is the earliest date all three refills are covered. The Maintenance tablets run out before that date; the other two do not.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_apparel_size_matrix_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Navy is the only color that can supply the full mix: two medium, two large, and one extra-large jacket. Black has only one sellable large, and forest green has no sellable extra-large.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_fifo_use_by_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: You can finish six yogurts and two will expire first. After eating two from the September 12 batch that morning, one expires. On September 13 you eat two from that day's batch and one more expires. The two September 15 yogurts are then eaten on September 14.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_owned_battery_runtime_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Yes. Use the 40-minute battery first and put it on the charger at minute 40. It is full again at minute 95, while the two 30-minute batteries cover minutes 40 through 100. The recharged first battery can then supply the final 20 minutes, so the mower never has to stop.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_same_lot_fabric_cuts_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Choose Lot C. It can supply the three continuous pieces from its 2.5, 2.5, and 1.5 meter rolls and leaves 0.6 meter total. Lot A can also fulfill the cuts but leaves 1.1 meters. Lot B cannot produce two separate 2.4-meter panels because only one roll is at least 2.4 meters long.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_1step_smallest_rotated_box_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Choose the Wide box. With padding, the print needs 68 by 50 by 13 centimeters. Slim and Long each have one side that is too short even after rotation. Wide and Square fit and are sellable, but Wide has the smaller inner volume.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_camera_mode_savings_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: For 4K high quality, buy Fast 256 plus Fast 128 for 2,800 TWD; they provide 384 GB and meet the 90 MB/s requirement, while Fast 512 exceeds that mode's per-card capacity limit. For 4K standard, one Standard 256 card for 900 TWD covers the 144 GB requirement. Switching saves 1,900 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_department_paper_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Buy five 2,000-sheet boxes from Budget Office for 1,350 TWD. The target is 10,000 sheets. Alpha Paper's buy-three-get-one offer also supplies 10,000 sheets but costs 1,440 TWD, and two Central Supply boxes cost 1,440 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_manual_filter_packs_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The manual says to replace the BreatheWell PureAir P4 filter every four months. The scheduled replacements through the inclusive end date are January 7, May 7, and September 7, 2027, so you need three filters. Buy one triple pack for 80 TWD; it is cheaper than three singles at 90 TWD or a double plus a single at 82 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_shelf_bom_stock_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Choose Breeze branch, 3.2 kilometers away. Its sellable stock plus your two posts supports two complete shelves. For all three shelves, you are short only one post; it has all 12 boards and six braces required. Hill branch can build three but is beyond five kilometers, and stock cannot be combined across branches.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "product_inventory_2step_sofa_package_fit_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Choose the Cedar three-seat sofa for 900 USD. Lane is cheaper but its 215-centimeter carton exceeds the elevator's 210-centimeter side even after rotation. Every Cedar package fits; Harbor also fits but costs 950 USD. Summit is over the 1,000 USD budget and should not be sent to the packaging lookup.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_early_checkin_wait_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Check-in opens at 6:45 PM, which is 15 minutes before the 7 PM reservation. Arriving at 6:40 PM means you will need to wait 5 minutes.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_estimated_spend_parking_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: River Lot should be cheapest at 70 TWD. Harbor Garage costs 80 TWD after 40 free minutes, Maple Lot remains 100 TWD because 2,400 TWD misses its 2,500 TWD threshold, and River Lot costs 110 TWD before its 40 TWD discount.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_partial_party_arrival_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: No. The reservation is released after 7:15 PM because only four of the required five guests are present by the hold deadline. The fifth guest does not arrive until 7:18 PM, so the party cannot be seated under this reservation.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_takeout_common_pickup_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest time to collect everything together is 6:30 PM. All three pickup windows overlap from 6:30 PM through 6:40 PM, so no item has passed its hold window at 6:30.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "restaurant_arrival_1step_walkin_queue_progression_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The earliest seating time is 7:16 PM. The two-person party takes the two-seat table at 7:15. At 7:16 the five-person party cannot use the four-seat table, so the size-based skip rule lets your party of four take it.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "retail_order_1step_bundle_return_repricing_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The retained scarf and hat no longer qualify for the three-item promotion, so they are repriced at 700 plus 500, or 1,200 TWD. Since the original amount paid was 1,600 TWD, the refund is 400 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "retail_order_1step_mixed_tender_refund_routing_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: After the 150 TWD return-shipping deduction, the net refund basis is 2,150 TWD. Restore 500 TWD to stored balance and 1,500 TWD to the credit card, reaching both original-contribution limits. The remaining 150 TWD cannot be returned because the promotional store credit is non-restorable.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "retail_order_1step_multi_item_cancellation_stages_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The desk lamp and rug can be cancelled, while the vase has already been handed to the carrier and will still ship. After the rug's 100 TWD cancellation fee, the total refund is 2,900 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "retail_order_1step_price_adjustment_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Requesting today yields 350 TWD for the headphones and zero for the phone cases, totaling 350 TWD. Waiting until tomorrow makes the headphones one day late, while the two phone cases yield 300 TWD, totaling 300 TWD. Because the order permits only one request, submit today; it pays 50 TWD more.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "retail_order_1step_split_shipment_tiered_delay_refund_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The coffee grinder and kettle packages qualify. Their tier refunds are 20 TWD and 140 TWD, for 160 TWD before the order cap. Total allocated shipping fees are 280 TWD, so the 50% cap is 140 TWD. The final shipping refund is 140 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_addon_cancellation_savings_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The current monthly bill is 410 TWD: 390 plus 120 minus the 100 TWD bundle discount. After cancellation it becomes 370 TWD: 390 minus the 20 TWD core-only loyalty discount. The next bill therefore decreases by only 40 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_member_day_billing_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: There are 22 extra member-days from September 10 through 20 and 10 extra member-days from September 21 through 30, for 32 total. At 300 divided by 30, each extra member-day costs 10 TWD, so the extra charge is 320 TWD. Adding the 900 TWD base fee gives a pre-tax subtotal of 1,220 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_payment_ledger_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: No, there is only one effective charge. The expired 390 TWD authorization contributes zero. The two settled captures add 780 TWD, but the settled 390 TWD reversal neutralizes the duplicate capture, leaving a net settled amount of 390 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_storage_downgrade_006",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The scheduled trash purge removes 14 GB before the downgrade, leaving 214 GB: 186 GB of active files plus 28 GB of version history. To meet Basic's 200 GB quota, you must manually clear another 14 GB. If you do nothing, the seven full grace days are October 1 through October 7, so uploads are blocked at 12:00 AM on October 8, 2026.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_1step_tiered_overage_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The billable overage is 80 GB: 188 minus the 8 GB waiver and 100 GB included allowance. The first 50 GB costs 100 TWD and the remaining 30 GB costs 30 TWD, so the total overage fee is 130 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_annual_cancellation_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: October 1 is the ninth monthly anniversary after the January 1 start, so 9 complete service months have elapsed. Because that is below the 10-month threshold, the Annual Saver discount is clawed back and those months are repriced at 1,000 TWD each. The service through October 1 therefore effectively costs 9,000 TWD, and the refund is 9,600 - 9,000 = 600 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_partial_payment_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The 1,000 TWD payment first clears the August late fee of 100 TWD, then the August subscription principal of 700 TWD, and applies the remaining 200 TWD to September principal. The remaining balance is 500 TWD. Because every August charge, the oldest outstanding month, is fully cleared and this bank profile posts today's payment immediately, uploads are restored even though 500 TWD from September remains unpaid.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_secretary_upgrade_004",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Daniel's Founding 20% offer transfers to Team, making the full monthly price 900 × 80% = 720 TWD. September 16 through September 30 is 15 of the 30 cycle days. The new-plan charge is 720 × 15/30 = 360 TWD, while the unused Solo Plus credit is 480 × 15/30 = 240 TWD. The immediate charge is therefore 120 TWD, and a later full month costs 720 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_sla_credit_001",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Only the two unplanned full outages qualify. Because they overlap, their union runs from 10:00 AM to 12:10 PM, or 130 minutes, rather than 150 minutes. That falls in the 20% bracket, so the next bill should receive a 240 TWD service credit based on the 1,200 TWD eligible monthly charge.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "subscription_billing_2step_upgrade_selection_006",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Choose Business. Creator Plus has enough storage and automation runs but its 5-member limit is below the current 6 members. Studio fits all current usage but its Founding offer does not carry over, so it costs its 800 TWD list price. Business also fits and looks more expensive at a 900 TWD list price, but the Founding 20% offer carries over, reducing it to 720 TWD. Business is therefore cheapest and costs 720 - 384 = 336 TWD more per month than the current subscription.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result",
+              "/steps/1/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "ticket_1step_age_band_upgrade_005",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The two adult tickets and the infant lap admission are correct. The older child is 12 on October 4 and is no longer under 12, so that ticket must be upgraded from child to adult. The amount due is 300 TWD, the difference between 900 and 600 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "ticket_1step_festival_ticket_coverage_008",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Buy the 1,200 TWD day pass. It covers all three performances and allows the one lunch exit and re-entry. Three single-performance tickets cost 1,440 TWD. The 1,350 TWD Harbor Stage plus evening-pass combination covers all three by show, but the Harbor pass cannot be re-entered after lunch, so it is not valid for the stated plan.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "ticket_1step_group_threshold_same_total_007",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: No, the total does not become more expensive; it stays exactly the same. Twelve people at 440 TWD cost 5,280 TWD, and eleven people at 480 TWD also cost 5,280 TWD.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "ticket_1step_relocation_compensation_003",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: The A-to-C rate is 25%. The two regular tickets receive 375 TWD each and the student ticket receives 300 TWD, for 1,050 TWD total. The facility fees are excluded.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    },
+    {
+      "task_id": "ticket_1step_resale_net_002",
+      "final_answer_spec": {
+        "required_slots": [
+          {
+            "name": "complete_task_answer",
+            "description": "Answer every material part of the user request. Evaluator reference: Your 2,800 TWD asking price is capped at 2,400 TWD per ticket. After the 15% seller fee, you receive 2,040 TWD per ticket, or 4,080 TWD total. You originally paid 4,400 TWD including the two facility fees and the order delivery fee, so this is a 320 TWD loss.",
+            "source_json_pointers": [
+              "/steps/0/mocked_result"
+            ]
+          }
+        ],
+        "optional_slots": [],
+        "conditional_requirements": [],
+        "identifier_policy": "Preserve material identifiers and values; harmless spoken formatting differences are allowed.",
+        "ground_truth_evaluation": {
+          "status": "evaluable",
+          "reason": "Current task-specific expected answer and all mocked tool results are present."
+        }
+      }
+    }
+  ]
+}

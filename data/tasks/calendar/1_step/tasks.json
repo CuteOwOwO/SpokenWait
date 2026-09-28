@@ -1,0 +1,554 @@
+{
+  "category": "calendar",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "calendar_1step_meeting_type_buffers",
+      "category": "calendar",
+      "step_count": 1,
+      "user_prompt": "On September 9, between 1 and 5 PM, find the earliest uninterrupted 75 minutes for me to write a report. Leave 15 minutes before and after client meetings, 10 minutes after internal syncs, and no buffer for one-on-ones. Do not start later than 3:30 PM. When can I work?",
+      "flow_summary": "Retrieve raw typed events, apply the user-stated buffers, and select the earliest valid 75-minute interval.",
+      "tools": [
+        {
+          "name": "get_day_calendar",
+          "description": "Return time_zone and confirmed events with title, meeting_type, start_local, end_local, and status within the requested local-time window.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "time_start": {
+              "type": "string",
+              "description": "The inclusive local lower time bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "time_end": {
+              "type": "string",
+              "description": "The exclusive local upper time bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "meeting_type": {
+                      "type": "string"
+                    },
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "end_local": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "meeting_type",
+                    "start_local",
+                    "end_local",
+                    "status"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "events"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "calendar_events",
+          "tool_name": "get_day_calendar",
+          "tool_input": {
+            "event_date": "2026-09-09",
+            "time_start": "13:00",
+            "time_end": "17:00"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "events": [
+              {
+                "title": "Internal sync",
+                "meeting_type": "internal_sync",
+                "start_local": "2026-09-09T13:00:00+08:00",
+                "end_local": "2026-09-09T13:30:00+08:00",
+                "status": "confirmed"
+              },
+              {
+                "title": "Client review",
+                "meeting_type": "external_client_meeting",
+                "start_local": "2026-09-09T14:30:00+08:00",
+                "end_local": "2026-09-09T15:00:00+08:00",
+                "status": "confirmed"
+              },
+              {
+                "title": "One-on-one",
+                "meeting_type": "one_on_one",
+                "start_local": "2026-09-09T16:40:00+08:00",
+                "end_local": "2026-09-09T17:00:00+08:00",
+                "status": "confirmed"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看九月九日下午的行程。"
+        }
+      ],
+      "expected_final_answer": "The earliest valid time is 3:15 to 4:30 PM.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The date and both time bounds are explicit in the user's request; no event name or identifier is required."
+    },
+    {
+      "id": "calendar_1step_ordered_split_work",
+      "category": "calendar",
+      "step_count": 1,
+      "user_prompt": "On September 9, between 9 AM and 5 PM, I need 45 uninterrupted minutes to prepare data. After that, I must wait 30 minutes before starting 60 uninterrupted minutes of analysis. The two tasks may be separate. According to my calendar, what is the earliest I can finish both?",
+      "flow_summary": "Place ordered work around raw events while preserving the mandatory 30-minute wait.",
+      "tools": [
+        {
+          "name": "get_day_calendar",
+          "description": "Return time_zone and confirmed events with title, start_local, end_local, and status within the requested local-time window.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "time_start": {
+              "type": "string",
+              "description": "The inclusive local lower time bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "time_end": {
+              "type": "string",
+              "description": "The exclusive local upper time bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "end_local": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "start_local",
+                    "end_local",
+                    "status"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "events"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "calendar_events",
+          "tool_name": "get_day_calendar",
+          "tool_input": {
+            "event_date": "2026-09-09",
+            "time_start": "09:00",
+            "time_end": "17:00"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "events": [
+              {
+                "title": "Daily check-in",
+                "start_local": "2026-09-09T09:30:00+08:00",
+                "end_local": "2026-09-09T10:10:00+08:00",
+                "status": "confirmed"
+              },
+              {
+                "title": "Project update",
+                "start_local": "2026-09-09T13:20:00+08:00",
+                "end_local": "2026-09-09T14:00:00+08:00",
+                "status": "confirmed"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看九月九日的行程空檔。"
+        }
+      ],
+      "expected_final_answer": "Prepare the data from 10:10 to 10:55 AM, wait until 11:25 AM, and analyze from 11:25 AM to 12:25 PM. The earliest completion time is 12:25 PM.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The date and full planning window are directly stated by the user."
+    },
+    {
+      "id": "calendar_1step_contiguous_latest_start",
+      "category": "calendar",
+      "step_count": 1,
+      "user_prompt": "On the afternoon of September 10, I need 70 minutes to revise a proposal and then 20 minutes to proofread it immediately afterward, all in one uninterrupted block. I must finish by 5 PM. According to my calendar, what is the latest time I can start?",
+      "flow_summary": "Retrieve the afternoon's raw events and work backward from the deadline for a contiguous 90-minute block.",
+      "tools": [
+        {
+          "name": "get_day_calendar",
+          "description": "Return time_zone and confirmed events with title, start_local, end_local, and status for a broad local-time period.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "time_period": {
+              "type": "string",
+              "description": "The broad local-time period.",
+              "enum": [
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "end_local": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "start_local",
+                    "end_local",
+                    "status"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "events"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "calendar_events",
+          "tool_name": "get_day_calendar",
+          "tool_input": {
+            "event_date": "2026-09-10",
+            "time_period": "afternoon"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "events": [
+              {
+                "title": "Department update",
+                "start_local": "2026-09-10T13:00:00+08:00",
+                "end_local": "2026-09-10T13:30:00+08:00",
+                "status": "confirmed"
+              },
+              {
+                "title": "Client call",
+                "start_local": "2026-09-10T14:00:00+08:00",
+                "end_local": "2026-09-10T15:00:00+08:00",
+                "status": "confirmed"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看九月十日下午的行程。"
+        }
+      ],
+      "expected_final_answer": "The latest start is 3:30 PM, with revision from 3:30 to 4:40 PM and proofreading from 4:40 to 5 PM.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user states the date and the broad period afternoon; the enum avoids inventing hidden exact bounds."
+    },
+    {
+      "id": "calendar_1step_cross_timezone_overlap",
+      "category": "calendar",
+      "step_count": 1,
+      "user_prompt": "On September 10, find the earliest 45-minute meeting for me and Maya in London. We only take meetings between 9 AM and 5 PM in our own local time. Answer in Taipei time, and also tell me the time in London.",
+      "flow_summary": "Retrieve date-specific local calendars and offsets, then intersect both work windows and busy intervals.",
+      "tools": [
+        {
+          "name": "get_participant_calendars",
+          "description": "Return participants, each with display_name, local_work_date, time_zone, date_specific_utc_offset, working_hours_local, and busy_intervals_local, for the signed-in user and everyone explicitly named in the current request.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local work date applied independently to each participant, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "participants": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    },
+                    "local_work_date": {
+                      "type": "string"
+                    },
+                    "time_zone": {
+                      "type": "string"
+                    },
+                    "date_specific_utc_offset": {
+                      "type": "string"
+                    },
+                    "working_hours_local": {
+                      "type": "object",
+                      "properties": {
+                        "start": {
+                          "type": "string"
+                        },
+                        "end": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "start",
+                        "end"
+                      ]
+                    },
+                    "busy_intervals_local": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "start": {
+                            "type": "string"
+                          },
+                          "end": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "start",
+                          "end"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "display_name",
+                    "local_work_date",
+                    "time_zone",
+                    "date_specific_utc_offset",
+                    "working_hours_local",
+                    "busy_intervals_local"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "participants"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "participant_calendars",
+          "tool_name": "get_participant_calendars",
+          "tool_input": {
+            "event_date": "2026-09-10"
+          },
+          "mocked_result": {
+            "participants": [
+              {
+                "display_name": "Angus",
+                "local_work_date": "2026-09-10",
+                "time_zone": "Asia/Taipei",
+                "date_specific_utc_offset": "+08:00",
+                "working_hours_local": {
+                  "start": "09:00",
+                  "end": "17:00"
+                },
+                "busy_intervals_local": []
+              },
+              {
+                "display_name": "Maya",
+                "local_work_date": "2026-09-10",
+                "time_zone": "Europe/London",
+                "date_specific_utc_offset": "+01:00",
+                "working_hours_local": {
+                  "start": "09:00",
+                  "end": "17:00"
+                },
+                "busy_intervals_local": [
+                  {
+                    "start": "09:00",
+                    "end": "09:15"
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在比對台北與倫敦九月十日的工作時間。"
+        }
+      ],
+      "expected_final_answer": "The earliest meeting is 4:15 to 5 PM in Taipei, which is 9:15 to 10 AM in London.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The runtime resolves people explicitly named in the current scheduling request, so the model supplies only the stable local work date and never has to respell a spoken name."
+    },
+    {
+      "id": "calendar_1step_hypothetical_event_move",
+      "category": "calendar",
+      "step_count": 1,
+      "user_prompt": "On September 9, I need 2 to 3 PM free for a doctor's appointment. Move the event currently at 2 PM earlier so that it ends at 1:30 PM, keeping its original duration. Would the moved event conflict with anything, and would 2 to 3 PM then be completely free?",
+      "flow_summary": "Retrieve raw events, infer the selected event's duration, derive its new start, and detect the resulting collision.",
+      "tools": [
+        {
+          "name": "get_day_calendar",
+          "description": "Return time_zone and all confirmed events with title, start_local, end_local, and status for the requested local calendar date.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "end_local": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "start_local",
+                    "end_local",
+                    "status"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "events"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "calendar_events",
+          "tool_name": "get_day_calendar",
+          "tool_input": {
+            "event_date": "2026-09-09"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "events": [
+              {
+                "title": "Team review",
+                "start_local": "2026-09-09T12:00:00+08:00",
+                "end_local": "2026-09-09T13:00:00+08:00",
+                "status": "confirmed"
+              },
+              {
+                "title": "Report workshop",
+                "start_local": "2026-09-09T14:00:00+08:00",
+                "end_local": "2026-09-09T15:00:00+08:00",
+                "status": "confirmed"
+              },
+              {
+                "title": "Project call",
+                "start_local": "2026-09-09T15:30:00+08:00",
+                "end_local": "2026-09-09T16:00:00+08:00",
+                "status": "confirmed"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看九月九日下午兩點前後的行程。"
+        }
+      ],
+      "expected_final_answer": "The 2 PM event lasts one hour, so ending at 1:30 PM would move it to 12:30 to 1:30 PM. That overlaps the Team review from 12:30 to 1 PM by 30 minutes. The original 2 to 3 PM slot would be free, but the proposed move is not conflict-free.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user supplies the 2 PM event and its proposed 12:30–1:30 PM move, so the first lookup uses the explicit 12:00–16:00 window needed to inspect both the source event and the possible collision."
+    }
+  ]
+}

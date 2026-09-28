@@ -1,0 +1,481 @@
+{
+  "category": "appointment_service",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "appointment_service_1step_family_details_001",
+      "category": "appointment_service",
+      "step_count": 1,
+      "user_prompt": "Mia needs to leave the clinic by 11:30 AM. Will her appointment tomorrow finish in time, and how much time would she have left?",
+      "input_reference_mode": "person_and_relative_day",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user supplies an ordinary person's name and a relative day. The 11:30 deadline stays in the user request and is not encoded as a hidden lookup argument.",
+      "flow_summary": "依人名與明日條件查家庭成員預約的開始時間與工時，再計算能否在 11:30 前完成及剩餘時間。",
+      "tools": [
+        {
+          "name": "find_family_appointment",
+          "description": "Find an appointment belonging to a person on the signed-in user's family account for a relative day. Returns guest_name (string), service_name (string), start_local (ISO local datetime string), duration_minutes (number), branch_name (string), and status (string). It does not calculate a finish time or compare it with a deadline.",
+          "parameters": {
+            "guest_name": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "guest_name": {
+                "type": "string",
+                "description": "Returned guest name."
+              },
+              "service_name": {
+                "type": "string",
+                "description": "Returned service name."
+              },
+              "start_local": {
+                "type": "string",
+                "description": "Returned start local."
+              },
+              "duration_minutes": {
+                "type": "number",
+                "description": "Returned duration minutes."
+              },
+              "branch_name": {
+                "type": "string",
+                "description": "Returned branch name."
+              },
+              "status": {
+                "type": "string",
+                "description": "Returned status."
+              }
+            },
+            "required": [
+              "guest_name",
+              "service_name",
+              "start_local",
+              "duration_minutes",
+              "branch_name",
+              "status"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "appointment",
+          "tool_name": "find_family_appointment",
+          "tool_input": {
+            "guest_name": "Mia",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "guest_name": "Mia",
+            "service_name": "eye exam",
+            "start_local": "2026-09-08T10:40:00+08:00",
+            "duration_minutes": 35,
+            "branch_name": "Riverside Clinic",
+            "status": "confirmed"
+          },
+          "waiting_speech_target": "正在查看 Mia 明天的預約時間與預計時長。"
+        }
+      ],
+      "expected_final_answer": "可以。Mia 的預約 10:40 開始，預計 35 分鐘，會在 11:15 完成，距離 11:30 還有 15 分鐘。"
+    },
+    {
+      "id": "appointment_service_1step_slot_selection_002",
+      "category": "appointment_service",
+      "step_count": 1,
+      "user_prompt": "Tomorrow afternoon works for physiotherapy, but I cannot start before 2 PM and have to be finished by 4 PM. Which available slot costs the least? If two cost the same, I would rather finish earlier.",
+      "input_reference_mode": "service_and_relative_day",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The lookup uses only the service and relative day stated by the user. The after-2 and finish-by-4 constraints remain user facts that the model must apply to raw options.",
+      "flow_summary": "查明日物理治療時段後，由模型計算各時段結束時間、套用兩個時間限制，再依價格與結束時間 tie-break 選唯一答案。",
+      "tools": [
+        {
+          "name": "list_appointment_options",
+          "description": "List appointment options for a service and relative day. Returns options, each with provider_name (string), start_local (ISO local datetime string), duration_minutes (number), price (number), currency (string), and available (boolean). It does not filter, rank, or choose an option.",
+          "parameters": {
+            "service_name": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "options": {
+                "type": "array",
+                "description": "Returned options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "provider_name": {
+                      "type": "string",
+                      "description": "Returned provider name."
+                    },
+                    "start_local": {
+                      "type": "string",
+                      "description": "Returned start local."
+                    },
+                    "duration_minutes": {
+                      "type": "number",
+                      "description": "Returned duration minutes."
+                    },
+                    "price": {
+                      "type": "number",
+                      "description": "Returned price."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Returned currency."
+                    },
+                    "available": {
+                      "type": "boolean",
+                      "description": "Returned available."
+                    }
+                  },
+                  "required": [
+                    "provider_name",
+                    "start_local",
+                    "duration_minutes",
+                    "price",
+                    "currency",
+                    "available"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "options"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "options",
+          "tool_name": "list_appointment_options",
+          "tool_input": {
+            "service_name": "physiotherapy",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "options": [
+              {
+                "provider_name": "Dr. Lin",
+                "start_local": "2026-09-08T13:50:00+08:00",
+                "duration_minutes": 50,
+                "price": 900,
+                "currency": "TWD",
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Chen",
+                "start_local": "2026-09-08T14:20:00+08:00",
+                "duration_minutes": 60,
+                "price": 850,
+                "currency": "TWD",
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Wu",
+                "start_local": "2026-09-08T14:40:00+08:00",
+                "duration_minutes": 45,
+                "price": 850,
+                "currency": "TWD",
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Hsu",
+                "start_local": "2026-09-08T15:20:00+08:00",
+                "duration_minutes": 50,
+                "price": 700,
+                "currency": "TWD",
+                "available": true
+              },
+              {
+                "provider_name": "Dr. Kao",
+                "start_local": "2026-09-08T14:10:00+08:00",
+                "duration_minutes": 40,
+                "price": 800,
+                "currency": "TWD",
+                "available": false
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看明天下午可預約的 physiotherapy 時段。"
+        }
+      ],
+      "expected_final_answer": "應預約 Dr. Chen 的 14:20 時段，會在 15:20 完成，價格是 850 元。Dr. Wu 同價但完成時間較晚；其他選項不符合條件或不可預約。"
+    },
+    {
+      "id": "appointment_service_1step_late_arrival_003",
+      "category": "appointment_service",
+      "step_count": 1,
+      "user_prompt": "If I arrive at 3:28 PM for my physiotherapy appointment with Dr. Wang tomorrow, will I still be seen, and how many minutes would remain before it is automatically cancelled?",
+      "input_reference_mode": "provider_and_relative_day",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The user identifies the appointment with the clearly spoken public provider name Dr. Wang and a relative day. The arrival time remains a user fact; the tool supplies the scheduled time and policy thresholds.",
+      "flow_summary": "查特定治療師的明日預約與遲到規則，由模型計算使用者遲到 8 分鐘、仍在寬限內，且距自動取消尚有 12 分鐘。",
+      "tools": [
+        {
+          "name": "find_my_appointment",
+          "description": "Find the signed-in user's appointment with a provider on a relative day. Returns provider_name (string), service_name (string), start_local (ISO local datetime string), grace_period_minutes (number), and auto_cancel_after_minutes (number). The two policy values are measured from the scheduled start time.",
+          "parameters": {
+            "provider_name": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "provider_name": {
+                "type": "string",
+                "description": "Returned provider name."
+              },
+              "service_name": {
+                "type": "string",
+                "description": "Returned service name."
+              },
+              "start_local": {
+                "type": "string",
+                "description": "Returned start local."
+              },
+              "grace_period_minutes": {
+                "type": "number",
+                "description": "Returned grace period minutes."
+              },
+              "auto_cancel_after_minutes": {
+                "type": "number",
+                "description": "Returned auto cancel after minutes."
+              }
+            },
+            "required": [
+              "provider_name",
+              "service_name",
+              "start_local",
+              "grace_period_minutes",
+              "auto_cancel_after_minutes"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "appointment_policy",
+          "tool_name": "find_my_appointment",
+          "tool_input": {
+            "provider_name": "Dr. Wang",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "provider_name": "Dr. Wang",
+            "service_name": "physiotherapy",
+            "start_local": "2026-09-08T15:20:00+08:00",
+            "grace_period_minutes": 10,
+            "auto_cancel_after_minutes": 20
+          },
+          "waiting_speech_target": "正在查看 Dr. Wang 明天的預約時間與遲到規則。"
+        }
+      ],
+      "expected_final_answer": "會。15:28 抵達是遲到 8 分鐘，仍在 10 分鐘寬限內；距離預約開始滿 20 分鐘而自動取消，還有 12 分鐘。"
+    },
+    {
+      "id": "appointment_service_1step_package_credits_004",
+      "category": "appointment_service",
+      "step_count": 1,
+      "user_prompt": "I want to use my wellness package for a facial and a neck massage today. Do I have enough credits, and if not, how much would I need to pay?",
+      "input_reference_mode": "signed_in_account",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "This is intentionally the set's one account-scoped, no-argument call. The requested services are user facts and are selected from the returned package table, not encoded as hidden lookup arguments.",
+      "flow_summary": "查登入帳號的套票餘額、補點單價與服務點數表，再由模型選取使用者指定的兩項服務、加總並計算不足點數與補款。",
+      "tools": [
+        {
+          "name": "get_my_wellness_package",
+          "description": "Retrieve the signed-in user's active wellness package. Returns package_name (string), credits_remaining (number), top_up_price_per_credit (number), currency (string), and services, each with service_name (string) and credits_required (number). It does not select services, add credits, or calculate a payment.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "package_name": {
+                "type": "string",
+                "description": "Returned package name."
+              },
+              "credits_remaining": {
+                "type": "number",
+                "description": "Returned credits remaining."
+              },
+              "top_up_price_per_credit": {
+                "type": "number",
+                "description": "Returned top up price per credit."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "services": {
+                "type": "array",
+                "description": "Returned services.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "service_name": {
+                      "type": "string",
+                      "description": "Returned service name."
+                    },
+                    "credits_required": {
+                      "type": "number",
+                      "description": "Returned credits required."
+                    }
+                  },
+                  "required": [
+                    "service_name",
+                    "credits_required"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "package_name",
+              "credits_remaining",
+              "top_up_price_per_credit",
+              "currency",
+              "services"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "package",
+          "tool_name": "get_my_wellness_package",
+          "tool_input": {},
+          "mocked_result": {
+            "package_name": "Wellness Seven",
+            "credits_remaining": 7,
+            "top_up_price_per_credit": 100,
+            "currency": "TWD",
+            "services": [
+              {
+                "service_name": "facial",
+                "credits_required": 6
+              },
+              {
+                "service_name": "neck massage",
+                "credits_required": 4
+              },
+              {
+                "service_name": "foot massage",
+                "credits_required": 3
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看你的 wellness 套票餘額與服務點數。"
+        }
+      ],
+      "expected_final_answer": "不夠。facial 和 neck massage 共需 10 點，目前有 7 點，還差 3 點；每點 100 元，因此需要補 300 元。"
+    },
+    {
+      "id": "appointment_service_1step_completion_deadline_005",
+      "category": "appointment_service",
+      "step_count": 1,
+      "user_prompt": "For my physiotherapy appointment tomorrow, will the assessment, treatment, and exercise instruction be finished by 4 PM, and how much time would I have left?",
+      "input_reference_mode": "service_and_relative_day",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The user states the service and relative day. The tool returns the start time and raw sequential activity durations; it does not calculate completion or deadline slack.",
+      "flow_summary": "查明日物理治療的開始時間、三個連續環節與各自工時，由模型加總 80 分鐘、算出 15:40 完成及距 16:00 的 20 分鐘餘裕。",
+      "tools": [
+        {
+          "name": "get_appointment_schedule",
+          "description": "Retrieve the schedule for the signed-in user's service on a relative day. Returns start_local (ISO local datetime string), activities in execution order, each with name (string) and duration_minutes (number), and activities_are_sequential (boolean). It does not calculate the finish time or compare it with a deadline.",
+          "parameters": {
+            "service_name": "string",
+            "relative_day": "string"
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "start_local": {
+                "type": "string",
+                "description": "Returned start local."
+              },
+              "activities": {
+                "type": "array",
+                "description": "Returned activities.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Returned name."
+                    },
+                    "duration_minutes": {
+                      "type": "number",
+                      "description": "Returned duration minutes."
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "duration_minutes"
+                  ]
+                }
+              },
+              "activities_are_sequential": {
+                "type": "boolean",
+                "description": "Returned activities are sequential."
+              }
+            },
+            "required": [
+              "start_local",
+              "activities",
+              "activities_are_sequential"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "schedule",
+          "tool_name": "get_appointment_schedule",
+          "tool_input": {
+            "service_name": "physiotherapy",
+            "relative_day": "tomorrow"
+          },
+          "mocked_result": {
+            "start_local": "2026-09-08T14:20:00+08:00",
+            "activities": [
+              {
+                "name": "assessment",
+                "duration_minutes": 20
+              },
+              {
+                "name": "treatment",
+                "duration_minutes": 45
+              },
+              {
+                "name": "exercise instruction",
+                "duration_minutes": 15
+              }
+            ],
+            "activities_are_sequential": true
+          },
+          "waiting_speech_target": "正在查看明天 physiotherapy 預約的開始時間與各環節工時。",
+          "argument_aliases": {
+            "service_name": [
+              "physiotherapy appointment"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "可以。三個環節依序共需 80 分鐘，14:20 開始會在 15:40 完成，距離 16:00 還有 20 分鐘。"
+    }
+  ]
+}

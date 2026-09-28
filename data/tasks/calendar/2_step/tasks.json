@@ -1,0 +1,1089 @@
+{
+  "category": "calendar",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "calendar_2step_meeting_type_buffer_rules",
+      "category": "calendar",
+      "step_count": 2,
+      "user_prompt": "On September 9, between 1 and 5 PM, use the applicable buffer rules for each kind of meeting to find the earliest uninterrupted 75 minutes for me to write a report. Do not start later than 3:30 PM.",
+      "flow_summary": "Retrieve raw events, batch-retrieve each event's scheduling details, then apply buffers and select the earliest valid interval.",
+      "tools": [
+        {
+          "name": "get_day_calendar",
+          "description": "Return time_zone, events with title/start_local/end_local, and the complete event_titles list within the requested local-time window; scheduling policy fields are not included.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "time_start": {
+              "type": "string",
+              "description": "The local lower bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "time_end": {
+              "type": "string",
+              "description": "The local upper bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "end_local": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "start_local",
+                    "end_local"
+                  ]
+                }
+              },
+              "event_titles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "events",
+              "event_titles"
+            ]
+          }
+        },
+        {
+          "name": "get_event_scheduling_details",
+          "description": "Return event_details; each item contains title, start_local, meeting_type, before_buffer_minutes, and after_buffer_minutes for a supplied event title.",
+          "parameters": {
+            "event_titles": {
+              "type": "array",
+              "description": "The complete ordered list of calendar event titles to look up.",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "event_details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "meeting_type": {
+                      "type": "string"
+                    },
+                    "before_buffer_minutes": {
+                      "type": "integer"
+                    },
+                    "after_buffer_minutes": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "start_local",
+                    "meeting_type",
+                    "before_buffer_minutes",
+                    "after_buffer_minutes"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "event_details"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "calendar_events",
+          "tool_name": "get_day_calendar",
+          "tool_input": {
+            "event_date": "2026-09-09",
+            "time_start": "13:00",
+            "time_end": "17:00"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "events": [
+              {
+                "title": "Internal sync",
+                "start_local": "2026-09-09T13:00:00+08:00",
+                "end_local": "2026-09-09T13:30:00+08:00"
+              },
+              {
+                "title": "Client review",
+                "start_local": "2026-09-09T14:30:00+08:00",
+                "end_local": "2026-09-09T15:00:00+08:00"
+              },
+              {
+                "title": "One-on-one",
+                "start_local": "2026-09-09T16:40:00+08:00",
+                "end_local": "2026-09-09T17:00:00+08:00"
+              }
+            ],
+            "event_titles": [
+              "Internal sync",
+              "Client review",
+              "One-on-one"
+            ]
+          },
+          "waiting_speech_target": "正在查看九月九日下午的活動。"
+        },
+        {
+          "index": 2,
+          "label": "event_scheduling_details",
+          "tool_name": "get_event_scheduling_details",
+          "tool_input": {
+            "event_titles": [
+              "Internal sync",
+              "Client review",
+              "One-on-one"
+            ]
+          },
+          "mocked_result": {
+            "event_details": [
+              {
+                "title": "Internal sync",
+                "start_local": "2026-09-09T13:00:00+08:00",
+                "meeting_type": "internal_sync",
+                "before_buffer_minutes": 0,
+                "after_buffer_minutes": 10
+              },
+              {
+                "title": "Client review",
+                "start_local": "2026-09-09T14:30:00+08:00",
+                "meeting_type": "external_client_meeting",
+                "before_buffer_minutes": 15,
+                "after_buffer_minutes": 15
+              },
+              {
+                "title": "One-on-one",
+                "start_local": "2026-09-09T16:40:00+08:00",
+                "meeting_type": "one_on_one",
+                "before_buffer_minutes": 0,
+                "after_buffer_minutes": 0
+              }
+            ]
+          },
+          "waiting_speech_target": "正在批次查詢每場活動的緩衝規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "event_titles",
+              "argument_name": "event_titles"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The earliest valid time is 3:15 to 4:30 PM.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The first call uses only the explicit date and time window; later policy details depend on the returned event-title list while the first result retains the event times needed for the final calculation."
+    },
+    {
+      "id": "calendar_2step_people_then_room",
+      "category": "calendar",
+      "step_count": 2,
+      "user_prompt": "On September 10, between 1 and 4 PM, find the earliest 45-minute meeting for my manager and me. It is just the two of us, and the room must have video conferencing and a whiteboard. If more than one room works at the same time, choose the smallest one that fits us.",
+      "flow_summary": "Retrieve shared intervals, batch-retrieve rooms by interval, then apply duration, feature, capacity, and tie-break constraints.",
+      "tools": [
+        {
+          "name": "get_my_manager_shared_availability",
+          "description": "Return participant_names, office_name, time_zone, and shared_free_intervals with start_local/end_local for the signed-in user and their manager within the requested window.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local date in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "time_start": {
+              "type": "string",
+              "description": "The inclusive local lower time bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "time_end": {
+              "type": "string",
+              "description": "The exclusive local upper time bound in HH:MM format.",
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "participant_names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "office_name": {
+                "type": "string"
+              },
+              "time_zone": {
+                "type": "string"
+              },
+              "shared_free_intervals": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "end_local": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "start_local",
+                    "end_local"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "participant_names",
+              "office_name",
+              "time_zone",
+              "shared_free_intervals"
+            ]
+          }
+        },
+        {
+          "name": "list_room_availability_for_intervals",
+          "description": "Return availability_by_interval; each item contains interval start_local/end_local and rooms with room_name, capacity, features, available_start, and available_end.",
+          "parameters": {
+            "office_name": {
+              "type": "string",
+              "description": "The public office name."
+            },
+            "shared_free_intervals": {
+              "type": "array",
+              "description": "The complete ordered list of shared free intervals to check in one batch.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "start_local": {
+                    "type": "string"
+                  },
+                  "end_local": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "start_local",
+                  "end_local"
+                ]
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "availability_by_interval": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "interval": {
+                      "type": "object",
+                      "properties": {
+                        "start_local": {
+                          "type": "string"
+                        },
+                        "end_local": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "start_local",
+                        "end_local"
+                      ]
+                    },
+                    "rooms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "room_name": {
+                            "type": "string"
+                          },
+                          "capacity": {
+                            "type": "integer"
+                          },
+                          "features": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "available_start": {
+                            "type": "string"
+                          },
+                          "available_end": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "room_name",
+                          "capacity",
+                          "features",
+                          "available_start",
+                          "available_end"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "interval",
+                    "rooms"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "availability_by_interval"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "shared_availability",
+          "tool_name": "get_my_manager_shared_availability",
+          "tool_input": {
+            "event_date": "2026-09-10",
+            "time_start": "13:00",
+            "time_end": "16:00"
+          },
+          "mocked_result": {
+            "participant_names": [
+              "signed-in user",
+              "manager"
+            ],
+            "office_name": "Taipei HQ",
+            "time_zone": "Asia/Taipei",
+            "shared_free_intervals": [
+              {
+                "start_local": "2026-09-10T13:00:00+08:00",
+                "end_local": "2026-09-10T13:50:00+08:00"
+              },
+              {
+                "start_local": "2026-09-10T14:10:00+08:00",
+                "end_local": "2026-09-10T15:00:00+08:00"
+              },
+              {
+                "start_local": "2026-09-10T15:15:00+08:00",
+                "end_local": "2026-09-10T16:00:00+08:00"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看你和主管下午一點到四點共同有空的時段。"
+        },
+        {
+          "index": 2,
+          "label": "room_availability",
+          "tool_name": "list_room_availability_for_intervals",
+          "tool_input": {
+            "office_name": "Taipei HQ",
+            "shared_free_intervals": [
+              {
+                "start_local": "2026-09-10T13:00:00+08:00",
+                "end_local": "2026-09-10T13:50:00+08:00"
+              },
+              {
+                "start_local": "2026-09-10T14:10:00+08:00",
+                "end_local": "2026-09-10T15:00:00+08:00"
+              },
+              {
+                "start_local": "2026-09-10T15:15:00+08:00",
+                "end_local": "2026-09-10T16:00:00+08:00"
+              }
+            ]
+          },
+          "mocked_result": {
+            "availability_by_interval": [
+              {
+                "interval": {
+                  "start_local": "2026-09-10T13:00:00+08:00",
+                  "end_local": "2026-09-10T13:50:00+08:00"
+                },
+                "rooms": [
+                  {
+                    "room_name": "Cedar Room",
+                    "capacity": 4,
+                    "features": [
+                      "video conferencing"
+                    ],
+                    "available_start": "2026-09-10T13:00:00+08:00",
+                    "available_end": "2026-09-10T13:50:00+08:00"
+                  }
+                ]
+              },
+              {
+                "interval": {
+                  "start_local": "2026-09-10T14:10:00+08:00",
+                  "end_local": "2026-09-10T15:00:00+08:00"
+                },
+                "rooms": [
+                  {
+                    "room_name": "Huddle Room 2",
+                    "capacity": 2,
+                    "features": [
+                      "video conferencing",
+                      "whiteboard"
+                    ],
+                    "available_start": "2026-09-10T14:10:00+08:00",
+                    "available_end": "2026-09-10T15:00:00+08:00"
+                  },
+                  {
+                    "room_name": "Boardroom",
+                    "capacity": 8,
+                    "features": [
+                      "video conferencing",
+                      "whiteboard"
+                    ],
+                    "available_start": "2026-09-10T14:10:00+08:00",
+                    "available_end": "2026-09-10T15:00:00+08:00"
+                  }
+                ]
+              },
+              {
+                "interval": {
+                  "start_local": "2026-09-10T15:15:00+08:00",
+                  "end_local": "2026-09-10T16:00:00+08:00"
+                },
+                "rooms": [
+                  {
+                    "room_name": "Studio 4",
+                    "capacity": 4,
+                    "features": [
+                      "video conferencing",
+                      "whiteboard"
+                    ],
+                    "available_start": "2026-09-10T15:15:00+08:00",
+                    "available_end": "2026-09-10T16:00:00+08:00"
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在一次查看各個共同空檔的會議室。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "office_name",
+              "argument_name": "office_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "shared_free_intervals",
+              "argument_name": "shared_free_intervals"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The earliest qualifying time is 2:10 to 2:55 PM in Huddle Room 2.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The signed-in user and their manager are resolved from account context. The model supplies the explicit 1–4 PM window directly stated by the user, so neither a spoken personal name nor an inferred broad period becomes an ASR or schema confound."
+    },
+    {
+      "id": "calendar_2step_three_person_reschedule",
+      "category": "calendar",
+      "step_count": 2,
+      "user_prompt": "Move my design review from September 14 to the afternoon of September 15. Everyone who was invited to the original meeting still needs to attend. It cannot start before 1:30 PM or finish after 4 PM. What is the earliest time that works?",
+      "flow_summary": "Retrieve the named event's original duration and attendees, retrieve those attendees' target-date schedules, then calculate the earliest common interval.",
+      "tools": [
+        {
+          "name": "get_calendar_event_details",
+          "description": "Return time_zone, title, start_local, end_local, duration_minutes, and participant_names for the named event on the requested calendar date.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The original local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "event_title": {
+              "type": "string",
+              "description": "The event title stated by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "start_local": {
+                "type": "string"
+              },
+              "end_local": {
+                "type": "string"
+              },
+              "duration_minutes": {
+                "type": "integer"
+              },
+              "participant_names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "title",
+              "start_local",
+              "end_local",
+              "duration_minutes",
+              "participant_names"
+            ]
+          }
+        },
+        {
+          "name": "get_participant_schedules",
+          "description": "Return time_zone and participant_schedules; each participant entry contains participant_name and busy_intervals with start_local/end_local. This tool does not choose a meeting time.",
+          "parameters": {
+            "participant_names": {
+              "type": "array",
+              "description": "The people whose calendars should be checked together.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The target local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "participant_schedules": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "participant_name": {
+                      "type": "string"
+                    },
+                    "busy_intervals": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "start_local": {
+                            "type": "string"
+                          },
+                          "end_local": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "start_local",
+                          "end_local"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "participant_name",
+                    "busy_intervals"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "participant_schedules"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "event_details",
+          "tool_name": "get_calendar_event_details",
+          "tool_input": {
+            "event_date": "2026-09-14",
+            "event_title": "Design review"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "title": "Design review",
+            "start_local": "2026-09-14T10:00:00+08:00",
+            "end_local": "2026-09-14T10:50:00+08:00",
+            "duration_minutes": 50,
+            "participant_names": [
+              "Angus",
+              "Yijun",
+              "Jordan"
+            ]
+          },
+          "waiting_speech_target": "正在查看九月十四日 Design review 的時長與參與者。",
+          "case_insensitive_arguments": [
+            "event_title"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "participant_schedules",
+          "tool_name": "get_participant_schedules",
+          "tool_input": {
+            "participant_names": [
+              "Angus",
+              "Yijun",
+              "Jordan"
+            ],
+            "event_date": "2026-09-15"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "participant_schedules": [
+              {
+                "participant_name": "Angus",
+                "busy_intervals": [
+                  {
+                    "start_local": "2026-09-15T13:30:00+08:00",
+                    "end_local": "2026-09-15T14:00:00+08:00"
+                  }
+                ]
+              },
+              {
+                "participant_name": "Yijun",
+                "busy_intervals": [
+                  {
+                    "start_local": "2026-09-15T13:45:00+08:00",
+                    "end_local": "2026-09-15T14:20:00+08:00"
+                  }
+                ]
+              },
+              {
+                "participant_name": "Jordan",
+                "busy_intervals": [
+                  {
+                    "start_local": "2026-09-15T15:10:00+08:00",
+                    "end_local": "2026-09-15T15:30:00+08:00"
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看這三位參與者九月十五日下午的行程。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "participant_names",
+              "argument_name": "participant_names"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The earliest valid time for the Design review is 2:20 to 3:10 PM on September 15.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user explicitly names Design review and its original date. The first service supplies the attendee list and duration that the user did not know; the second service only returns those attendees' schedules, leaving the common-slot calculation to the model."
+    },
+    {
+      "id": "calendar_2step_business_day_deadline",
+      "category": "calendar",
+      "step_count": 2,
+      "user_prompt": "I have a contract signing on my calendar on September 30, and legal needs the final draft three working days beforehand. According to the company schedule, what is the latest date I can send it?",
+      "flow_summary": "Retrieve the actual contract time, retrieve the preceding company schedule from that timestamp, and count backward three working days.",
+      "tools": [
+        {
+          "name": "find_contract_signing",
+          "description": "Return contract_title, contract_start_local, and contract_end_local for the signed-in user's contract-signing event on the requested date.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "contract_title": {
+                "type": "string"
+              },
+              "contract_start_local": {
+                "type": "string"
+              },
+              "contract_end_local": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "contract_title",
+              "contract_start_local",
+              "contract_end_local"
+            ]
+          }
+        },
+        {
+          "name": "get_company_schedule_for_prior_week",
+          "description": "Return company_schedule; each preceding local date contains date, schedule_label, and is_working_day.",
+          "parameters": {
+            "contract_start_local": {
+              "type": "string",
+              "description": "The complete local contract start timestamp, including its UTC offset.",
+              "format": "date-time"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "company_schedule": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string"
+                    },
+                    "schedule_label": {
+                      "type": "string"
+                    },
+                    "is_working_day": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "date",
+                    "schedule_label",
+                    "is_working_day"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "company_schedule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "contract_signing",
+          "tool_name": "find_contract_signing",
+          "tool_input": {
+            "event_date": "2026-09-30"
+          },
+          "mocked_result": {
+            "contract_title": "Contract Signing",
+            "contract_start_local": "2026-09-30T15:00:00+08:00",
+            "contract_end_local": "2026-09-30T16:00:00+08:00"
+          },
+          "waiting_speech_target": "正在查看九月三十日的合約簽署時間。"
+        },
+        {
+          "index": 2,
+          "label": "company_schedule",
+          "tool_name": "get_company_schedule_for_prior_week",
+          "tool_input": {
+            "contract_start_local": "2026-09-30T15:00:00+08:00"
+          },
+          "mocked_result": {
+            "company_schedule": [
+              {
+                "date": "2026-09-23",
+                "schedule_label": "regular office day",
+                "is_working_day": true
+              },
+              {
+                "date": "2026-09-24",
+                "schedule_label": "regular office day",
+                "is_working_day": true
+              },
+              {
+                "date": "2026-09-25",
+                "schedule_label": "company trip",
+                "is_working_day": false
+              },
+              {
+                "date": "2026-09-26",
+                "schedule_label": "Saturday",
+                "is_working_day": false
+              },
+              {
+                "date": "2026-09-27",
+                "schedule_label": "Sunday",
+                "is_working_day": false
+              },
+              {
+                "date": "2026-09-28",
+                "schedule_label": "regular office day",
+                "is_working_day": true
+              },
+              {
+                "date": "2026-09-29",
+                "schedule_label": "regular office day",
+                "is_working_day": true
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看合約簽署前一週的公司工作行程。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "contract_start_local",
+              "argument_name": "contract_start_local"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The latest date is September 24. September 29 is the first prior working day, September 28 is the second, and September 24 is the third after skipping the company trip and weekend.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user gives the signing date; the account-scoped lookup returns the actual contract time needed by the company-schedule service."
+    },
+    {
+      "id": "calendar_2step_first_pending_required_invite",
+      "category": "calendar",
+      "step_count": 2,
+      "user_prompt": "On the afternoon of September 24, what is the first meeting that I am required to attend but have not responded to yet? Tell me its name and start time.",
+      "flow_summary": "Retrieve afternoon events, query invitation details for their titles, and combine status with the original times.",
+      "tools": [
+        {
+          "name": "get_day_calendar",
+          "description": "Return time_zone, events with title/start_local/end_local, and the complete event_titles list for a broad period.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local calendar date in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "time_period": {
+              "type": "string",
+              "description": "The broad local-time period.",
+              "enum": [
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "time_zone": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "start_local": {
+                      "type": "string"
+                    },
+                    "end_local": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "start_local",
+                    "end_local"
+                  ]
+                }
+              },
+              "event_titles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "time_zone",
+              "events",
+              "event_titles"
+            ]
+          }
+        },
+        {
+          "name": "batch_get_invitation_details",
+          "description": "Return invitation_details; each supplied event title maps to title, attendance_requirement, and response. Omitted titles are not added automatically.",
+          "parameters": {
+            "event_titles": {
+              "type": "array",
+              "description": "The complete ordered list of calendar event titles to look up.",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "invitation_details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "attendance_requirement": {
+                      "type": "string"
+                    },
+                    "response": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "attendance_requirement",
+                    "response"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "invitation_details"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "calendar_events",
+          "tool_name": "get_day_calendar",
+          "tool_input": {
+            "event_date": "2026-09-24",
+            "time_period": "afternoon"
+          },
+          "mocked_result": {
+            "time_zone": "Asia/Taipei",
+            "events": [
+              {
+                "title": "Project Broadcast",
+                "start_local": "2026-09-24T13:00:00+08:00",
+                "end_local": "2026-09-24T13:30:00+08:00"
+              },
+              {
+                "title": "Design Review",
+                "start_local": "2026-09-24T13:45:00+08:00",
+                "end_local": "2026-09-24T14:15:00+08:00"
+              },
+              {
+                "title": "Vendor Call",
+                "start_local": "2026-09-24T14:30:00+08:00",
+                "end_local": "2026-09-24T15:00:00+08:00"
+              },
+              {
+                "title": "Team Social",
+                "start_local": "2026-09-24T15:30:00+08:00",
+                "end_local": "2026-09-24T16:00:00+08:00"
+              }
+            ],
+            "event_titles": [
+              "Project Broadcast",
+              "Design Review",
+              "Vendor Call",
+              "Team Social"
+            ]
+          },
+          "waiting_speech_target": "正在查看九月二十四日下午的活動。"
+        },
+        {
+          "index": 2,
+          "label": "invitation_details",
+          "tool_name": "batch_get_invitation_details",
+          "tool_input": {
+            "event_titles": [
+              "Project Broadcast",
+              "Design Review",
+              "Vendor Call",
+              "Team Social"
+            ]
+          },
+          "mocked_result": {
+            "invitation_details": [
+              {
+                "title": "Project Broadcast",
+                "attendance_requirement": "optional",
+                "response": "needs_action"
+              },
+              {
+                "title": "Design Review",
+                "attendance_requirement": "required",
+                "response": "accepted"
+              },
+              {
+                "title": "Vendor Call",
+                "attendance_requirement": "required",
+                "response": "needs_action"
+              },
+              {
+                "title": "Team Social",
+                "attendance_requirement": "optional",
+                "response": "needs_action"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在批次查看這些活動的邀請狀態。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "event_titles",
+              "argument_name": "event_titles"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The first required meeting with no response yet is Vendor Call at 2:30 PM.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user gives only a date and broad period. The second service genuinely returns details only for the event titles supplied by the model, while the first result retains their times for final ordering."
+    }
+  ]
+}

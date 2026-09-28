@@ -1,0 +1,693 @@
+{
+  "category": "restaurant_arrival",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "restaurant_arrival_1step_walkin_queue_progression_001",
+      "category": "restaurant_arrival",
+      "step_count": 1,
+      "user_prompt": "We are a party of four joining the walk-in list at Central Bistro at 7:10 PM on September 12. Based on the current queue, table turnover, and seating rules, what is the earliest time we can be seated?",
+      "flow_summary": "取得抵達當下的候位隊伍、各桌占用與清桌時間，以及不可併桌但可依容量跳號的規則；模型依時間順序模擬最早入座時刻。",
+      "tools": [
+        {
+          "name": "get_walk_in_queue_snapshot",
+          "description": "Return the raw walk-in queue, occupied-table turnover facts, and seating rules for a restaurant at a venue-local arrival time and party size. Returns parties_ahead, tables, and seating_rules. It does not assign tables, calculate table ready times, advance the queue, or estimate the caller's seating time.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The restaurant name spoken by the user."
+            },
+            "arrival_time_local": {
+              "type": "string",
+              "description": "The venue-local date and clock time stated by the user. Use YYYY-MM-DD followed by either T or a space and HH:MM. Seconds and a UTC offset are optional because the restaurant interprets an offset-free value in its local timezone.",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}(?::\\d{2})?(?:Z|[+-]\\d{2}:\\d{2})?$"
+            },
+            "party_size": {
+              "type": "integer",
+              "description": "The caller's party size stated by the user.",
+              "minimum": 1
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "snapshot_at_local": {
+                "type": "string",
+                "description": "Returned snapshot at local."
+              },
+              "parties_ahead": {
+                "type": "array",
+                "description": "Returned parties ahead.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "queue_position": {
+                      "type": "integer",
+                      "description": "Returned queue position."
+                    },
+                    "party_size": {
+                      "type": "integer",
+                      "description": "Returned party size."
+                    }
+                  },
+                  "required": [
+                    "queue_position",
+                    "party_size"
+                  ]
+                }
+              },
+              "tables": {
+                "type": "array",
+                "description": "Returned tables.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "table_name": {
+                      "type": "string",
+                      "description": "Returned table name."
+                    },
+                    "capacity": {
+                      "type": "integer",
+                      "description": "Returned capacity."
+                    },
+                    "occupied_until_local": {
+                      "type": "string",
+                      "description": "Returned occupied until local."
+                    },
+                    "reset_minutes": {
+                      "type": "integer",
+                      "description": "Returned reset minutes."
+                    }
+                  },
+                  "required": [
+                    "table_name",
+                    "capacity",
+                    "occupied_until_local",
+                    "reset_minutes"
+                  ]
+                }
+              },
+              "seating_rules": {
+                "type": "object",
+                "description": "Returned seating rules.",
+                "properties": {
+                  "tables_may_be_combined": {
+                    "type": "boolean",
+                    "description": "Returned tables may be combined."
+                  },
+                  "may_skip_head_party_when_table_is_too_small": {
+                    "type": "boolean",
+                    "description": "Returned may skip head party when table is too small."
+                  },
+                  "table_selection_rule": {
+                    "type": "string",
+                    "description": "Returned table selection rule."
+                  }
+                },
+                "required": [
+                  "tables_may_be_combined",
+                  "may_skip_head_party_when_table_is_too_small",
+                  "table_selection_rule"
+                ]
+              }
+            },
+            "required": [
+              "snapshot_at_local",
+              "parties_ahead",
+              "tables",
+              "seating_rules"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "queue_snapshot",
+          "tool_name": "get_walk_in_queue_snapshot",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "arrival_time_local": "2026-09-12T19:10:00",
+            "party_size": 4
+          },
+          "mocked_result": {
+            "snapshot_at_local": "2026-09-12T19:10:00+08:00",
+            "parties_ahead": [
+              {
+                "queue_position": 1,
+                "party_size": 2
+              },
+              {
+                "queue_position": 2,
+                "party_size": 5
+              }
+            ],
+            "tables": [
+              {
+                "table_name": "two-seat table",
+                "capacity": 2,
+                "occupied_until_local": "2026-09-12T19:12:00+08:00",
+                "reset_minutes": 3
+              },
+              {
+                "table_name": "four-seat table",
+                "capacity": 4,
+                "occupied_until_local": "2026-09-12T19:12:00+08:00",
+                "reset_minutes": 4
+              },
+              {
+                "table_name": "six-seat table",
+                "capacity": 6,
+                "occupied_until_local": "2026-09-12T19:17:00+08:00",
+                "reset_minutes": 5
+              }
+            ],
+            "seating_rules": {
+              "tables_may_be_combined": false,
+              "may_skip_head_party_when_table_is_too_small": true,
+              "table_selection_rule": "use the smallest ready table that fits the next eligible party"
+            }
+          },
+          "waiting_speech_target": "正在查看 Central Bistro 七點十分的候位隊伍與桌位周轉。",
+          "public_argument_requirements": {
+            "restaurant_name": {
+              "required_token_groups": [
+                [
+                  "Central"
+                ],
+                [
+                  "Bistro"
+                ]
+              ]
+            }
+          },
+          "case_insensitive_arguments": [
+            "restaurant_name"
+          ],
+          "local_datetime_arguments": [
+            "arrival_time_local"
+          ]
+        }
+      ],
+      "expected_final_answer": "The earliest seating time is 7:16 PM. The two-person party takes the two-seat table at 7:15. At 7:16 the five-person party cannot use the four-seat table, so the size-based skip rule lets your party of four take it.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The restaurant name, venue-local arrival time, and party size are all explicitly spoken. The API ignores harmless restaurant-name capitalization and does not require an unstated UTC offset.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "依桌位實際清好時間推進隊伍，再套用唯一的容量跳號規則。",
+          "steps": [
+            "兩人桌在19:12空出並清理3分鐘，所以19:15可用；四人桌在19:12空出並清理4分鐘，所以19:16可用；六人桌19:22才可用。",
+            "19:15時隊首兩人組使用兩人桌。",
+            "19:16時隊首五人組坐不下四人桌；依規則可讓後方第一個坐得下的四人使用者先入座，因此答案是19:16。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_1step_partial_party_arrival_002",
+      "category": "restaurant_arrival",
+      "step_count": 1,
+      "user_prompt": "Six of us have a 7 PM dinner reservation on September 12. Four people will arrive at 6:55, the fifth will not arrive until 7:18, and the last at 7:22. Under the restaurant's party-arrival policy, will the restaurant still hold our reservation?",
+      "flow_summary": "依日期與餐期取得這筆訂位的到場人數門檻與保留分鐘；模型判斷在保留期限前是否已有足夠人數到場，以及原訂位是否仍有效。",
+      "tools": [
+        {
+          "name": "get_my_party_arrival_policy",
+          "description": "Return the signed-in user's reservation time, reserved party size, and raw party-arrival policy for a local service date and meal period. Returns minimum_guests_present, reservation_hold_minutes, late_guests_may_join, and late_guest_join_deadline_minutes. A late-guest joining rule applies only after the minimum number of guests arrived by the hold deadline and the party was seated; it never lowers that minimum or extends the reservation hold. The tool does not decide whether the reservation is valid.",
+          "parameters": {
+            "service_date": {
+              "type": "string",
+              "description": "The local service date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "meal_period": {
+              "type": "string",
+              "description": "The broad meal period stated by the user.",
+              "enum": [
+                "lunch",
+                "dinner"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "reservation_time_local": {
+                "type": "string",
+                "description": "Returned reservation time local."
+              },
+              "reserved_party_size": {
+                "type": "integer",
+                "description": "Returned reserved party size."
+              },
+              "minimum_guests_present": {
+                "type": "integer",
+                "description": "Minimum guests who must be present by the reservation hold deadline for the party to be seated."
+              },
+              "reservation_hold_minutes": {
+                "type": "integer",
+                "description": "Minutes after the reservation time during which the restaurant waits for the minimum guests to arrive."
+              },
+              "arrival_at_hold_deadline_is_accepted": {
+                "type": "boolean",
+                "description": "Returned arrival at hold deadline is accepted."
+              },
+              "late_guests_may_join": {
+                "type": "boolean",
+                "description": "Whether guests missing from an already-seated party may join later; this does not extend the reservation hold or reduce the minimum guests required for seating."
+              },
+              "late_guest_join_deadline_minutes": {
+                "type": "integer",
+                "description": "Minutes after the reservation time by which a missing guest may join an already-seated party; applicable only when the minimum guests arrived by the hold deadline."
+              }
+            },
+            "required": [
+              "restaurant_name",
+              "reservation_time_local",
+              "reserved_party_size",
+              "minimum_guests_present",
+              "reservation_hold_minutes",
+              "arrival_at_hold_deadline_is_accepted",
+              "late_guests_may_join",
+              "late_guest_join_deadline_minutes"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "party_arrival_policy",
+          "tool_name": "get_my_party_arrival_policy",
+          "tool_input": {
+            "service_date": "2026-09-12",
+            "meal_period": "dinner"
+          },
+          "mocked_result": {
+            "restaurant_name": "Central Bistro",
+            "reservation_time_local": "2026-09-12T19:00:00+08:00",
+            "reserved_party_size": 6,
+            "minimum_guests_present": 5,
+            "reservation_hold_minutes": 15,
+            "arrival_at_hold_deadline_is_accepted": true,
+            "late_guests_may_join": true,
+            "late_guest_join_deadline_minutes": 20
+          },
+          "waiting_speech_target": "正在查看九月十二日晚餐訂位的到場人數規則。",
+          "case_insensitive_arguments": [
+            "meal_period"
+          ]
+        }
+      ],
+      "expected_final_answer": "No. The reservation is released after 7:15 PM because only four of the required five guests are present by the hold deadline. The fifth guest does not arrive until 7:18 PM, so the party cannot be seated under this reservation.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The lookup uses only the explicitly spoken service date and the natural dinner selector. Meal-period capitalization is ignored because it is inaudible.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "比較最低到場人數實際達成時間與訂位保留期限，判斷原訂位是否仍有效。",
+          "steps": [
+            "訂位為19:00，至少五人到場才可入座，並保留15分鐘至19:15。",
+            "18:55只有四人到場；直到19:18第五人才抵達，所以19:15期限當下仍未達五人門檻。",
+            "訂位已在19:15後釋出，因此不能再依原訂位入座；遲到者加入規則不適用，因為整桌從未成功入座。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_1step_takeout_common_pickup_003",
+      "category": "restaurant_arrival",
+      "step_count": 1,
+      "user_prompt": "I want to collect every item in my dinner takeout order on September 12 in one trip. Based on when each dish will be ready and how long it can be held, what is the earliest time I can pick up everything together without any item passing its hold window?",
+      "flow_summary": "取得同一外帶單每項餐點的完成時間與品質保留期限；模型對所有可取區間求交集並回答最早共同時間。",
+      "tools": [
+        {
+          "name": "get_my_takeout_item_windows",
+          "description": "Return every item in the signed-in user's takeout order for a local pickup date and meal period. Each item includes item_name, ready_at_local, and hold_until_local. It does not calculate a common pickup window or recommend a pickup time.",
+          "parameters": {
+            "pickup_date": {
+              "type": "string",
+              "description": "The local service date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "meal_period": {
+              "type": "string",
+              "description": "The broad meal period stated by the user.",
+              "enum": [
+                "lunch",
+                "dinner"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "items": {
+                "type": "array",
+                "description": "Returned items.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "item_name": {
+                      "type": "string",
+                      "description": "Returned item name."
+                    },
+                    "ready_at_local": {
+                      "type": "string",
+                      "description": "Returned ready at local."
+                    },
+                    "hold_until_local": {
+                      "type": "string",
+                      "description": "Returned hold until local."
+                    }
+                  },
+                  "required": [
+                    "item_name",
+                    "ready_at_local",
+                    "hold_until_local"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "restaurant_name",
+              "items"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "takeout_item_windows",
+          "tool_name": "get_my_takeout_item_windows",
+          "tool_input": {
+            "pickup_date": "2026-09-12",
+            "meal_period": "dinner"
+          },
+          "mocked_result": {
+            "restaurant_name": "Central Bistro",
+            "items": [
+              {
+                "item_name": "garden salad",
+                "ready_at_local": "2026-09-12T18:05:00+08:00",
+                "hold_until_local": "2026-09-12T18:45:00+08:00"
+              },
+              {
+                "item_name": "mushroom pasta",
+                "ready_at_local": "2026-09-12T18:20:00+08:00",
+                "hold_until_local": "2026-09-12T18:40:00+08:00"
+              },
+              {
+                "item_name": "vanilla souffle",
+                "ready_at_local": "2026-09-12T18:30:00+08:00",
+                "hold_until_local": "2026-09-12T18:42:00+08:00"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看九月十二日晚餐外帶單中每道餐點的取餐窗口。",
+          "case_insensitive_arguments": [
+            "meal_period"
+          ]
+        }
+      ],
+      "expected_final_answer": "The earliest time to collect everything together is 6:30 PM. All three pickup windows overlap from 6:30 PM through 6:40 PM, so no item has passed its hold window at 6:30.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The signed-in order is selected by the explicit pickup date and natural dinner period; no order ID or item list must be spoken.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "每項餐點形成一段可取區間，共同取餐時間是三段交集的起點。",
+          "steps": [
+            "沙拉可取18:05–18:45、義大利麵18:20–18:40、舒芙蕾18:30–18:42。",
+            "三個 ready_at 的最大值是18:30；三個 hold_until 的最小值是18:40。",
+            "交集18:30–18:40存在，因此最早18:30可一次領完。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_1step_estimated_spend_parking_004",
+      "category": "restaurant_arrival",
+      "step_count": 1,
+      "user_prompt": "While dining at Central Bistro on September 12, I expect to park from 6 PM to 8 PM and spend about 2,400 New Taiwan dollars. After applying each partner lot's dining validation, which parking lot should be cheapest, and what should I expect to pay?",
+      "flow_summary": "取得合作停車場的原始費率、消費門檻與不同折抵方式；模型用預計消費與兩小時停車逐場計算淨費用並找最低者。",
+      "tools": [
+        {
+          "name": "get_partner_parking_options",
+          "description": "Return every partner parking option and its raw rate and dining-validation rule for a restaurant and local service date. Returns parking_options with hourly_rate, daily_cap, validation_minimum_spend, validation_type, validated_free_minutes, and validated_discount_amount. Rates are prorated by the minute. It does not consume expected spend or parking duration and does not calculate fees or recommend a lot.",
+          "parameters": {
+            "restaurant_name": {
+              "type": "string",
+              "description": "The restaurant name spoken by the user."
+            },
+            "service_date": {
+              "type": "string",
+              "description": "The local service date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "rates_are_prorated_by_minute": {
+                "type": "boolean",
+                "description": "Returned rates are prorated by minute."
+              },
+              "parking_options": {
+                "type": "array",
+                "description": "Returned parking options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "parking_name": {
+                      "type": "string",
+                      "description": "Returned parking name."
+                    },
+                    "hourly_rate": {
+                      "type": "integer",
+                      "description": "Returned hourly rate."
+                    },
+                    "daily_cap": {
+                      "type": "integer",
+                      "description": "Returned daily cap."
+                    },
+                    "validation_minimum_spend": {
+                      "type": "integer",
+                      "description": "Returned validation minimum spend."
+                    },
+                    "validation_type": {
+                      "type": "string",
+                      "description": "Returned validation type."
+                    },
+                    "validated_free_minutes": {
+                      "type": "integer",
+                      "description": "Returned validated free minutes."
+                    },
+                    "validated_discount_amount": {
+                      "type": "integer",
+                      "description": "Returned validated discount amount."
+                    }
+                  },
+                  "required": [
+                    "parking_name",
+                    "hourly_rate",
+                    "daily_cap",
+                    "validation_minimum_spend",
+                    "validation_type",
+                    "validated_free_minutes",
+                    "validated_discount_amount"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "currency",
+              "rates_are_prorated_by_minute",
+              "parking_options"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "partner_parking_options",
+          "tool_name": "get_partner_parking_options",
+          "tool_input": {
+            "restaurant_name": "Central Bistro",
+            "service_date": "2026-09-12"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "rates_are_prorated_by_minute": true,
+            "parking_options": [
+              {
+                "parking_name": "Harbor Garage",
+                "hourly_rate": 60,
+                "daily_cap": 240,
+                "validation_minimum_spend": 2000,
+                "validation_type": "free minutes",
+                "validated_free_minutes": 40,
+                "validated_discount_amount": 0
+              },
+              {
+                "parking_name": "Maple Lot",
+                "hourly_rate": 50,
+                "daily_cap": 220,
+                "validation_minimum_spend": 2500,
+                "validation_type": "fixed discount",
+                "validated_free_minutes": 0,
+                "validated_discount_amount": 30
+              },
+              {
+                "parking_name": "River Lot",
+                "hourly_rate": 55,
+                "daily_cap": 230,
+                "validation_minimum_spend": 2000,
+                "validation_type": "fixed discount",
+                "validated_free_minutes": 0,
+                "validated_discount_amount": 40
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 Central Bistro 九月十二日所有合作停車場的費率與折抵。",
+          "public_argument_requirements": {
+            "restaurant_name": {
+              "required_token_groups": [
+                [
+                  "Central"
+                ],
+                [
+                  "Bistro"
+                ]
+              ]
+            }
+          },
+          "case_insensitive_arguments": [
+            "restaurant_name"
+          ]
+        }
+      ],
+      "expected_final_answer": "River Lot should be cheapest at 70 TWD. Harbor Garage costs 80 TWD after 40 free minutes, Maple Lot remains 100 TWD because 2,400 TWD misses its 2,500 TWD threshold, and River Lot costs 110 TWD before its 40 TWD discount.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Central Bistro and September 12 are explicitly spoken. Expected spend and parking times deliberately remain outside the API so the model must apply them to every raw option.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先算兩小時原價，再逐場檢查2,400元是否達門檻並套各自折抵。",
+          "steps": [
+            "Harbor Garage 原價120元；達2,000元門檻，40分鐘免費後剩80分鐘，費用80元。",
+            "Maple Lot 原價100元；2,400元未達2,500元門檻，所以仍為100元。",
+            "River Lot 原價110元；達2,000元門檻後折40元，淨額70元，為最低。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "restaurant_arrival_1step_early_checkin_wait_005",
+      "category": "restaurant_arrival",
+      "step_count": 1,
+      "user_prompt": "I have a 7 PM dinner reservation on September 12 and expect to arrive at 6:40 PM. Under this reservation's early check-in rule, how long will I need to wait before I can check in?",
+      "flow_summary": "依日期與餐期取得訂位時間及可提前報到分鐘；模型計算報到開放時間與抵達後等待分鐘。",
+      "tools": [
+        {
+          "name": "get_my_reservation_checkin_rule",
+          "description": "Return the signed-in user's reservation time and raw early-check-in rule for a local service date and meal period. Returns reservation_time_local and checkin_opens_minutes_before. It does not calculate the check-in opening time, wait duration, or a verdict.",
+          "parameters": {
+            "service_date": {
+              "type": "string",
+              "description": "The local service date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "meal_period": {
+              "type": "string",
+              "description": "The broad meal period stated by the user.",
+              "enum": [
+                "lunch",
+                "dinner"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "restaurant_name": {
+                "type": "string",
+                "description": "Returned restaurant name."
+              },
+              "reservation_time_local": {
+                "type": "string",
+                "description": "Returned reservation time local."
+              },
+              "checkin_opens_minutes_before": {
+                "type": "integer",
+                "description": "Returned checkin opens minutes before."
+              }
+            },
+            "required": [
+              "restaurant_name",
+              "reservation_time_local",
+              "checkin_opens_minutes_before"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "checkin_rule",
+          "tool_name": "get_my_reservation_checkin_rule",
+          "tool_input": {
+            "service_date": "2026-09-12",
+            "meal_period": "dinner"
+          },
+          "mocked_result": {
+            "restaurant_name": "Central Bistro",
+            "reservation_time_local": "2026-09-12T19:00:00+08:00",
+            "checkin_opens_minutes_before": 15
+          },
+          "waiting_speech_target": "正在查看九月十二日晚餐訂位的提前報到規則。",
+          "case_insensitive_arguments": [
+            "meal_period"
+          ]
+        }
+      ],
+      "expected_final_answer": "Check-in opens at 6:45 PM, which is 15 minutes before the 7 PM reservation. Arriving at 6:40 PM means you will need to wait 5 minutes.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The lookup uses only the explicit service date and natural dinner period. The arrival time remains in the user request for the model's final calculation.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "用訂位時間減去可提前報到分鐘，再和使用者抵達時間比較。",
+          "steps": [
+            "訂位時間是19:00，可提前15分鐘報到，所以18:45開放。",
+            "使用者18:40抵達，比開放時間早5分鐘。",
+            "因此需要等待5分鐘。"
+          ]
+        }
+      }
+    }
+  ]
+}

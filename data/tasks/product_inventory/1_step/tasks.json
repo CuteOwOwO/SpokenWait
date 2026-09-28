@@ -1,0 +1,811 @@
+{
+  "category": "product_inventory",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "product_inventory_1step_smallest_rotated_box_001",
+      "category": "product_inventory",
+      "step_count": 1,
+      "user_prompt": "I need to pack a framed print measuring 62 by 44 by 7 centimeters, with 3 centimeters of padding on every side. Among the shipping boxes available at the Zhongshan branch, which smallest-volume box will fit if I may rotate it by 90 degrees but not place it diagonally?",
+      "flow_summary": "查中山分店的原始箱內尺寸與可售量；模型先把每個維度加上雙側緩衝，再以三邊互換判斷能否放入，最後在合格者中算體積並取最小。",
+      "tools": [
+        {
+          "name": "list_shipping_box_inventory",
+          "description": "Return every shipping box sold at the requested branch, including inner dimensions and raw on-hand and reserved quantities. It does not calculate sellable quantity, fit, volume, or a recommendation.",
+          "parameters": {
+            "branch_name": {
+              "type": "string",
+              "description": "The branch named by the user. Choose the matching canonical branch name.",
+              "enum": [
+                "Zhongshan",
+                "Xinyi",
+                "Daan",
+                "Songshan",
+                "Banqiao"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "boxes": {
+                "type": "array",
+                "description": "Returned boxes.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "box_name": {
+                      "type": "string",
+                      "description": "Returned box name."
+                    },
+                    "inner_length_cm": {
+                      "type": "integer",
+                      "description": "Returned inner length cm."
+                    },
+                    "inner_width_cm": {
+                      "type": "integer",
+                      "description": "Returned inner width cm."
+                    },
+                    "inner_height_cm": {
+                      "type": "integer",
+                      "description": "Returned inner height cm."
+                    },
+                    "on_hand": {
+                      "type": "integer",
+                      "description": "Returned on hand."
+                    },
+                    "reserved": {
+                      "type": "integer",
+                      "description": "Returned reserved."
+                    }
+                  },
+                  "required": [
+                    "box_name",
+                    "inner_length_cm",
+                    "inner_width_cm",
+                    "inner_height_cm",
+                    "on_hand",
+                    "reserved"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "boxes"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "box_inventory",
+          "tool_name": "list_shipping_box_inventory",
+          "tool_input": {
+            "branch_name": "Zhongshan"
+          },
+          "mocked_result": {
+            "boxes": [
+              {
+                "box_name": "Slim",
+                "inner_length_cm": 70,
+                "inner_width_cm": 48,
+                "inner_height_cm": 18,
+                "on_hand": 3,
+                "reserved": 0
+              },
+              {
+                "box_name": "Wide",
+                "inner_length_cm": 72,
+                "inner_width_cm": 54,
+                "inner_height_cm": 15,
+                "on_hand": 2,
+                "reserved": 1
+              },
+              {
+                "box_name": "Square",
+                "inner_length_cm": 70,
+                "inner_width_cm": 52,
+                "inner_height_cm": 52,
+                "on_hand": 1,
+                "reserved": 0
+              },
+              {
+                "box_name": "Long",
+                "inner_length_cm": 80,
+                "inner_width_cm": 46,
+                "inner_height_cm": 20,
+                "on_hand": 4,
+                "reserved": 0
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看中山分店各款包裝箱的內部尺寸與可售庫存。",
+          "case_insensitive_arguments": [
+            "branch_name"
+          ],
+          "argument_aliases": {
+            "branch_name": [
+              "Zhongshan branch",
+              "Jongshan",
+              "Jong Shan",
+              "Chungshan",
+              "Chung Shan",
+              "Jhongshan",
+              "Jhong Shan"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Choose the Wide box. With padding, the print needs 68 by 50 by 13 centimeters. Slim and Long each have one side that is too short even after rotation. Wide and Square fit and are sellable, but Wide has the smaller inner volume.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The model-visible five-branch enum supplies canonical spellings; the backend also accepts bounded phonetic aliases for Zhongshan.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先擴張物品尺寸，再用九十度旋轉做三邊匹配，最後才在可售合格箱中比較體積。",
+          "steps": [
+            "每面3公分緩衝使三個維度各增加6，需求為68×50×13公分。",
+            "Slim的48公分邊不足、Long的46公分邊不足；三邊排序後仍無法配對。",
+            "Wide與Square都至少有一個可售且能放入；Wide體積72×54×15小於Square的70×52×52，所以選Wide。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "list_shipping_box_inventory",
+            "input_example_zh": "查 Zhongshan 分店全部包裝箱。",
+            "output_example_zh": "回傳四款箱子的內部長寬高、on hand與reserved，不回fit或體積。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_1step_same_lot_fabric_cuts_002",
+      "category": "product_inventory",
+      "step_count": 1,
+      "user_prompt": "I need two continuous 2.4-meter curtain panels and one continuous 1.1-meter valance in sand linen. The pieces cannot be joined. Among the available clearance dye lots, which one can supply everything with the least fabric left over?",
+      "flow_summary": "查sand linen各染批整批販售的可用布卷；模型保留三段獨立需求、安排逐卷裁切，排除總長足夠但裁不出兩段2.4米者，再比較買下整批後剩料。",
+      "tools": [
+        {
+          "name": "get_clearance_fabric_lots",
+          "description": "Return every complete clearance dye-lot bundle for a natural fabric description. Each lot contains its individual whole-roll lengths and availability. Lots are sold only as complete bundles; the service does not total lengths, construct cut plans, determine fulfillment, or calculate waste.",
+          "parameters": {
+            "fabric_description": {
+              "type": "string",
+              "description": "The natural material and color phrase spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "sale_unit": {
+                "type": "string",
+                "description": "Returned sale unit."
+              },
+              "dye_lots": {
+                "type": "array",
+                "description": "Returned dye lots.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "dye_lot_label": {
+                      "type": "string",
+                      "description": "Returned dye lot label."
+                    },
+                    "rolls": {
+                      "type": "array",
+                      "description": "Returned rolls.",
+                      "items": {
+                        "type": "object",
+                        "description": "Returned item.",
+                        "properties": {
+                          "length_m": {
+                            "type": "number",
+                            "description": "Returned length m."
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "Returned status."
+                          }
+                        },
+                        "required": [
+                          "length_m",
+                          "status"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "dye_lot_label",
+                    "rolls"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "sale_unit",
+              "dye_lots"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "fabric_lots",
+          "tool_name": "get_clearance_fabric_lots",
+          "tool_input": {
+            "fabric_description": "sand linen"
+          },
+          "mocked_result": {
+            "sale_unit": "Each dye lot is one indivisible bundle of all listed whole rolls.",
+            "dye_lots": [
+              {
+                "dye_lot_label": "Lot A",
+                "rolls": [
+                  {
+                    "length_m": 4,
+                    "status": "available"
+                  },
+                  {
+                    "length_m": 3,
+                    "status": "available"
+                  }
+                ]
+              },
+              {
+                "dye_lot_label": "Lot B",
+                "rolls": [
+                  {
+                    "length_m": 4.7,
+                    "status": "available"
+                  },
+                  {
+                    "length_m": 2,
+                    "status": "available"
+                  }
+                ]
+              },
+              {
+                "dye_lot_label": "Lot C",
+                "rolls": [
+                  {
+                    "length_m": 2.5,
+                    "status": "available"
+                  },
+                  {
+                    "length_m": 2.5,
+                    "status": "available"
+                  },
+                  {
+                    "length_m": 1.5,
+                    "status": "available"
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 sand linen 各染批整批販售的布卷長度。",
+          "case_insensitive_arguments": [
+            "fabric_description"
+          ]
+        }
+      ],
+      "expected_final_answer": "Choose Lot C. It can supply the three continuous pieces from its 2.5, 2.5, and 1.5 meter rolls and leaves 0.6 meter total. Lot A can also fulfill the cuts but leaves 1.1 meters. Lot B cannot produce two separate 2.4-meter panels because only one roll is at least 2.4 meters long.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The natural material-and-color phrase sand linen selects the relevant clearance lots; the tool result, rather than the user, states that each lot is sold as one complete bundle.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "不能只比總長；每段要從單一布卷連續裁出，而且選中的染批整批買下。",
+          "steps": [
+            "Lot A可由4米卷裁2.4＋1.1、3米卷裁2.4，七米減5.9米剩1.1米。",
+            "Lot B總長6.7米，但2米卷裁不出2.4米，單一4.7米卷也裁不出兩段2.4米，因此失敗。",
+            "Lot C三卷分別供應2.4、2.4、1.1米，總剩料0.1＋0.1＋0.4＝0.6米，為最少。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_clearance_fabric_lots",
+            "input_example_zh": "查 sand linen 的特價整批染批。",
+            "output_example_zh": "回傳A、B、C三個染批各自的整卷長度與available狀態，不回cut plan。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_1step_fifo_use_by_003",
+      "category": "product_inventory",
+      "step_count": 1,
+      "user_prompt": "If I buy all eight clearance yogurts at the Daan branch before breakfast on September 12 and eat two each morning starting that day, how many can I finish before they expire, and how many will expire first? I'll eat the ones that expire soonest first.",
+      "flow_summary": "用分店與日期查八盒即期優格的原始批次；模型按最早到期先吃、每日早餐兩盒及效期當日仍可用的規則逐日演進。",
+      "tools": [
+        {
+          "name": "get_clearance_yogurt_batches",
+          "description": "Return every sellable clearance-yogurt batch at the requested branch and local inventory date, with quantity, use-by date, and status. It does not simulate consumption or calculate usable and expired quantities.",
+          "parameters": {
+            "branch_name": {
+              "type": "string",
+              "description": "The branch named by the user. Choose the matching canonical branch name.",
+              "enum": [
+                "Zhongshan",
+                "Xinyi",
+                "Daan",
+                "Songshan",
+                "Banqiao"
+              ]
+            },
+            "as_of_date": {
+              "type": "string",
+              "description": "The local inventory date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "batches": {
+                "type": "array",
+                "description": "Returned batches.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "quantity": {
+                      "type": "integer",
+                      "description": "Returned quantity."
+                    },
+                    "use_by_date": {
+                      "type": "string",
+                      "description": "Returned use by date."
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Returned status."
+                    }
+                  },
+                  "required": [
+                    "quantity",
+                    "use_by_date",
+                    "status"
+                  ]
+                }
+              },
+              "usable_through_use_by_date": {
+                "type": "boolean",
+                "description": "Returned usable through use by date."
+              }
+            },
+            "required": [
+              "batches",
+              "usable_through_use_by_date"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "yogurt_batches",
+          "tool_name": "get_clearance_yogurt_batches",
+          "tool_input": {
+            "branch_name": "Daan",
+            "as_of_date": "2026-09-12"
+          },
+          "mocked_result": {
+            "batches": [
+              {
+                "quantity": 3,
+                "use_by_date": "2026-09-12",
+                "status": "sellable"
+              },
+              {
+                "quantity": 3,
+                "use_by_date": "2026-09-13",
+                "status": "sellable"
+              },
+              {
+                "quantity": 2,
+                "use_by_date": "2026-09-15",
+                "status": "sellable"
+              }
+            ],
+            "usable_through_use_by_date": true
+          },
+          "waiting_speech_target": "正在查看大安分店九月十二日可買的優格批次與效期。",
+          "case_insensitive_arguments": [
+            "branch_name"
+          ],
+          "argument_aliases": {
+            "branch_name": [
+              "Daan branch",
+              "Da An",
+              "Da-An",
+              "Dawn",
+              "Dan"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "You can finish six yogurts and two will expire first. After eating two from the September 12 batch that morning, one expires. On September 13 you eat two from that day's batch and one more expires. The two September 15 yogurts are then eaten on September 14.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The five-branch enum and explicit September 12 snapshot identify the inventory. The tool supplies the inclusive use-by policy; the eating schedule remains model work.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "每天早餐前先移除已過期品，再照使用者所說從最早到期批次吃兩盒；工具回傳效期當日仍可吃。",
+          "steps": [
+            "9月12日三盒當日到期，早餐吃兩盒；剩一盒在當日後失效。",
+            "9月13日三盒當日到期，早餐吃兩盒；剩一盒在當日後失效。",
+            "9月14日吃兩盒9月15日到期品，所以吃完6盒、過期2盒。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_clearance_yogurt_batches",
+            "input_example_zh": "查 Daan 分店 2026-09-12 的即期優格批次。",
+            "output_example_zh": "回傳3盒9/12、3盒9/13、2盒9/15到期、sellable狀態，以及效期當日仍可食用的政策。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_1step_apparel_size_matrix_004",
+      "category": "product_inventory",
+      "step_count": 1,
+      "user_prompt": "At the Xinyi branch, I need matching staff zip jackets for five event workers: two medium, two large, and one extra-large, all in the same color. Which available color can supply the entire size mix?",
+      "flow_summary": "查信義分店各色各尺寸的原始庫存、保留量與展示專用數量；模型逐格算可售量並檢查完整尺寸向量，而非比較顏色總件數。",
+      "tools": [
+        {
+          "name": "get_staff_zip_jacket_inventory",
+          "description": "Return every color and size variant of the staff zip jacket at the requested branch, with raw on-hand, reserved, and display-only quantities. It does not calculate sellable quantity or recommend a color.",
+          "parameters": {
+            "branch_name": {
+              "type": "string",
+              "description": "The branch named by the user. Choose the matching canonical branch name.",
+              "enum": [
+                "Zhongshan",
+                "Xinyi",
+                "Daan",
+                "Songshan",
+                "Banqiao"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "color_variants": {
+                "type": "array",
+                "description": "Returned color variants.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "color_name": {
+                      "type": "string",
+                      "description": "Returned color name."
+                    },
+                    "sizes": {
+                      "type": "array",
+                      "description": "Returned sizes.",
+                      "items": {
+                        "type": "object",
+                        "description": "Returned item.",
+                        "properties": {
+                          "size": {
+                            "type": "string",
+                            "description": "Returned size."
+                          },
+                          "on_hand": {
+                            "type": "integer",
+                            "description": "Returned on hand."
+                          },
+                          "reserved": {
+                            "type": "integer",
+                            "description": "Returned reserved."
+                          },
+                          "display_only_quantity": {
+                            "type": "integer",
+                            "description": "Returned display only quantity."
+                          }
+                        },
+                        "required": [
+                          "size",
+                          "on_hand",
+                          "reserved",
+                          "display_only_quantity"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "color_name",
+                    "sizes"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "color_variants"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "jacket_inventory",
+          "tool_name": "get_staff_zip_jacket_inventory",
+          "tool_input": {
+            "branch_name": "Xinyi"
+          },
+          "mocked_result": {
+            "color_variants": [
+              {
+                "color_name": "navy",
+                "sizes": [
+                  {
+                    "size": "M",
+                    "on_hand": 3,
+                    "reserved": 1,
+                    "display_only_quantity": 0
+                  },
+                  {
+                    "size": "L",
+                    "on_hand": 3,
+                    "reserved": 1,
+                    "display_only_quantity": 0
+                  },
+                  {
+                    "size": "XL",
+                    "on_hand": 2,
+                    "reserved": 0,
+                    "display_only_quantity": 1
+                  }
+                ]
+              },
+              {
+                "color_name": "black",
+                "sizes": [
+                  {
+                    "size": "M",
+                    "on_hand": 4,
+                    "reserved": 0,
+                    "display_only_quantity": 0
+                  },
+                  {
+                    "size": "L",
+                    "on_hand": 3,
+                    "reserved": 1,
+                    "display_only_quantity": 1
+                  },
+                  {
+                    "size": "XL",
+                    "on_hand": 3,
+                    "reserved": 0,
+                    "display_only_quantity": 0
+                  }
+                ]
+              },
+              {
+                "color_name": "forest green",
+                "sizes": [
+                  {
+                    "size": "M",
+                    "on_hand": 3,
+                    "reserved": 0,
+                    "display_only_quantity": 0
+                  },
+                  {
+                    "size": "L",
+                    "on_hand": 3,
+                    "reserved": 0,
+                    "display_only_quantity": 0
+                  },
+                  {
+                    "size": "XL",
+                    "on_hand": 1,
+                    "reserved": 0,
+                    "display_only_quantity": 1
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看信義分店工作外套各色各尺寸的可售庫存。",
+          "case_insensitive_arguments": [
+            "branch_name"
+          ],
+          "argument_aliases": {
+            "branch_name": [
+              "Xinyi branch",
+              "Shinyi",
+              "Shin Yi",
+              "Shin-Yi",
+              "Shin Yee",
+              "Shini",
+              "Sin Yi",
+              "Hsin Yi",
+              "Xin Yi"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Navy is the only color that can supply the full mix: two medium, two large, and one extra-large jacket. Black has only one sellable large, and forest green has no sellable extra-large.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The model-visible five-branch enum supplies Xinyi's canonical spelling; bounded phonetic aliases absorb ordinary spoken-name variation without accepting an ambiguous bare word.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "逐色逐尺寸扣除reserved與display-only quantity；任一尺寸不足就淘汰。",
+          "steps": [
+            "Navy可售量為M2、L2、XL1，剛好完整符合。",
+            "Black總件數雖多，但L只有3－1－1＝1，不足兩件。",
+            "Forest green的XL為1－0－1＝0，因此只有navy可行。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_staff_zip_jacket_inventory",
+            "input_example_zh": "查 Xinyi 分店 staff zip jacket 全部色碼尺寸庫存。",
+            "output_example_zh": "回傳navy、black、forest green各尺寸的on hand、reserved與display-only quantity。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_1step_owned_battery_runtime_005",
+      "category": "product_inventory",
+      "step_count": 1,
+      "user_prompt": "I need to run my registered cordless mower continuously for two hours. All of my batteries will be fully charged when I start, and I can recharge a depleted battery while mowing with another one. Based on the batteries and charger I already have, can I finish the full two hours without stopping?",
+      "flow_summary": "無參數查登入者已登記割草機的電池與充電器原始規格；模型建立輪替時間線，不能只加總首次續航。",
+      "tools": [
+        {
+          "name": "get_registered_mower_battery_setup",
+          "description": "Return every compatible battery and charger already registered to the signed-in user's cordless mower, including starting charge, runtime, recharge time, slot count, and simultaneous-use capability. It does not construct a schedule or decide whether the requested runtime is possible.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "batteries": {
+                "type": "array",
+                "description": "Returned batteries.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "battery_label": {
+                      "type": "string",
+                      "description": "Returned battery label."
+                    },
+                    "runtime_minutes": {
+                      "type": "integer",
+                      "description": "Returned runtime minutes."
+                    },
+                    "recharge_minutes": {
+                      "type": "integer",
+                      "description": "Returned recharge minutes."
+                    },
+                    "starting_charge_percent": {
+                      "type": "integer",
+                      "description": "Returned starting charge percent."
+                    }
+                  },
+                  "required": [
+                    "battery_label",
+                    "runtime_minutes",
+                    "recharge_minutes",
+                    "starting_charge_percent"
+                  ]
+                }
+              },
+              "charger": {
+                "type": "object",
+                "description": "Returned charger.",
+                "properties": {
+                  "charging_slots": {
+                    "type": "integer",
+                    "description": "Returned charging slots."
+                  },
+                  "can_charge_while_mower_operates": {
+                    "type": "boolean",
+                    "description": "Returned can charge while mower operates."
+                  },
+                  "recharge_time_basis": {
+                    "type": "string",
+                    "description": "Returned recharge time basis."
+                  },
+                  "battery_swap_time_minutes": {
+                    "type": "integer",
+                    "description": "Returned battery swap time minutes."
+                  }
+                },
+                "required": [
+                  "charging_slots",
+                  "can_charge_while_mower_operates",
+                  "recharge_time_basis",
+                  "battery_swap_time_minutes"
+                ]
+              }
+            },
+            "required": [
+              "batteries",
+              "charger"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "battery_setup",
+          "tool_name": "get_registered_mower_battery_setup",
+          "tool_input": {},
+          "mocked_result": {
+            "batteries": [
+              {
+                "battery_label": "long-runtime battery",
+                "runtime_minutes": 40,
+                "recharge_minutes": 55,
+                "starting_charge_percent": 100
+              },
+              {
+                "battery_label": "compact battery one",
+                "runtime_minutes": 30,
+                "recharge_minutes": 55,
+                "starting_charge_percent": 100
+              },
+              {
+                "battery_label": "compact battery two",
+                "runtime_minutes": 30,
+                "recharge_minutes": 55,
+                "starting_charge_percent": 100
+              }
+            ],
+            "charger": {
+              "charging_slots": 1,
+              "can_charge_while_mower_operates": true,
+              "recharge_time_basis": "Each recharge time is from empty to full.",
+              "battery_swap_time_minutes": 0
+            }
+          },
+          "waiting_speech_target": "正在查看你已登記割草機的三顆電池與充電器規格。"
+        }
+      ],
+      "expected_final_answer": "Yes. Use the 40-minute battery first and put it on the charger at minute 40. It is full again at minute 95, while the two 30-minute batteries cover minutes 40 through 100. The recharged first battery can then supply the final 20 minutes, so the mower never has to stop.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The signed-in account has one registered cordless mower, so a model, serial number, or decorative selector would add only ASR risk.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "三顆首次續航只有100分鐘，但第一顆可以在另外兩顆運轉期間完成充電。",
+          "steps": [
+            "長效電池先支撐0–40分鐘，接著立刻進單槽充電器，會在第95分鐘充滿。",
+            "兩顆30分鐘電池依序支撐40–70與70–100分鐘。",
+            "第100分鐘換回早已充滿的長效電池，再用20分鐘到第120分鐘；換電時間定義為零，因此不中斷。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_registered_mower_battery_setup",
+            "input_example_zh": "無參數查登入帳戶唯一已登記的無線割草機電池組。",
+            "output_example_zh": "回傳40分鐘電池、兩顆30分鐘電池及單槽可同步充電器，不回排程或can_finish。"
+          }
+        ]
+      }
+    }
+  ]
+}

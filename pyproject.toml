@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spokenwait"
+version = "0.1.0"
+description = "A benchmark for real-time voice agents awaiting tool results"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+  { name = "Bo-Xuan Zheng" },
+  { name = "Yu-Kai Guo" },
+  { name = "Ho-Lam Chung" },
+  { name = "Hung-yi Lee" },
+]
+dependencies = []
+
+[project.scripts]
+spokenwait = "spokenwait.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["spokenwait*"]
+
+[tool.setuptools.data-files]
+"share/spokenwait/data" = ["data/manifest.json"]
+"share/spokenwait/data/tasks/airline_travel/1_step" = ["data/tasks/airline_travel/1_step/tasks.json"]
+"share/spokenwait/data/tasks/airline_travel/2_step" = ["data/tasks/airline_travel/2_step/tasks.json"]
+"share/spokenwait/data/tasks/appointment_service/1_step" = ["data/tasks/appointment_service/1_step/tasks.json"]
+"share/spokenwait/data/tasks/appointment_service/2_step" = ["data/tasks/appointment_service/2_step/tasks.json"]
+"share/spokenwait/data/tasks/calendar/1_step" = ["data/tasks/calendar/1_step/tasks.json"]
+"share/spokenwait/data/tasks/calendar/2_step" = ["data/tasks/calendar/2_step/tasks.json"]
+"share/spokenwait/data/tasks/pharmacy_refill/1_step" = ["data/tasks/pharmacy_refill/1_step/tasks.json"]
+"share/spokenwait/data/tasks/pharmacy_refill/2_step" = ["data/tasks/pharmacy_refill/2_step/tasks.json"]
+"share/spokenwait/data/tasks/product_inventory/1_step" = ["data/tasks/product_inventory/1_step/tasks.json"]
+"share/spokenwait/data/tasks/product_inventory/2_step" = ["data/tasks/product_inventory/2_step/tasks.json"]
+"share/spokenwait/data/tasks/restaurant_arrival/1_step" = ["data/tasks/restaurant_arrival/1_step/tasks.json"]
+"share/spokenwait/data/tasks/restaurant_arrival/2_step" = ["data/tasks/restaurant_arrival/2_step/tasks.json"]
+"share/spokenwait/data/tasks/retail_order/1_step" = ["data/tasks/retail_order/1_step/tasks.json"]
+"share/spokenwait/data/tasks/retail_order/2_step" = ["data/tasks/retail_order/2_step/tasks.json"]
+"share/spokenwait/data/tasks/subscription_billing/1_step" = ["data/tasks/subscription_billing/1_step/tasks.json"]
+"share/spokenwait/data/tasks/subscription_billing/2_step" = ["data/tasks/subscription_billing/2_step/tasks.json"]
+"share/spokenwait/data/tasks/ticket/1_step" = ["data/tasks/ticket/1_step/tasks.json"]
+"share/spokenwait/data/tasks/ticket/2_step" = ["data/tasks/ticket/2_step/tasks.json"]
+"share/spokenwait/data/tasks/weather/1_step" = ["data/tasks/weather/1_step/tasks.json"]
+"share/spokenwait/data/tasks/weather/2_step" = ["data/tasks/weather/2_step/tasks.json"]
+"share/spokenwait/judge/answer_specs" = ["judge/answer_specs/*.json"]

@@ -1,0 +1,863 @@
+{
+  "category": "ticket",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "ticket_1step_resale_net_002",
+      "category": "ticket",
+      "step_count": 1,
+      "user_prompt": "I want to list my two Adele tickets for 2,800 dollars each. If they sell, how much would I actually receive, and would that be a profit or a loss compared with what I originally paid?",
+      "flow_summary": "用歌手名稱找到登入帳戶中的兩張票，並把使用者想掛的每張2800元帶入轉售服務；模型先套最高合法刊登價，再扣賣方費用並與原訂單完整成本比較。",
+      "tools": [
+        {
+          "name": "get_my_ticket_resale_inputs",
+          "description": "Return the signed-in user's tickets for the named performer, the submitted asking price, original payment components, and raw marketplace cap and seller-fee rules. It does not calculate the effective listing price, payout, or profit and loss.",
+          "parameters": {
+            "performer_name": {
+              "type": "string",
+              "description": "The performer name spoken by the user."
+            },
+            "asking_price_per_ticket_twd": {
+              "type": "integer",
+              "description": "The user's desired listing price for each ticket in TWD.",
+              "minimum": 1
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "performer_name": {
+                "type": "string",
+                "description": "Returned performer name."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "ticket_count": {
+                "type": "integer",
+                "description": "Returned ticket count."
+              },
+              "submitted_asking_price_per_ticket_twd": {
+                "type": "integer",
+                "description": "Returned submitted asking price per ticket twd."
+              },
+              "original_order": {
+                "type": "object",
+                "description": "Returned original order.",
+                "properties": {
+                  "face_value_per_ticket_twd": {
+                    "type": "integer",
+                    "description": "Returned face value per ticket twd."
+                  },
+                  "facility_fee_per_ticket_twd": {
+                    "type": "integer",
+                    "description": "Returned facility fee per ticket twd."
+                  },
+                  "delivery_fee_per_order_twd": {
+                    "type": "integer",
+                    "description": "Returned delivery fee per order twd."
+                  }
+                },
+                "required": [
+                  "face_value_per_ticket_twd",
+                  "facility_fee_per_ticket_twd",
+                  "delivery_fee_per_order_twd"
+                ]
+              },
+              "resale_rules": {
+                "type": "object",
+                "description": "Returned resale rules.",
+                "properties": {
+                  "maximum_listing_multiplier_of_face_value": {
+                    "type": "number",
+                    "description": "Returned maximum listing multiplier of face value."
+                  },
+                  "over_cap_treatment": {
+                    "type": "string",
+                    "description": "Returned over cap treatment."
+                  },
+                  "seller_fee_percent_of_effective_sale_price": {
+                    "type": "integer",
+                    "description": "Returned seller fee percent of effective sale price."
+                  },
+                  "original_facility_and_delivery_fees_recoverable_from_buyer": {
+                    "type": "boolean",
+                    "description": "Returned original facility and delivery fees recoverable from buyer."
+                  }
+                },
+                "required": [
+                  "maximum_listing_multiplier_of_face_value",
+                  "over_cap_treatment",
+                  "seller_fee_percent_of_effective_sale_price",
+                  "original_facility_and_delivery_fees_recoverable_from_buyer"
+                ]
+              }
+            },
+            "required": [
+              "performer_name",
+              "currency",
+              "ticket_count",
+              "submitted_asking_price_per_ticket_twd",
+              "original_order",
+              "resale_rules"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "ticket_facts",
+          "tool_name": "get_my_ticket_resale_inputs",
+          "tool_input": {
+            "performer_name": "Adele",
+            "asking_price_per_ticket_twd": 2800
+          },
+          "mocked_result": {
+            "performer_name": "Adele",
+            "currency": "TWD",
+            "ticket_count": 2,
+            "submitted_asking_price_per_ticket_twd": 2800,
+            "original_order": {
+              "face_value_per_ticket_twd": 2000,
+              "facility_fee_per_ticket_twd": 150,
+              "delivery_fee_per_order_twd": 100
+            },
+            "resale_rules": {
+              "maximum_listing_multiplier_of_face_value": 1.2,
+              "over_cap_treatment": "If the submitted asking price exceeds the cap, the marketplace lists the ticket at the highest legal price.",
+              "seller_fee_percent_of_effective_sale_price": 15,
+              "original_facility_and_delivery_fees_recoverable_from_buyer": false
+            }
+          },
+          "waiting_speech_target": "正在查看你帳戶裡 Adele 票券的原始成本、刊登上限與賣方費用。",
+          "case_insensitive_arguments": [
+            "performer_name"
+          ]
+        }
+      ],
+      "expected_final_answer": "Your 2,800 TWD asking price is capped at 2,400 TWD per ticket. After the 15% seller fee, you receive 2,040 TWD per ticket, or 4,080 TWD total. You originally paid 4,400 TWD including the two facility fees and the order delivery fee, so this is a 320 TWD loss.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "Adele is a short, well-known performer name; 2,800 is not decorative—it is the user's proposed price that must first be tested against the marketplace cap.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "2800元是使用者真的想掛的價格；不能直接拿它抽成，必須先壓到票面價120%的上限，再比較淨實收與原始完整成本。",
+          "steps": [
+            "每張票面價2000元，合法上限為2000×1.2＝2400元，所以2800元會被平台壓成2400元。",
+            "賣方費15%，每張實收2400×0.85＝2040元；兩張共4080元。",
+            "原實付為2000×2＋150×2＋100＝4400元，因此不是獲利，而是虧320元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_ticket_resale_inputs",
+            "input_example_zh": "用 performer_name=Adele、asking_price_per_ticket_twd=2800 查登入者的對應票與轉售規則。",
+            "output_example_zh": "回傳兩張票、每張票面 2,000、場館費 150、每單配送費 100、最高 120% 與 15% 賣方費；不直接算實收。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_1step_relocation_compensation_003",
+      "category": "ticket",
+      "step_count": 1,
+      "user_prompt": "For my September 12 matinee, the organizer moved our three seats from section A to section C. One of the three tickets is a student ticket. Under the seat-change notice, how much compensation should we receive in total?",
+      "flow_summary": "用場次日期與自然的通知主題查該場次對應內容；服務只回座位更換通知、逐張淨票價與補償矩陣，模型選A到C分支並逐張計算。",
+      "tools": [
+        {
+          "name": "get_my_performance_change_notice",
+          "description": "Return only the requested notice topic for the signed-in user's performance on a date. Supported topics are seat relocation, schedule change, and venue change. For a seat-relocation request it returns original and replacement sections, per-ticket net prices, excluded fees, and the raw compensation matrix, but no compensation total.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local performance date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "notice_topic": {
+              "type": "string",
+              "description": "Which part of the organizer notice to retrieve.",
+              "enum": [
+                "seat relocation",
+                "schedule change",
+                "venue change"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "returned_notice_topic": {
+                "type": "string",
+                "description": "Returned returned notice topic."
+              },
+              "performance": {
+                "type": "string",
+                "description": "Returned performance."
+              },
+              "original_section": {
+                "type": "string",
+                "description": "Returned original section."
+              },
+              "replacement_section": {
+                "type": "string",
+                "description": "Returned replacement section."
+              },
+              "tickets": {
+                "type": "array",
+                "description": "Returned tickets.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "ticket_type": {
+                      "type": "string",
+                      "description": "Returned ticket type."
+                    },
+                    "net_ticket_price_twd": {
+                      "type": "integer",
+                      "description": "Returned net ticket price twd."
+                    },
+                    "facility_fee_twd": {
+                      "type": "integer",
+                      "description": "Returned facility fee twd."
+                    }
+                  },
+                  "required": [
+                    "ticket_type",
+                    "net_ticket_price_twd",
+                    "facility_fee_twd"
+                  ]
+                }
+              },
+              "compensation_matrix": {
+                "type": "array",
+                "description": "Returned compensation matrix.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "relocation": {
+                      "type": "string",
+                      "description": "Returned relocation."
+                    },
+                    "percent_of_each_ticket_net_price": {
+                      "type": "integer",
+                      "description": "Returned percent of each ticket net price."
+                    }
+                  },
+                  "required": [
+                    "relocation",
+                    "percent_of_each_ticket_net_price"
+                  ]
+                }
+              },
+              "calculation_rules": {
+                "type": "array",
+                "description": "Returned calculation rules.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "returned_notice_topic",
+              "performance",
+              "original_section",
+              "replacement_section",
+              "tickets",
+              "compensation_matrix",
+              "calculation_rules"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "ticket_facts",
+          "tool_name": "get_my_performance_change_notice",
+          "tool_input": {
+            "event_date": "2026-09-12",
+            "notice_topic": "seat relocation"
+          },
+          "mocked_result": {
+            "returned_notice_topic": "seat relocation",
+            "performance": "September 12 matinee",
+            "original_section": "A",
+            "replacement_section": "C",
+            "tickets": [
+              {
+                "ticket_type": "regular",
+                "net_ticket_price_twd": 1500,
+                "facility_fee_twd": 100
+              },
+              {
+                "ticket_type": "regular",
+                "net_ticket_price_twd": 1500,
+                "facility_fee_twd": 100
+              },
+              {
+                "ticket_type": "student",
+                "net_ticket_price_twd": 1200,
+                "facility_fee_twd": 100
+              }
+            ],
+            "compensation_matrix": [
+              {
+                "relocation": "A to B",
+                "percent_of_each_ticket_net_price": 10
+              },
+              {
+                "relocation": "A to C",
+                "percent_of_each_ticket_net_price": 25
+              },
+              {
+                "relocation": "B to C",
+                "percent_of_each_ticket_net_price": 12
+              }
+            ],
+            "calculation_rules": [
+              "Apply the matching percentage separately to each ticket's actual net ticket price.",
+              "Discounted tickets use their own net ticket price.",
+              "Facility fees are excluded from compensation."
+            ]
+          },
+          "waiting_speech_target": "正在讀取九月十二日下午場的座位更換通知與補償矩陣。",
+          "case_insensitive_arguments": [
+            "notice_topic"
+          ]
+        }
+      ],
+      "expected_final_answer": "The A-to-C rate is 25%. The two regular tickets receive 375 TWD each and the student ticket receives 300 TWD, for 1,050 TWD total. The facility fees are excluded.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The date is speech-stable, while notice_topic is a small public service enum derived directly from the user's request; it selects a real section of a multi-topic organizer notice.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第二個參數不再是假change type，而是使用者要讀取的通知章節；這一呼叫只取得seat relocation內容，再由模型從矩陣選分支。",
+          "steps": [
+            "原A區改到C區，使用補償矩陣的A to C＝25%。",
+            "兩張一般票各1500×25%＝375元；學生票按自己的1200元算，為300元。",
+            "場館費排除，因此總補償375＋375＋300＝1050元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_performance_change_notice",
+            "input_example_zh": "查 2026-09-12 場次通知中的 seat relocation 主題。",
+            "output_example_zh": "只回傳 A 區改 C 區、三張票各自淨票價、場館費與完整換區補償矩陣，不混入改期或換場館資料。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_1step_age_band_upgrade_005",
+      "category": "ticket",
+      "step_count": 1,
+      "user_prompt": "Please check whether all four of our ticket types are still correct on the show date. If any child has aged out of a discounted ticket, how much do we need to pay to fix it?",
+      "flow_summary": "用演出日期找到登入帳戶當天唯一一組家庭票，取得生日、現有票種、票價與年齡規則；模型以演出當日逐人算年齡並計算錯誤低價票的差額。",
+      "tools": [
+        {
+          "name": "get_my_family_ticket_age_inputs",
+          "description": "Return the signed-in account's only family ticket group, show date, attendee birth dates, assigned ticket types, same-section prices, and raw age-band correction rules. It does not calculate ages, identify mismatches, or calculate an upgrade total. This account-scoped tool takes no arguments.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "show_name": {
+                "type": "string",
+                "description": "Returned show name."
+              },
+              "show_date": {
+                "type": "string",
+                "description": "Returned show date."
+              },
+              "attendees": {
+                "type": "array",
+                "description": "Returned attendees.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "attendee_label": {
+                      "type": "string",
+                      "description": "Returned attendee label."
+                    },
+                    "birth_date": {
+                      "type": "string",
+                      "description": "Returned birth date."
+                    },
+                    "assigned_ticket_type": {
+                      "type": "string",
+                      "description": "Returned assigned ticket type."
+                    }
+                  },
+                  "required": [
+                    "attendee_label",
+                    "birth_date",
+                    "assigned_ticket_type"
+                  ]
+                }
+              },
+              "same_section_prices_twd": {
+                "type": "object",
+                "description": "Returned same section prices twd.",
+                "properties": {
+                  "adult": {
+                    "type": "integer",
+                    "description": "Returned adult."
+                  },
+                  "child": {
+                    "type": "integer",
+                    "description": "Returned child."
+                  },
+                  "infant_lap_admission": {
+                    "type": "integer",
+                    "description": "Returned infant lap admission."
+                  }
+                },
+                "required": [
+                  "adult",
+                  "child",
+                  "infant_lap_admission"
+                ]
+              },
+              "age_rules": {
+                "type": "array",
+                "description": "Returned age rules.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "show_name",
+              "show_date",
+              "attendees",
+              "same_section_prices_twd",
+              "age_rules"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "ticket_facts",
+          "tool_name": "get_my_family_ticket_age_inputs",
+          "tool_input": {},
+          "mocked_result": {
+            "show_name": "Moon Garden Show",
+            "show_date": "2026-10-04",
+            "attendees": [
+              {
+                "attendee_label": "adult one",
+                "birth_date": "1988-05-12",
+                "assigned_ticket_type": "adult"
+              },
+              {
+                "attendee_label": "adult two",
+                "birth_date": "1990-11-03",
+                "assigned_ticket_type": "adult"
+              },
+              {
+                "attendee_label": "older child",
+                "birth_date": "2014-09-20",
+                "assigned_ticket_type": "child"
+              },
+              {
+                "attendee_label": "younger child",
+                "birth_date": "2023-11-01",
+                "assigned_ticket_type": "infant lap admission"
+              }
+            ],
+            "same_section_prices_twd": {
+              "adult": 900,
+              "child": 600,
+              "infant_lap_admission": 0
+            },
+            "age_rules": [
+              "Determine age on the local show date.",
+              "Child admission is for attendees at least three years old and under twelve years old.",
+              "Infant lap admission is for attendees under three years old.",
+              "An incorrectly discounted ticket is corrected by charging only the face-value difference; booking fees are not charged again."
+            ]
+          },
+          "waiting_speech_target": "正在核對十月四日演出當天四位觀眾的生日、票種與年齡規則。"
+        }
+      ],
+      "expected_final_answer": "The two adult tickets and the infant lap admission are correct. The older child is 12 on October 4 and is no longer under 12, so that ticket must be upgraded from child to adult. The amount due is 300 TWD, the difference between 900 and 600 TWD.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The show date alone identifies one family ticket group in the signed-in account; no event title, attendee name, or ticket ID must survive speech.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "真正的核心是以演出日而非購票日算年齡，再把每個人的實歲對上半開區間票種，最後只補票面差額。",
+          "steps": [
+            "older child在2026-09-20已滿12歲，所以10月4日不符合under twelve的兒童票。",
+            "younger child到演出日仍未滿3歲，infant lap admission有效；兩張成人票也正確。",
+            "只需把一張兒童票升成人票，補900－600＝300元，不重收訂票費。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_family_ticket_age_inputs",
+            "input_example_zh": "用 event_date=2026-10-04 查登入帳戶當天的家庭票組。",
+            "output_example_zh": "回傳四位觀眾生日、現有票種、成人 900、兒童 600、幼兒 0 元及年齡區間，但不直接判定誰要升級。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_1step_group_threshold_same_total_007",
+      "category": "ticket",
+      "step_count": 1,
+      "user_prompt": "There were twelve of us going to the exhibition, but one person dropped out before checkout. With eleven people, could the total actually become more expensive, and what would the new total be?",
+      "flow_summary": "以參觀日期取得登入帳戶尚未結帳的團體票購物車與人數級距；模型比較十二人團體價與十一人一般價，辨認少一人後剛好總價不變。",
+      "tools": [
+        {
+          "name": "get_my_pending_group_ticket_pricing",
+          "description": "Return the signed-in user's only pending unpurchased group-ticket cart, visit date, party sizes, and raw per-person pricing tiers. It does not calculate either group total or decide whether removing a visitor raises the total. This account-scoped tool takes no arguments.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "exhibition_name": {
+                "type": "string",
+                "description": "Returned exhibition name."
+              },
+              "cart_status": {
+                "type": "string",
+                "description": "Returned cart status."
+              },
+              "original_party_size": {
+                "type": "integer",
+                "description": "Returned original party size."
+              },
+              "revised_party_size": {
+                "type": "integer",
+                "description": "Returned revised party size."
+              },
+              "pricing_tiers": {
+                "type": "array",
+                "description": "Returned pricing tiers.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "eligibility": {
+                      "type": "string",
+                      "description": "Returned eligibility."
+                    },
+                    "price_per_person_twd": {
+                      "type": "integer",
+                      "description": "Returned price per person twd."
+                    }
+                  },
+                  "required": [
+                    "eligibility",
+                    "price_per_person_twd"
+                  ]
+                }
+              },
+              "pricing_rules": {
+                "type": "array",
+                "description": "Returned pricing rules.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "exhibition_name",
+              "cart_status",
+              "original_party_size",
+              "revised_party_size",
+              "pricing_tiers",
+              "pricing_rules"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "ticket_facts",
+          "tool_name": "get_my_pending_group_ticket_pricing",
+          "tool_input": {},
+          "mocked_result": {
+            "exhibition_name": "City Light Exhibition",
+            "cart_status": "not checked out",
+            "original_party_size": 12,
+            "revised_party_size": 11,
+            "pricing_tiers": [
+              {
+                "eligibility": "one through eleven visitors",
+                "price_per_person_twd": 480
+              },
+              {
+                "eligibility": "twelve or more visitors",
+                "price_per_person_twd": 440
+              }
+            ],
+            "pricing_rules": [
+              "Apply exactly one tier to every visitor using the final party size at checkout.",
+              "Tickets from different tiers cannot be mixed within one cart.",
+              "There is no per-order fee."
+            ]
+          },
+          "waiting_speech_target": "正在查看九月十九日尚未結帳的團體票人數與價格級距。"
+        }
+      ],
+      "expected_final_answer": "No, the total does not become more expensive; it stays exactly the same. Twelve people at 440 TWD cost 5,280 TWD, and eleven people at 480 TWD also cost 5,280 TWD.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The visit date is a stable spoken selector for the signed-in pending cart. The endpoint does not require the exhibition name or a cart ID.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "使用者問的是會不會反而更貴；fixture刻意讓答案既不是直覺的變便宜，也不是反轉的變貴，而是跨級距後總價恰好不變。",
+          "steps": [
+            "原本12人符合團體價，每人440元，總額12×440＝5280元。",
+            "改成11人後整車回到一般價，每人480元，總額11×480＝5280元。",
+            "因此不會反而更貴，但也不會省錢；新舊總價完全相同。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_pending_group_ticket_pricing",
+            "input_example_zh": "以 event_date=2026-09-19 查登入者尚未結帳的團體票購物車。",
+            "output_example_zh": "回傳原 12 人、改 11 人、1–11 人每位 480、12 人以上每位 440，以及不能混價；不直接算兩個總額。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ticket_1step_festival_ticket_coverage_008",
+      "category": "ticket",
+      "step_count": 1,
+      "user_prompt": "At River Fest, I only want to see Mira, North Shore, and The Lanterns. I'll leave for lunch after Mira and come back before North Shore. What is the cheapest ticket option that still lets me see all three?",
+      "flow_summary": "用公開festival enum定位River Fest，取得演出時程、票券涵蓋範圍、價格與重入規則；午餐離場時間由使用者明說，模型做覆蓋比較並排除離場後不能重入的表面便宜方案。",
+      "tools": [
+        {
+          "name": "get_festival_ticket_options",
+          "description": "Return the performance schedule and raw coverage, admission, re-entry, and price rules for every currently sold ticket product at the named festival. It does not choose a product, construct a bundle, or calculate the cheapest valid option.",
+          "parameters": {
+            "festival_name": {
+              "type": "string",
+              "description": "The public festival name spoken by the user. Choose the matching canonical name.",
+              "enum": [
+                "River Fest",
+                "City Lights Festival",
+                "Harbor Days",
+                "Moonfield",
+                "Pine Stage Weekend"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "festival_name": {
+                "type": "string",
+                "description": "Returned festival name."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "performance_schedule": {
+                "type": "array",
+                "description": "Returned performance schedule.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "artist": {
+                      "type": "string",
+                      "description": "Returned artist."
+                    },
+                    "starts_at": {
+                      "type": "string",
+                      "description": "Returned starts at."
+                    },
+                    "stage": {
+                      "type": "string",
+                      "description": "Returned stage."
+                    }
+                  },
+                  "required": [
+                    "artist",
+                    "starts_at",
+                    "stage"
+                  ]
+                }
+              },
+              "ticket_products": {
+                "type": "array",
+                "description": "Returned ticket products.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "product_name": {
+                      "type": "string",
+                      "description": "Returned product name."
+                    },
+                    "price_twd": {
+                      "type": "integer",
+                      "description": "Returned price twd."
+                    },
+                    "purchase_unit": {
+                      "type": "string",
+                      "description": "Returned purchase unit."
+                    },
+                    "coverage": {
+                      "type": "string",
+                      "description": "Returned coverage."
+                    },
+                    "admission_rule": {
+                      "type": "string",
+                      "description": "Returned admission rule."
+                    }
+                  },
+                  "required": [
+                    "product_name",
+                    "price_twd",
+                    "purchase_unit",
+                    "coverage",
+                    "admission_rule"
+                  ]
+                }
+              },
+              "combination_rule": {
+                "type": "string",
+                "description": "Returned combination rule."
+              }
+            },
+            "required": [
+              "festival_name",
+              "currency",
+              "performance_schedule",
+              "ticket_products",
+              "combination_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "ticket_facts",
+          "tool_name": "get_festival_ticket_options",
+          "tool_input": {
+            "festival_name": "River Fest"
+          },
+          "mocked_result": {
+            "festival_name": "River Fest",
+            "currency": "TWD",
+            "performance_schedule": [
+              {
+                "artist": "Mira",
+                "starts_at": "2026-09-26T11:00:00+08:00",
+                "stage": "Harbor Stage"
+              },
+              {
+                "artist": "Glass Avenue",
+                "starts_at": "2026-09-26T13:00:00+08:00",
+                "stage": "River Stage"
+              },
+              {
+                "artist": "North Shore",
+                "starts_at": "2026-09-26T15:00:00+08:00",
+                "stage": "Harbor Stage"
+              },
+              {
+                "artist": "The Lanterns",
+                "starts_at": "2026-09-26T19:00:00+08:00",
+                "stage": "River Stage"
+              }
+            ],
+            "ticket_products": [
+              {
+                "product_name": "single-performance ticket",
+                "price_twd": 480,
+                "purchase_unit": "one named performance",
+                "coverage": "only its named performance",
+                "admission_rule": "Each separately purchased performance ticket permits one admission for that named performance."
+              },
+              {
+                "product_name": "Harbor Stage pass",
+                "price_twd": 700,
+                "purchase_unit": "one pass",
+                "coverage": "all Harbor Stage performances",
+                "admission_rule": "No re-entry after the holder leaves the festival grounds."
+              },
+              {
+                "product_name": "evening pass",
+                "price_twd": 650,
+                "purchase_unit": "one pass",
+                "coverage": "all performances starting at or after 5:00 PM",
+                "admission_rule": "One admission beginning at 5:00 PM."
+              },
+              {
+                "product_name": "day pass",
+                "price_twd": 1200,
+                "purchase_unit": "one pass",
+                "coverage": "all stages for the full festival day",
+                "admission_rule": "One exit and re-entry are allowed; the re-entry must occur by 8:00 PM."
+              }
+            ],
+            "combination_rule": "Different ticket products may be combined; add their listed prices."
+          },
+          "waiting_speech_target": "正在查看 River Fest 三組演出的時程、票券涵蓋範圍與重入規則。",
+          "case_insensitive_arguments": [
+            "festival_name"
+          ],
+          "argument_aliases": {
+            "festival_name": [
+              "River Festival",
+              "Riverfest",
+              "River Festival event"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Buy the 1,200 TWD day pass. It covers all three performances and allows the one lunch exit and re-entry. Three single-performance tickets cost 1,440 TWD. The 1,350 TWD Harbor Stage plus evening-pass combination covers all three by show, but the Harbor pass cannot be re-entered after lunch, so it is not valid for the stated plan.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "A five-choice public festival enum supplies the canonical River Fest spelling; bounded aliases absorb ordinary speech variation without a fragile event code.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "不能只看票面涵蓋集合；先確定三場分屬兩舞台，再把午餐離場事件套到各票種入場規則，最後才比較有效方案價格。",
+          "steps": [
+            "三張單場票都能看且可分次入場，但總價480×3＝1440元。",
+            "Harbor Stage pass加evening pass為1350元，表面涵蓋三場；但使用者明說在Mira後離場吃午餐，Harbor pass禁止重入，所以回來看North Shore時失效。",
+            "day pass為1200元，涵蓋三場且允許一次午餐離場後重入，因此是最便宜有效方案。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_festival_ticket_options",
+            "input_example_zh": "從五個公開festival choices選River Fest，查全部在售票券與表演時程。",
+            "output_example_zh": "回傳三場目標演出及四種票券的價格、涵蓋和重入規則，但不回推薦方案。"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1041 @@
+{
+  "category": "pharmacy_refill",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "pharmacy_2step_supply_then_coverage_window",
+      "category": "pharmacy_refill",
+      "step_count": 2,
+      "user_prompt": "For the monthly refill I filled on September 1, if I keep following the label exactly, on what date will my insurance first cover the next fill, and how many tablets will I have left at the start of that day?",
+      "flow_summary": "先查目前藥量與具語意的給付方案欄位，再查該方案適用的原始百分比規則，計算最早給付日期與當日剩餘量。",
+      "tools": [
+        {
+          "name": "get_prescription_supply_for_fill_date",
+          "description": "Return the signed-in user's monthly refill filled on the requested local date, including quantity, printed daily use, recorded days supply, named coverage plan, and coverage class. It does not calculate a depletion or refill date.",
+          "parameters": {
+            "fill_date": {
+              "type": "string",
+              "description": "The local calendar date on which the refill was filled, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "fill_start_date": {
+                "type": "string",
+                "description": "Returned fill start date."
+              },
+              "quantity_dispensed": {
+                "type": "number",
+                "description": "Returned quantity dispensed."
+              },
+              "units_per_day": {
+                "type": "number",
+                "description": "Returned units per day."
+              },
+              "dose_times_local": {
+                "type": "array",
+                "description": "Returned dose times local.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              },
+              "recorded_days_supply": {
+                "type": "number",
+                "description": "Returned recorded days supply."
+              },
+              "coverage_plan": {
+                "type": "string",
+                "description": "Returned coverage plan."
+              },
+              "coverage_class": {
+                "type": "string",
+                "description": "Returned coverage class."
+              }
+            },
+            "required": [
+              "fill_start_date",
+              "quantity_dispensed",
+              "units_per_day",
+              "dose_times_local",
+              "recorded_days_supply",
+              "coverage_plan",
+              "coverage_class"
+            ]
+          }
+        },
+        {
+          "name": "get_refill_timing_policy",
+          "description": "Return the raw refill-timing threshold and boundary rule for a named coverage plan and medication coverage class. It does not calculate the member's eligibility date.",
+          "parameters": {
+            "coverage_plan": {
+              "type": "string",
+              "description": "The human-readable coverage plan name returned by the current prescription supply service."
+            },
+            "coverage_class": {
+              "type": "string",
+              "description": "The semantic medication coverage class returned by the current prescription supply service."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "eligible_after_percent_consumed": {
+                "type": "number",
+                "description": "Returned eligible after percent consumed."
+              },
+              "threshold_application": {
+                "type": "string",
+                "description": "Returned threshold application."
+              },
+              "eligibility_starts": {
+                "type": "string",
+                "description": "Returned eligibility starts."
+              }
+            },
+            "required": [
+              "eligible_after_percent_consumed",
+              "threshold_application",
+              "eligibility_starts"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "current_supply",
+          "tool_name": "get_prescription_supply_for_fill_date",
+          "tool_input": {
+            "fill_date": "2026-09-01"
+          },
+          "mocked_result": {
+            "fill_start_date": "2026-09-01",
+            "quantity_dispensed": 48,
+            "units_per_day": 2,
+            "dose_times_local": [
+              "morning",
+              "evening"
+            ],
+            "recorded_days_supply": 24,
+            "coverage_plan": "Everyday Plus",
+            "coverage_class": "maintenance"
+          },
+          "waiting_speech_target": "正在查看目前處方的供應量與給付方案。"
+        },
+        {
+          "index": 2,
+          "label": "timing_policy",
+          "tool_name": "get_refill_timing_policy",
+          "tool_input": {
+            "coverage_plan": "Everyday Plus",
+            "coverage_class": "maintenance"
+          },
+          "mocked_result": {
+            "eligible_after_percent_consumed": 75,
+            "threshold_application": "after_complete_calendar_days",
+            "eligibility_starts": "start_of_next_local_day"
+          },
+          "waiting_speech_target": "正在查看這個方案適用的續領時間規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "coverage_plan",
+              "argument_name": "coverage_plan"
+            },
+            {
+              "step_index": 1,
+              "result_field": "coverage_class",
+              "argument_name": "coverage_class"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Insurance first covers the next fill on September 19. At the start of that day, 12 tablets remain.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The explicit September 1 fill date selects the refill record. Step 2 receives only stable, human-readable business fields returned by Step 1, never a prescription identifier.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步找這張處方屬於哪種給付方案；第二步才查得到該方案的續領門檻。",
+          "steps": [
+            "Step 1 用使用者說的 9 月 1 日作為 fill_date，回傳 48 顆、每天 2 顆、共 24 天，以及 Everyday Plus／maintenance。",
+            "Step 2 必須原樣傳入 Everyday Plus 與 maintenance，得到『用完 75% 的完整日數後，次日本地日開始可領』。",
+            "24 天的 75% 剛好是 18 天，不需要進位。9 月 1–18 日共吃掉 18 × 2 = 36 顆，9 月 19 日開始符合給付。",
+            "9 月 19 日一開始尚未吃當天的藥，所以剩 48 − 36 = 12 顆。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_2step_prescription_then_branch_fulfillment",
+      "category": "pharmacy_refill",
+      "step_count": 2,
+      "user_prompt": "I need to pick up the full quantity from my current refill in person by 6 PM on September 12. Among pharmacies in my plan's network, which branch can prepare the whole amount the earliest?",
+      "flow_summary": "先取得完整且具語意的補藥需求資料，再以同一份資料批次查詢網內各分店的精確庫存與備妥時間。",
+      "tools": [
+        {
+          "name": "get_current_refill_requirements",
+          "description": "Return one cohesive requirements record for the refill currently open in the signed-in account: human-readable medication name, dosage form, strength, full quantity, and the named pharmacy network applicable to in-person pickup. This tool takes no arguments.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "refill_requirements": {
+                "type": "object",
+                "description": "Returned refill requirements.",
+                "properties": {
+                  "medication_display_name": {
+                    "type": "string",
+                    "description": "Returned medication display name."
+                  },
+                  "dosage_form": {
+                    "type": "string",
+                    "description": "Returned dosage form."
+                  },
+                  "strength": {
+                    "type": "string",
+                    "description": "Returned strength."
+                  },
+                  "quantity_required": {
+                    "type": "number",
+                    "description": "Returned quantity required."
+                  },
+                  "pharmacy_network": {
+                    "type": "string",
+                    "description": "Returned pharmacy network."
+                  }
+                },
+                "required": [
+                  "medication_display_name",
+                  "dosage_form",
+                  "strength",
+                  "quantity_required",
+                  "pharmacy_network"
+                ]
+              }
+            },
+            "required": [
+              "refill_requirements"
+            ]
+          }
+        },
+        {
+          "name": "list_network_branch_fulfillment",
+          "description": "Return raw branch inventory, local ready time, and closing time for the exact refill requirements supplied. It does not mark sufficient branches or apply the user's deadline.",
+          "parameters": {
+            "refill_requirements": {
+              "type": "object",
+              "description": "The complete refill requirements record returned by the current-refill service.",
+              "properties": {
+                "medication_display_name": {
+                  "type": "string"
+                },
+                "dosage_form": {
+                  "type": "string"
+                },
+                "strength": {
+                  "type": "string"
+                },
+                "quantity_required": {
+                  "type": "integer"
+                },
+                "pharmacy_network": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "medication_display_name",
+                "dosage_form",
+                "strength",
+                "quantity_required",
+                "pharmacy_network"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "branches": {
+                "type": "array",
+                "description": "Returned branches.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "branch_name": {
+                      "type": "string",
+                      "description": "Returned branch name."
+                    },
+                    "quantity_available": {
+                      "type": "number",
+                      "description": "Returned quantity available."
+                    },
+                    "ready_at_local": {
+                      "type": "string",
+                      "description": "Returned ready at local."
+                    },
+                    "closing_time_local": {
+                      "type": "string",
+                      "description": "Returned closing time local."
+                    }
+                  },
+                  "required": [
+                    "branch_name",
+                    "quantity_available",
+                    "ready_at_local",
+                    "closing_time_local"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "branches"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "refill_requirements",
+          "tool_name": "get_current_refill_requirements",
+          "tool_input": {},
+          "mocked_result": {
+            "refill_requirements": {
+              "medication_display_name": "Luma tablets",
+              "dosage_form": "tablet",
+              "strength": "10 mg",
+              "quantity_required": 30,
+              "pharmacy_network": "Everyday Network"
+            }
+          },
+          "waiting_speech_target": "正在查看現場領取適用的品項、完整數量與藥局網絡。"
+        },
+        {
+          "index": 2,
+          "label": "branch_fulfillment",
+          "tool_name": "list_network_branch_fulfillment",
+          "tool_input": {
+            "refill_requirements": {
+              "medication_display_name": "Luma tablets",
+              "dosage_form": "tablet",
+              "strength": "10 mg",
+              "quantity_required": 30,
+              "pharmacy_network": "Everyday Network"
+            }
+          },
+          "mocked_result": {
+            "branches": [
+              {
+                "branch_name": "North Pharmacy",
+                "quantity_available": 24,
+                "ready_at_local": "2026-09-12T15:30:00+08:00",
+                "closing_time_local": "2026-09-12T20:00:00+08:00"
+              },
+              {
+                "branch_name": "Central Pharmacy",
+                "quantity_available": 30,
+                "ready_at_local": "2026-09-12T17:20:00+08:00",
+                "closing_time_local": "2026-09-12T20:00:00+08:00"
+              },
+              {
+                "branch_name": "East Pharmacy",
+                "quantity_available": 45,
+                "ready_at_local": "2026-09-12T16:45:00+08:00",
+                "closing_time_local": "2026-09-12T19:00:00+08:00"
+              },
+              {
+                "branch_name": "South Pharmacy",
+                "quantity_available": 30,
+                "ready_at_local": "2026-09-12T18:20:00+08:00",
+                "closing_time_local": "2026-09-12T21:00:00+08:00"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在批次查看網內各分店的足量庫存與備妥時間。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "refill_requirements",
+              "argument_name": "refill_requirements"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "East Pharmacy can prepare the complete refill earliest, at 4:45 PM on September 12.",
+      "input_reference_mode": "account_context",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The signed-in account has one current refill, so Step 1 needs no artificial selector. The later lookup copies a human-readable requirements object instead of using an opaque ID.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步取得完整配藥需求；第二步拿同一份需求查各分店，最後同時套用足量與截止時間。",
+          "steps": [
+            "Step 1 回傳完整需求物件：Luma tablets、tablet、10 mg、需要 30 顆、Everyday Network。",
+            "Step 2 把整個 refill_requirements 物件一次傳入，得到各分店的庫存與備妥時間。",
+            "North 只有 24 顆，先排除；South 晚於下午 6 點，排除。Central 與 East 都足量且準時。",
+            "East 下午 4:45 比 Central 下午 5:20 早，所以答案是 East Pharmacy。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_2step_all_refills_common_pickup",
+      "category": "pharmacy_refill",
+      "step_count": 2,
+      "user_prompt": "I want to collect all of Emma's current refills in one visit on September 12. Can I do that, and if so, what is the earliest time they will all be available together?",
+      "flow_summary": "先列出目前所有補藥項目，再針對模型一次傳入的完整清單查詢備妥與保留時間，最後求所有可領區間的交集。",
+      "tools": [
+        {
+          "name": "list_household_member_refill_requests",
+          "description": "Return human-readable dispensing records for all current refill requests belonging to the named household member in the signed-in account, without readiness information.",
+          "parameters": {
+            "patient_first_name": {
+              "type": "string",
+              "description": "The household member's first name spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "patient_first_name": {
+                "type": "string",
+                "description": "Returned patient first name."
+              },
+              "refills": {
+                "type": "array",
+                "description": "Returned refills.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "display_label": {
+                      "type": "string",
+                      "description": "Returned display label."
+                    },
+                    "dosage_form": {
+                      "type": "string",
+                      "description": "Returned dosage form."
+                    },
+                    "strength": {
+                      "type": "string",
+                      "description": "Returned strength."
+                    },
+                    "quantity_requested": {
+                      "type": "number",
+                      "description": "Returned quantity requested."
+                    }
+                  },
+                  "required": [
+                    "display_label",
+                    "dosage_form",
+                    "strength",
+                    "quantity_requested"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "patient_first_name",
+              "refills"
+            ]
+          }
+        },
+        {
+          "name": "batch_get_refill_readiness",
+          "description": "Return readiness and hold windows for exactly the refill records supplied in one batch. Put every current refill whose readiness you want to know into one list; omitted refills are not added automatically.",
+          "parameters": {
+            "refills": {
+              "type": "array",
+              "description": "Put every current refill whose readiness you want to know into this single list.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "display_label": {
+                    "type": "string"
+                  },
+                  "dosage_form": {
+                    "type": "string"
+                  },
+                  "strength": {
+                    "type": "string"
+                  },
+                  "quantity_requested": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "display_label",
+                  "dosage_form",
+                  "strength",
+                  "quantity_requested"
+                ]
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "readiness": {
+                "type": "array",
+                "description": "Returned readiness.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "display_label": {
+                      "type": "string",
+                      "description": "Returned display label."
+                    },
+                    "ready_at_local": {
+                      "type": "string",
+                      "description": "Returned ready at local."
+                    },
+                    "hold_until_local": {
+                      "type": "string",
+                      "description": "Returned hold until local."
+                    }
+                  },
+                  "required": [
+                    "display_label",
+                    "ready_at_local",
+                    "hold_until_local"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "readiness"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "current_refills",
+          "tool_name": "list_household_member_refill_requests",
+          "tool_input": {
+            "patient_first_name": "Emma"
+          },
+          "mocked_result": {
+            "patient_first_name": "Emma",
+            "refills": [
+              {
+                "display_label": "Allergy tablets",
+                "dosage_form": "tablet",
+                "strength": "10 mg",
+                "quantity_requested": 30
+              },
+              {
+                "display_label": "Maintenance tablets",
+                "dosage_form": "tablet",
+                "strength": "5 mg",
+                "quantity_requested": 30
+              },
+              {
+                "display_label": "Nasal spray",
+                "dosage_form": "nasal spray",
+                "strength": "50 mcg per spray",
+                "quantity_requested": 1
+              }
+            ]
+          },
+          "waiting_speech_target": "正在列出 Emma 目前的所有補藥項目。",
+          "public_argument_requirements": {
+            "patient_first_name": {
+              "required_token_groups": [
+                [
+                  "Emma"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "index": 2,
+          "label": "refill_readiness",
+          "tool_name": "batch_get_refill_readiness",
+          "tool_input": {
+            "refills": [
+              {
+                "display_label": "Allergy tablets",
+                "dosage_form": "tablet",
+                "strength": "10 mg",
+                "quantity_requested": 30
+              },
+              {
+                "display_label": "Maintenance tablets",
+                "dosage_form": "tablet",
+                "strength": "5 mg",
+                "quantity_requested": 30
+              },
+              {
+                "display_label": "Nasal spray",
+                "dosage_form": "nasal spray",
+                "strength": "50 mcg per spray",
+                "quantity_requested": 1
+              }
+            ]
+          },
+          "mocked_result": {
+            "readiness": [
+              {
+                "display_label": "Allergy tablets",
+                "ready_at_local": "2026-09-12T09:00:00+08:00",
+                "hold_until_local": "2026-09-13T18:00:00+08:00"
+              },
+              {
+                "display_label": "Maintenance tablets",
+                "ready_at_local": "2026-09-12T11:40:00+08:00",
+                "hold_until_local": "2026-09-14T18:00:00+08:00"
+              },
+              {
+                "display_label": "Nasal spray",
+                "ready_at_local": "2026-09-12T13:20:00+08:00",
+                "hold_until_local": "2026-09-12T18:00:00+08:00"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在一次查看這些補藥項目的備妥與保留時間。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "refills",
+              "argument_name": "refills"
+            }
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "refills",
+            "result_field": "readiness",
+            "input_key_fields": [
+              "display_label"
+            ],
+            "result_key_fields": [
+              "display_label"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Yes. All three refills are available together starting at 1:20 PM on September 12.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Emma is a short, common spoken name that genuinely selects one household member's records. Step 2 is a real batch service: a valid subset receives only that subset's readiness.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先列出全部補藥，再把想知道的全部項目一次傳入批次 API，最後求所有備妥區間的交集。",
+          "steps": [
+            "Step 1 用 Emma 作為 patient_first_name，回傳她目前全部三項 refill records；Step 2 應把這整份 refills list 一次傳入，而不是逐項呼叫。",
+            "三項備妥時間分別是 9:00、11:40、13:20；要一次領齊，開始時間取其中最晚的 13:20。",
+            "三項保留期限的最早值是當天下午 6:00，所以 13:20–18:00 確實存在共同領取窗口。",
+            "若 Step 2 只傳一部分，後端只回那一部分；模型就無法正確回答『全部』何時一起可領。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_2step_liquid_prescription_then_packages",
+      "category": "pharmacy_refill",
+      "step_count": 2,
+      "user_prompt": "For my current liquid prescription, fill the entire prescribed course. Choose the available bottle combination with the lowest total price; if the price is tied, choose less leftover liquid. What combination should I get?",
+      "flow_summary": "先取得人類可理解的正式配藥名稱與完整處方容量，再查詢可用瓶裝庫存，依最低總價及最少剩餘量選擇組合。",
+      "tools": [
+        {
+          "name": "get_current_prescription_by_dosage_form",
+          "description": "Return the signed-in user's current prescription matching the requested dosage form as a human-readable dispensing name, required total volume, and whether package sizes may be combined. It does not return package inventory.",
+          "parameters": {
+            "dosage_form": {
+              "type": "string",
+              "description": "The broad dosage form named by the user, using the same wording as the request.",
+              "enum": [
+                "liquid",
+                "tablet",
+                "capsule"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "dispensing_name": {
+                "type": "string",
+                "description": "Returned dispensing name."
+              },
+              "required_total_volume_ml": {
+                "type": "number",
+                "description": "Returned required total volume ml."
+              },
+              "may_combine_package_sizes": {
+                "type": "boolean",
+                "description": "Returned may combine package sizes."
+              }
+            },
+            "required": [
+              "dispensing_name",
+              "required_total_volume_ml",
+              "may_combine_package_sizes"
+            ]
+          }
+        },
+        {
+          "name": "list_dispensing_packages",
+          "description": "Return raw bottle size, unit price, currency, and stock for a human-readable dispensing name. It does not construct combinations or recommend a purchase.",
+          "parameters": {
+            "dispensing_name": {
+              "type": "string",
+              "description": "The complete human-readable dispensing name returned by the current liquid prescription service."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "packages": {
+                "type": "array",
+                "description": "Returned packages.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "bottle_ml": {
+                      "type": "number",
+                      "description": "Returned bottle ml."
+                    },
+                    "unit_price": {
+                      "type": "number",
+                      "description": "Returned unit price."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Returned currency."
+                    },
+                    "quantity_in_stock": {
+                      "type": "number",
+                      "description": "Returned quantity in stock."
+                    }
+                  },
+                  "required": [
+                    "bottle_ml",
+                    "unit_price",
+                    "currency",
+                    "quantity_in_stock"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "packages"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "liquid_requirement",
+          "tool_name": "get_current_prescription_by_dosage_form",
+          "tool_input": {
+            "dosage_form": "liquid"
+          },
+          "mocked_result": {
+            "dispensing_name": "Luma oral suspension, 125 mg per 5 mL",
+            "required_total_volume_ml": 140,
+            "may_combine_package_sizes": true
+          },
+          "waiting_speech_target": "正在查看目前液體處方的正式品名與完整需求量。"
+        },
+        {
+          "index": 2,
+          "label": "package_inventory",
+          "tool_name": "list_dispensing_packages",
+          "tool_input": {
+            "dispensing_name": "Luma oral suspension, 125 mg per 5 mL"
+          },
+          "mocked_result": {
+            "packages": [
+              {
+                "bottle_ml": 60,
+                "unit_price": 45,
+                "currency": "TWD",
+                "quantity_in_stock": 2
+              },
+              {
+                "bottle_ml": 100,
+                "unit_price": 70,
+                "currency": "TWD",
+                "quantity_in_stock": 1
+              },
+              {
+                "bottle_ml": 150,
+                "unit_price": 115,
+                "currency": "TWD",
+                "quantity_in_stock": 1
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看這個正式品名可用的瓶裝庫存與價格。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "dispensing_name",
+              "argument_name": "dispensing_name"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Choose one 150 mL bottle for 115 TWD. It covers the 140 mL requirement and leaves 10 mL, less than the equally priced 60 mL plus 100 mL combination.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user's phrase 'liquid prescription' maps to a small public dosage-form enum that selects the account record. Its full dispensing name is then copied to the stock service, avoiding speech-exact medication spelling.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步確認完整療程需要多少毫升；第二步取得瓶裝庫存，再枚舉足量組合並套用價格／剩餘量排序。",
+          "steps": [
+            "Step 1 回傳完整 dispensing_name、療程需要 140 mL，而且允許混搭瓶型；Step 2 原樣傳入 dispensing_name 查庫存與價格。",
+            "單瓶 150 mL 售價 115 元、剩 10 mL；60 + 100 mL 也是 115 元，但會剩 20 mL。兩瓶 60 mL 只有 120 mL，不足。",
+            "最低價出現平手時，依使用者規則選剩餘量較少者，因此選一瓶 150 mL。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_2step_synchronize_covered_refills",
+      "category": "pharmacy_refill",
+      "step_count": 2,
+      "user_prompt": "At the start of September 10, before taking any doses that day, I want to plan one insured pharmacy visit between September 20 and September 25 for all of my current monthly refills. What is the earliest date they are all covered, and will any one run out before that date if I keep following each label?",
+      "flow_summary": "先取得每項藥物的現有數量與藥袋每日用量，再針對同一批藥名批次查詢最早給付日，找出共同可領日期及此前是否有藥物短缺。",
+      "tools": [
+        {
+          "name": "list_current_monthly_refills",
+          "description": "Return every current monthly medication's human-readable name, on-hand units at the requested start-of-day snapshot, and printed units per day. It does not return refill dates or depletion dates.",
+          "parameters": {
+            "as_of_date": {
+              "type": "string",
+              "description": "The start-of-day local inventory date in YYYY-MM-DD format, before any doses on that date.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "as_of_date": {
+                "type": "string",
+                "description": "Returned as of date."
+              },
+              "inventory_timing": {
+                "type": "string",
+                "description": "Returned inventory timing."
+              },
+              "medications": {
+                "type": "array",
+                "description": "Returned medications.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "medication_display_name": {
+                      "type": "string",
+                      "description": "Returned medication display name."
+                    },
+                    "units_on_hand": {
+                      "type": "number",
+                      "description": "Returned units on hand."
+                    },
+                    "units_per_day": {
+                      "type": "number",
+                      "description": "Returned units per day."
+                    }
+                  },
+                  "required": [
+                    "medication_display_name",
+                    "units_on_hand",
+                    "units_per_day"
+                  ]
+                }
+              },
+              "medication_names": {
+                "type": "array",
+                "description": "Returned medication names.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "as_of_date",
+              "inventory_timing",
+              "medications",
+              "medication_names"
+            ]
+          }
+        },
+        {
+          "name": "batch_get_refill_schedule",
+          "description": "Return the earliest covered refill date for exactly the named current medications supplied in one batch and within the requested window. Put every medication you want to synchronize into one list; omitted medications are not added automatically. This service returns coverage dates, not on-hand supply or depletion calculations.",
+          "parameters": {
+            "medication_names": {
+              "type": "array",
+              "description": "Put every current medication whose covered refill date you want to compare into this single list.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "window_start": {
+              "type": "string",
+              "description": "The inclusive local start date in YYYY-MM-DD format."
+            },
+            "window_end": {
+              "type": "string",
+              "description": "The inclusive local end date in YYYY-MM-DD format."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "refill_schedule": {
+                "type": "array",
+                "description": "Returned refill schedule.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "medication_display_name": {
+                      "type": "string",
+                      "description": "Returned medication display name."
+                    },
+                    "earliest_covered_date": {
+                      "type": "string",
+                      "description": "Returned earliest covered date."
+                    }
+                  },
+                  "required": [
+                    "medication_display_name",
+                    "earliest_covered_date"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "refill_schedule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "medication_supply",
+          "tool_name": "list_current_monthly_refills",
+          "tool_input": {
+            "as_of_date": "2026-09-10"
+          },
+          "mocked_result": {
+            "as_of_date": "2026-09-10",
+            "inventory_timing": "start_of_day_before_doses",
+            "medications": [
+              {
+                "medication_display_name": "Allergy tablets",
+                "units_on_hand": 15,
+                "units_per_day": 1
+              },
+              {
+                "medication_display_name": "Maintenance tablets",
+                "units_on_hand": 24,
+                "units_per_day": 2
+              },
+              {
+                "medication_display_name": "Daily capsules",
+                "units_on_hand": 20,
+                "units_per_day": 1
+              }
+            ],
+            "medication_names": [
+              "Allergy tablets",
+              "Maintenance tablets",
+              "Daily capsules"
+            ]
+          },
+          "waiting_speech_target": "正在查看九月十日一開始各項月配藥物的剩餘量。"
+        },
+        {
+          "index": 2,
+          "label": "refill_schedule",
+          "tool_name": "batch_get_refill_schedule",
+          "tool_input": {
+            "medication_names": [
+              "Allergy tablets",
+              "Maintenance tablets",
+              "Daily capsules"
+            ],
+            "window_start": "2026-09-20",
+            "window_end": "2026-09-25"
+          },
+          "mocked_result": {
+            "refill_schedule": [
+              {
+                "medication_display_name": "Allergy tablets",
+                "earliest_covered_date": "2026-09-20"
+              },
+              {
+                "medication_display_name": "Maintenance tablets",
+                "earliest_covered_date": "2026-09-22"
+              },
+              {
+                "medication_display_name": "Daily capsules",
+                "earliest_covered_date": "2026-09-23"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在一次查看這些月配藥物各自最早可領的日期。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "medication_names",
+              "argument_name": "medication_names"
+            }
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "medication_names",
+            "result_field": "refill_schedule",
+            "input_key_fields": [
+              "$value"
+            ],
+            "result_key_fields": [
+              "medication_display_name"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "September 23 is the earliest date all three refills are covered. The Maintenance tablets run out before that date; the other two do not.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Step 1 uses only the explicit snapshot date. Its human-readable medication-name list selects the Step 2 coverage query, while its separate supply records remain available for final reasoning.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "核心是先找『三項都已經能用保險領』的共同日期，再回頭檢查現有藥量能不能撐到那一天。",
+          "steps": [
+            "Step 1 以 9 月 10 日一開始、當天尚未服藥為基準，取得三項藥物各剩多少以及每天吃多少；這批資料稍後只拿來算是否會先用完。",
+            "Step 2 把 Step 1 回傳的 medication_names list 與 9 月 20–25 日窗口一次傳入，得到三項各自最早給付日：Allergy 9/20、Maintenance 9/22、Daily 9/23。",
+            "一次領齊必須等每一項都符合給付，所以不能選 9/20 或 9/22；三個日期取最晚者，答案是 9/23。",
+            "接著檢查能否撐到 9/23：要先服用 9/10–9/22 共 13 天。Maintenance 每天 2 顆需要 26 顆，但 Step 1 顯示只有 24 顆，因此 9/21 晚上用完、9/22 缺 2 顆；另外兩項不會提前用完。",
+            "若 Step 2 漏傳任何藥物，後端只回那個子集，得到的『共同日期』就可能過早，因此完整 list 是這題的工具策略考點。"
+          ]
+        }
+      }
+    }
+  ]
+}

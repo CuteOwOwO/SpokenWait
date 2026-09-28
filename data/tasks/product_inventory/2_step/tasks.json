@@ -1,0 +1,1525 @@
+{
+  "category": "product_inventory",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "product_inventory_2step_shelf_bom_stock_001",
+      "category": "product_inventory",
+      "step_count": 2,
+      "user_prompt": "I want to build three modular shelves. Each shelf should be 90 centimeters wide and have four tiers. I need to buy everything from one branch, and I already own two matching posts. I do not want to travel more than five kilometers from home. Which nearby branch lets me build the most complete shelves today, how many can I build, and what would I still need for all three?",
+      "flow_summary": "先以寬度與層數查自然BOM；第二步把完整零件表批次送入各分店庫存服務。模型自行套五公里、不可跨店、家中兩支post與limiting component。",
+      "tools": [
+        {
+          "name": "get_modular_shelf_configuration",
+          "description": "Return the human-readable shelf series and the complete component quantities required for one shelf of the requested width and tier count. It does not calculate project totals or retrieve stock.",
+          "parameters": {
+            "width_cm": {
+              "type": "integer",
+              "description": "Requested shelf width in centimeters."
+            },
+            "tier_count": {
+              "type": "integer",
+              "description": "Requested number of tiers."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "series_name": {
+                "type": "string",
+                "description": "Returned series name."
+              },
+              "components": {
+                "type": "array",
+                "description": "Returned components.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "component_name": {
+                      "type": "string",
+                      "description": "Returned component name."
+                    },
+                    "quantity_per_shelf": {
+                      "type": "integer",
+                      "description": "Returned quantity per shelf."
+                    }
+                  },
+                  "required": [
+                    "component_name",
+                    "quantity_per_shelf"
+                  ]
+                }
+              },
+              "component_names": {
+                "type": "array",
+                "description": "Returned component names.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "series_name",
+              "components",
+              "component_names"
+            ]
+          }
+        },
+        {
+          "name": "batch_get_branch_component_stock",
+          "description": "Return saved-home distance and raw stock for exactly the component names supplied, at every branch carrying the named shelf series. Put the complete component-name list into one call; omitted components are not added automatically. It does not calculate complete shelves, shortages, or a recommendation.",
+          "parameters": {
+            "series_name": {
+              "type": "string",
+              "description": "The complete human-readable shelf series returned by the configuration service."
+            },
+            "component_names": {
+              "type": "array",
+              "description": "The complete component-name list returned by the configuration service.",
+              "items": {
+                "type": "string",
+                "description": "One human-readable component name."
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "branch_distances": {
+                "type": "array",
+                "description": "Returned branch distances.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "branch_name": {
+                      "type": "string",
+                      "description": "Returned branch name."
+                    },
+                    "distance_from_saved_home_km": {
+                      "type": "number",
+                      "description": "Returned distance from saved home km."
+                    }
+                  },
+                  "required": [
+                    "branch_name",
+                    "distance_from_saved_home_km"
+                  ]
+                }
+              },
+              "stock_by_component": {
+                "type": "array",
+                "description": "Returned stock by component.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "component_name": {
+                      "type": "string",
+                      "description": "Returned component name."
+                    },
+                    "branch_stock": {
+                      "type": "array",
+                      "description": "Returned branch stock.",
+                      "items": {
+                        "type": "object",
+                        "description": "Returned item.",
+                        "properties": {
+                          "branch_name": {
+                            "type": "string",
+                            "description": "Returned branch name."
+                          },
+                          "on_hand": {
+                            "type": "integer",
+                            "description": "Returned on hand."
+                          },
+                          "reserved": {
+                            "type": "integer",
+                            "description": "Returned reserved."
+                          },
+                          "damaged": {
+                            "type": "integer",
+                            "description": "Returned damaged."
+                          }
+                        },
+                        "required": [
+                          "branch_name",
+                          "on_hand",
+                          "reserved",
+                          "damaged"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "component_name",
+                    "branch_stock"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "branch_distances",
+              "stock_by_component"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "shelf_configuration",
+          "tool_name": "get_modular_shelf_configuration",
+          "tool_input": {
+            "width_cm": 90,
+            "tier_count": 4
+          },
+          "mocked_result": {
+            "series_name": "GridLine 90",
+            "components": [
+              {
+                "component_name": "post",
+                "quantity_per_shelf": 4
+              },
+              {
+                "component_name": "board",
+                "quantity_per_shelf": 4
+              },
+              {
+                "component_name": "brace",
+                "quantity_per_shelf": 2
+              }
+            ],
+            "component_names": [
+              "post",
+              "board",
+              "brace"
+            ]
+          },
+          "waiting_speech_target": "正在查看九十公分四層架的完整零件表。"
+        },
+        {
+          "index": 2,
+          "label": "branch_component_stock",
+          "tool_name": "batch_get_branch_component_stock",
+          "tool_input": {
+            "series_name": "GridLine 90",
+            "component_names": [
+              "post",
+              "board",
+              "brace"
+            ]
+          },
+          "mocked_result": {
+            "branch_distances": [
+              {
+                "branch_name": "Breeze branch",
+                "distance_from_saved_home_km": 3.2
+              },
+              {
+                "branch_name": "Metro branch",
+                "distance_from_saved_home_km": 4.8
+              },
+              {
+                "branch_name": "Hill branch",
+                "distance_from_saved_home_km": 6.8
+              }
+            ],
+            "stock_by_component": [
+              {
+                "component_name": "post",
+                "branch_stock": [
+                  {
+                    "branch_name": "Breeze branch",
+                    "on_hand": 10,
+                    "reserved": 1,
+                    "damaged": 0
+                  },
+                  {
+                    "branch_name": "Metro branch",
+                    "on_hand": 5,
+                    "reserved": 0,
+                    "damaged": 0
+                  },
+                  {
+                    "branch_name": "Hill branch",
+                    "on_hand": 12,
+                    "reserved": 0,
+                    "damaged": 0
+                  }
+                ]
+              },
+              {
+                "component_name": "board",
+                "branch_stock": [
+                  {
+                    "branch_name": "Breeze branch",
+                    "on_hand": 13,
+                    "reserved": 1,
+                    "damaged": 0
+                  },
+                  {
+                    "branch_name": "Metro branch",
+                    "on_hand": 12,
+                    "reserved": 0,
+                    "damaged": 0
+                  },
+                  {
+                    "branch_name": "Hill branch",
+                    "on_hand": 12,
+                    "reserved": 0,
+                    "damaged": 0
+                  }
+                ]
+              },
+              {
+                "component_name": "brace",
+                "branch_stock": [
+                  {
+                    "branch_name": "Breeze branch",
+                    "on_hand": 7,
+                    "reserved": 0,
+                    "damaged": 1
+                  },
+                  {
+                    "branch_name": "Metro branch",
+                    "on_hand": 6,
+                    "reserved": 0,
+                    "damaged": 0
+                  },
+                  {
+                    "branch_name": "Hill branch",
+                    "on_hand": 6,
+                    "reserved": 0,
+                    "damaged": 0
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在一次查看完整零件表在各分店的距離與可售庫存。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "series_name",
+              "argument_name": "series_name"
+            },
+            {
+              "step_index": 1,
+              "result_field": "component_names",
+              "argument_name": "component_names"
+            }
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "component_names",
+            "result_field": "stock_by_component",
+            "input_key_fields": [
+              "$value"
+            ],
+            "result_key_fields": [
+              "component_name"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Choose Breeze branch, 3.2 kilometers away. Its sellable stock plus your two posts supports two complete shelves. For all three shelves, you are short only one post; it has all 12 boards and six braces required. Hill branch can build three but is beyond five kilometers, and stock cannot be combined across branches.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "Width 90 and four tiers are explicit public configuration fields. Step 2 uses the returned series and complete BOM, not a product token.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先取得每座BOM，再以完整清單查庫存；排除遠店後逐店以最缺零件決定完整座數。",
+          "steps": [
+            "三座總需求是post 12、board 12、brace 6；使用者自有兩支post可加到任一單店方案。",
+            "Breeze距離3.2公里；可售post 9加自有2為11、board 12、brace 6，所以可做2座且完成三座只缺1支post。",
+            "Metro距離內但post 5加2只能做1座；Hill雖可做3座但距離6.8公里，必須排除。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_modular_shelf_configuration",
+            "input_example_zh": "輸入寬90公分、4層。",
+            "output_example_zh": "回傳GridLine 90及每座4 post、4 board、2 brace。"
+          },
+          {
+            "step": 2,
+            "tool_name": "batch_get_branch_component_stock",
+            "input_example_zh": "原樣傳入GridLine 90與完整三項component names清單。",
+            "output_example_zh": "按零件回傳三間分店距離、on hand、reserved、damaged；漏傳零件就只回那個子集。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_2step_department_paper_002",
+      "category": "product_inventory",
+      "step_count": 2,
+      "user_prompt": "Check the type and quantity of copy paper my department used in August 2026. For September, I want 125 percent of that quantity in the same paper type. Comparing current stock, package sizes, and promotions, what is the lowest-cost combination I could buy?",
+      "flow_summary": "第一步用上月與copy paper查部門實際紙種及用量；第二步只把完整paper type原樣傳入報價服務。模型自行算125%需求並套結構化促銷。",
+      "tools": [
+        {
+          "name": "get_department_paper_usage",
+          "description": "Return the signed-in user's department, complete paper specification, and sheets actually used for a public period and usage category. It does not calculate a future purchase target or return supplier offers.",
+          "parameters": {
+            "billing_month": {
+              "type": "string",
+              "description": "The local usage month stated by the user, in YYYY-MM format.",
+              "pattern": "^\\d{4}-\\d{2}$"
+            },
+            "usage_category": {
+              "type": "string",
+              "description": "The natural supply category spoken by the user.",
+              "enum": [
+                "copy paper",
+                "photo paper"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "department_name": {
+                "type": "string",
+                "description": "Returned department name."
+              },
+              "paper_type": {
+                "type": "object",
+                "description": "Returned paper type.",
+                "properties": {
+                  "size": {
+                    "type": "string",
+                    "description": "Returned size."
+                  },
+                  "weight_gsm": {
+                    "type": "integer",
+                    "description": "Returned weight gsm."
+                  },
+                  "material": {
+                    "type": "string",
+                    "description": "Returned material."
+                  },
+                  "finish": {
+                    "type": "string",
+                    "description": "Returned finish."
+                  }
+                },
+                "required": [
+                  "size",
+                  "weight_gsm",
+                  "material",
+                  "finish"
+                ]
+              },
+              "sheets_used": {
+                "type": "integer",
+                "description": "Returned sheets used."
+              }
+            },
+            "required": [
+              "department_name",
+              "paper_type",
+              "sheets_used"
+            ]
+          }
+        },
+        {
+          "name": "get_paper_supplier_offers",
+          "description": "Return the offer snapshot date plus current package size, stock, price, and structured promotion fields from every supplier for exactly the complete paper specification supplied. It does not calculate boxes needed, totals, or a recommendation.",
+          "parameters": {
+            "paper_type": {
+              "type": "object",
+              "description": "The complete paper specification returned by the department usage service.",
+              "properties": {
+                "size": {
+                  "type": "string",
+                  "description": "Paper size."
+                },
+                "weight_gsm": {
+                  "type": "integer",
+                  "description": "Paper weight in grams per square meter."
+                },
+                "material": {
+                  "type": "string",
+                  "description": "Paper material."
+                },
+                "finish": {
+                  "type": "string",
+                  "description": "Paper finish."
+                }
+              },
+              "required": [
+                "size",
+                "weight_gsm",
+                "material",
+                "finish"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "offers": {
+                "type": "array",
+                "description": "Returned offers.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "supplier_name": {
+                      "type": "string",
+                      "description": "Returned supplier name."
+                    },
+                    "sheets_per_box": {
+                      "type": "integer",
+                      "description": "Returned sheets per box."
+                    },
+                    "price_per_box_twd": {
+                      "type": "integer",
+                      "description": "Returned price per box twd."
+                    },
+                    "boxes_in_stock": {
+                      "type": "integer",
+                      "description": "Returned boxes in stock."
+                    },
+                    "promotion": {
+                      "type": "object",
+                      "description": "Returned structured promotion. Fields other than type are present only when applicable to that promotion type.",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "description": "Promotion type: buy_x_get_y_free, percent_off_at_quantity, or none."
+                        },
+                        "buy_boxes": {
+                          "type": "integer",
+                          "description": "Paid boxes per promotion use; present for buy_x_get_y_free."
+                        },
+                        "free_boxes": {
+                          "type": "integer",
+                          "description": "Free boxes per promotion use; present for buy_x_get_y_free."
+                        },
+                        "maximum_uses": {
+                          "type": "integer",
+                          "description": "Maximum promotion uses; present for buy_x_get_y_free."
+                        },
+                        "free_boxes_consume_stock": {
+                          "type": "boolean",
+                          "description": "Whether free boxes consume listed stock; present for buy_x_get_y_free."
+                        },
+                        "minimum_boxes": {
+                          "type": "integer",
+                          "description": "Returned minimum boxes."
+                        },
+                        "percent_off": {
+                          "type": "number",
+                          "description": "Returned percent off."
+                        },
+                        "discount_scope": {
+                          "type": "string",
+                          "description": "Returned discount scope."
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "supplier_name",
+                    "sheets_per_box",
+                    "price_per_box_twd",
+                    "boxes_in_stock",
+                    "promotion"
+                  ]
+                }
+              },
+              "offers_as_of_date": {
+                "type": "string",
+                "description": "Returned offers as of date."
+              }
+            },
+            "required": [
+              "offers",
+              "offers_as_of_date"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "department_paper_usage",
+          "tool_name": "get_department_paper_usage",
+          "tool_input": {
+            "billing_month": "2026-08",
+            "usage_category": "copy paper"
+          },
+          "mocked_result": {
+            "department_name": "Operations",
+            "paper_type": {
+              "size": "A4",
+              "weight_gsm": 80,
+              "material": "recycled",
+              "finish": "uncoated"
+            },
+            "sheets_used": 8000
+          },
+          "waiting_speech_target": "正在查看部門上個月使用的影印紙種類與張數。",
+          "case_insensitive_arguments": [
+            "usage_category"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "paper_supplier_offers",
+          "tool_name": "get_paper_supplier_offers",
+          "tool_input": {
+            "paper_type": {
+              "size": "A4",
+              "weight_gsm": 80,
+              "material": "recycled",
+              "finish": "uncoated"
+            }
+          },
+          "mocked_result": {
+            "offers": [
+              {
+                "supplier_name": "Alpha Paper",
+                "sheets_per_box": 2500,
+                "price_per_box_twd": 480,
+                "boxes_in_stock": 4,
+                "promotion": {
+                  "type": "buy_x_get_y_free",
+                  "buy_boxes": 3,
+                  "free_boxes": 1,
+                  "maximum_uses": 1,
+                  "free_boxes_consume_stock": true
+                }
+              },
+              {
+                "supplier_name": "Budget Office",
+                "sheets_per_box": 2000,
+                "price_per_box_twd": 300,
+                "boxes_in_stock": 5,
+                "promotion": {
+                  "type": "percent_off_at_quantity",
+                  "minimum_boxes": 5,
+                  "percent_off": 10,
+                  "discount_scope": "all purchased boxes"
+                }
+              },
+              {
+                "supplier_name": "Central Supply",
+                "sheets_per_box": 5000,
+                "price_per_box_twd": 720,
+                "boxes_in_stock": 2,
+                "promotion": {
+                  "type": "none",
+                  "minimum_boxes": 0,
+                  "percent_off": 0
+                }
+              }
+            ],
+            "offers_as_of_date": "2026-09-07"
+          },
+          "waiting_speech_target": "正在查看這個完整紙種在三間供應商的庫存、包裝與促銷。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "paper_type",
+              "argument_name": "paper_type"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "Buy five 2,000-sheet boxes from Budget Office for 1,350 TWD. The target is 10,000 sheets. Alpha Paper's buy-three-get-one offer also supplies 10,000 sheets but costs 1,440 TWD, and two Central Supply boxes cost 1,440 TWD.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Last month and copy paper are short public enums that select one department record. Only the complete returned paper specification selects Step 2; usage remains final-answer reasoning.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "上月用量不傳入第二步；它只用來算採購目標，paper_type才是真正的供應商庫存selector。",
+          "steps": [
+            "8000張的125%是10000張，沒有進位問題。",
+            "Alpha買3箱送1箱，共10000張、付1440元；Budget買5箱共10000張，1500元打九折為1350元；Central兩箱共10000張、1440元。",
+            "三者庫存都足夠，最低為Budget Office五箱、1350元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_department_paper_usage",
+            "input_example_zh": "輸入2026-08與copy paper。",
+            "output_example_zh": "回傳Operations使用A4 80gsm recycled uncoated紙8000張。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_paper_supplier_offers",
+            "input_example_zh": "原樣傳入完整paper_type物件。",
+            "output_example_zh": "回傳截至2026-09-07的各供應商包裝張數、價格、庫存及結構化促銷，不預告供應商數量。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_2step_sofa_package_fit_003",
+      "category": "product_inventory",
+      "step_count": 2,
+      "user_prompt": "I need an in-stock three-seat sofa under 1,000 US dollars. My elevator can take packages up to 210 by 110 by 90 centimeters, with 90-degree rotation allowed but no diagonal placement. Which is the cheapest sofa for which every package will fit?",
+      "flow_summary": "第一步只用座位數查全部現貨三人沙發與美元售價；模型自行套一千美元預算，再把所有預算內候選一次送入包裝服務，逐商品確認每一箱都可旋轉放入。",
+      "tools": [
+        {
+          "name": "list_in_stock_sofas",
+          "description": "Return every currently in-stock sofa matching a requested seat count, including complete product name and USD price. It does not apply the user's budget, return packaging, or recommend a product.",
+          "parameters": {
+            "seat_count": {
+              "type": "integer",
+              "description": "Requested number of seats."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "products": {
+                "type": "array",
+                "description": "Returned products.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "product_name": {
+                      "type": "string",
+                      "description": "Returned product name."
+                    },
+                    "price_usd": {
+                      "type": "integer",
+                      "description": "Returned price usd."
+                    },
+                    "stock_status": {
+                      "type": "string",
+                      "description": "Returned stock status."
+                    }
+                  },
+                  "required": [
+                    "product_name",
+                    "price_usd",
+                    "stock_status"
+                  ]
+                }
+              },
+              "product_names": {
+                "type": "array",
+                "description": "Returned product names.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "products",
+              "product_names"
+            ]
+          }
+        },
+        {
+          "name": "batch_get_product_packaging",
+          "description": "Return every package and its dimensions for exactly the supplied product-name list. Send all candidates that need comparison in one call; omitted products are not added automatically. It does not determine elevator fit or recommend a product.",
+          "parameters": {
+            "product_names": {
+              "type": "array",
+              "description": "Every in-budget candidate product name derived from the sofa-search result.",
+              "items": {
+                "type": "string",
+                "description": "One complete human-readable product name."
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "packaging_by_product": {
+                "type": "array",
+                "description": "Returned packaging by product.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "product_name": {
+                      "type": "string",
+                      "description": "Returned product name."
+                    },
+                    "packages": {
+                      "type": "array",
+                      "description": "Returned packages.",
+                      "items": {
+                        "type": "object",
+                        "description": "Returned item.",
+                        "properties": {
+                          "package_label": {
+                            "type": "string",
+                            "description": "Returned package label."
+                          },
+                          "length_cm": {
+                            "type": "integer",
+                            "description": "Returned length cm."
+                          },
+                          "width_cm": {
+                            "type": "integer",
+                            "description": "Returned width cm."
+                          },
+                          "height_cm": {
+                            "type": "integer",
+                            "description": "Returned height cm."
+                          }
+                        },
+                        "required": [
+                          "package_label",
+                          "length_cm",
+                          "width_cm",
+                          "height_cm"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "product_name",
+                    "packages"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "packaging_by_product"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "sofa_candidates",
+          "tool_name": "list_in_stock_sofas",
+          "tool_input": {
+            "seat_count": 3
+          },
+          "mocked_result": {
+            "products": [
+              {
+                "product_name": "Lane three-seat sofa",
+                "price_usd": 850,
+                "stock_status": "in stock"
+              },
+              {
+                "product_name": "Cedar three-seat sofa",
+                "price_usd": 900,
+                "stock_status": "in stock"
+              },
+              {
+                "product_name": "Harbor three-seat sofa",
+                "price_usd": 950,
+                "stock_status": "in stock"
+              },
+              {
+                "product_name": "Summit three-seat sofa",
+                "price_usd": 1100,
+                "stock_status": "in stock"
+              }
+            ],
+            "product_names": [
+              "Lane three-seat sofa",
+              "Cedar three-seat sofa",
+              "Harbor three-seat sofa",
+              "Summit three-seat sofa"
+            ]
+          },
+          "waiting_speech_target": "正在列出三萬元內有現貨的三人座沙發。"
+        },
+        {
+          "index": 2,
+          "label": "sofa_packaging",
+          "tool_name": "batch_get_product_packaging",
+          "tool_input": {
+            "product_names": [
+              "Lane three-seat sofa",
+              "Cedar three-seat sofa",
+              "Harbor three-seat sofa"
+            ]
+          },
+          "mocked_result": {
+            "packaging_by_product": [
+              {
+                "product_name": "Lane three-seat sofa",
+                "packages": [
+                  {
+                    "package_label": "main carton",
+                    "length_cm": 215,
+                    "width_cm": 80,
+                    "height_cm": 70
+                  }
+                ]
+              },
+              {
+                "product_name": "Cedar three-seat sofa",
+                "packages": [
+                  {
+                    "package_label": "body carton",
+                    "length_cm": 205,
+                    "width_cm": 105,
+                    "height_cm": 85
+                  },
+                  {
+                    "package_label": "leg carton",
+                    "length_cm": 90,
+                    "width_cm": 60,
+                    "height_cm": 40
+                  }
+                ]
+              },
+              {
+                "product_name": "Harbor three-seat sofa",
+                "packages": [
+                  {
+                    "package_label": "single carton",
+                    "length_cm": 208,
+                    "width_cm": 108,
+                    "height_cm": 88
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在一次查看全部候選沙發每一箱的包裝尺寸。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "product_names",
+              "argument_name": "product_names"
+            }
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "product_names",
+            "result_field": "packaging_by_product",
+            "input_key_fields": [
+              "$value"
+            ],
+            "result_key_fields": [
+              "product_name"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Choose the Cedar three-seat sofa for 900 USD. Lane is cheaper but its 215-centimeter carton exceeds the elevator's 210-centimeter side even after rotation. Every Cedar package fits; Harbor also fits but costs 950 USD. Summit is over the 1,000 USD budget and should not be sent to the packaging lookup.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Only the requested seat count enters the first lookup. The user-spoken budget remains model reasoning and determines the complete candidate subset passed to the second tool.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步不替模型套預算；模型先從完整現貨清單排除超過一千美元者，再一次查全部合格候選的逐箱尺寸。",
+          "steps": [
+            "Lane、Cedar、Harbor低於1000美元；Summit為1100美元，先因預算排除。",
+            "一次把三個預算內名稱送進包裝工具；漏傳候選只會拿到不完整證據。",
+            "Lane的215公分邊超過電梯210公分；Cedar與Harbor每箱都能旋轉放入，Cedar以900美元較便宜。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "list_in_stock_sofas",
+            "input_example_zh": "只輸入seat count 3。",
+            "output_example_zh": "回傳全部四張現貨三人沙發與美元售價，包含一張超過預算的干擾項。"
+          },
+          {
+            "step": 2,
+            "tool_name": "batch_get_product_packaging",
+            "input_example_zh": "一次傳入模型從第一步篩出的全部預算內候選。",
+            "output_example_zh": "只回傳實際送入名稱的逐箱尺寸；漏傳候選不會自動補齊。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_2step_camera_mode_savings_004",
+      "category": "product_inventory",
+      "step_count": 2,
+      "user_prompt": "I need to record for three hours with my registered camera. Find the lowest-cost in-stock memory-card setup that can complete the recording in 4K high-quality mode. If I switch to 4K standard mode, how much would the cheapest qualifying setup save? Use at most two cards in either case.",
+      "flow_summary": "第一步把使用者明講的解析度與品質，依公開 enum 組成兩個 profile 物件並批次查完整支援卡種聯集；第二步用聯集查現貨。模型分別套容量、寫速、單卡上限、可售量與最多兩張，再比較兩個最低成本。",
+      "tools": [
+        {
+          "name": "get_registered_camera_recording_profiles",
+          "description": "Return the registered camera's raw requirements for every requested resolution-and-quality profile. The public resolution choices are 1080p, 2K, 4K, and 8K; the public quality choices are economy, standard, and high quality. Unsupported combinations are returned as unsupported. The service does not calculate required storage or recommend cards.",
+          "parameters": {
+            "requested_profiles": {
+              "type": "array",
+              "description": "Every resolution-and-quality profile named in the request. Build one object per requested profile from the public choices.",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "resolution": {
+                    "type": "string",
+                    "enum": [
+                      "1080p",
+                      "2K",
+                      "4K",
+                      "8K"
+                    ],
+                    "description": "The requested public recording resolution."
+                  },
+                  "quality": {
+                    "type": "string",
+                    "enum": [
+                      "economy",
+                      "standard",
+                      "high quality"
+                    ],
+                    "description": "The requested public recording quality."
+                  }
+                },
+                "required": [
+                  "resolution",
+                  "quality"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "profiles": {
+                "type": "array",
+                "description": "Returned profiles.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "resolution": {
+                      "type": "string",
+                      "description": "Returned canonical recording resolution."
+                    },
+                    "quality": {
+                      "type": "string",
+                      "description": "Returned canonical recording quality."
+                    },
+                    "supported": {
+                      "type": "boolean",
+                      "description": "Whether the registered camera supports this resolution-and-quality combination."
+                    },
+                    "supported_card_types": {
+                      "type": "array",
+                      "description": "Returned supported card types.",
+                      "items": {
+                        "type": "string",
+                        "description": "Returned item."
+                      }
+                    },
+                    "minimum_sustained_write_speed_mbps": {
+                      "type": "integer",
+                      "description": "Returned minimum sustained write speed mbps."
+                    },
+                    "storage_gb_per_hour": {
+                      "type": "integer",
+                      "description": "Returned storage gb per hour."
+                    },
+                    "maximum_card_capacity_gb": {
+                      "type": "integer",
+                      "description": "Returned maximum card capacity gb."
+                    }
+                  },
+                  "required": [
+                    "resolution",
+                    "quality",
+                    "supported"
+                  ]
+                }
+              },
+              "supported_card_types": {
+                "type": "array",
+                "description": "Returned supported card types.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "profiles",
+              "supported_card_types"
+            ]
+          }
+        },
+        {
+          "name": "batch_get_memory_card_inventory",
+          "description": "After the camera-profile lookup completes, return raw product, capacity, sustained write speed, price, on-hand, and reserved quantity for the complete supported-card-type union copied from that result. A call made before the profile result is available is rejected. It does not qualify cards, construct bundles, or calculate savings.",
+          "parameters": {
+            "supported_card_types": {
+              "type": "array",
+              "description": "The complete union of supported card types returned by the camera profile service.",
+              "items": {
+                "type": "string",
+                "description": "One supported card type."
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "inventory_by_card_type": {
+                "type": "array",
+                "description": "Returned inventory by card type.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "card_type": {
+                      "type": "string",
+                      "description": "Returned card type."
+                    },
+                    "cards": {
+                      "type": "array",
+                      "description": "Returned cards.",
+                      "items": {
+                        "type": "object",
+                        "description": "Returned item.",
+                        "properties": {
+                          "product_name": {
+                            "type": "string",
+                            "description": "Returned product name."
+                          },
+                          "capacity_gb": {
+                            "type": "integer",
+                            "description": "Returned capacity gb."
+                          },
+                          "sustained_write_speed_mbps": {
+                            "type": "integer",
+                            "description": "Returned sustained write speed mbps."
+                          },
+                          "price_twd": {
+                            "type": "integer",
+                            "description": "Returned price twd."
+                          },
+                          "on_hand": {
+                            "type": "integer",
+                            "description": "Returned on hand."
+                          },
+                          "reserved": {
+                            "type": "integer",
+                            "description": "Returned reserved."
+                          }
+                        },
+                        "required": [
+                          "product_name",
+                          "capacity_gb",
+                          "sustained_write_speed_mbps",
+                          "price_twd",
+                          "on_hand",
+                          "reserved"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "card_type",
+                    "cards"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "inventory_by_card_type"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "camera_profiles",
+          "tool_name": "get_registered_camera_recording_profiles",
+          "tool_input": {
+            "requested_profiles": [
+              {
+                "resolution": "4K",
+                "quality": "high quality"
+              },
+              {
+                "resolution": "4K",
+                "quality": "standard"
+              }
+            ]
+          },
+          "mocked_result": {
+            "profiles": [
+              {
+                "resolution": "4K",
+                "quality": "high quality",
+                "supported": true,
+                "supported_card_types": [
+                  "SDXC UHS-II"
+                ],
+                "minimum_sustained_write_speed_mbps": 90,
+                "storage_gb_per_hour": 96,
+                "maximum_card_capacity_gb": 256
+              },
+              {
+                "resolution": "4K",
+                "quality": "standard",
+                "supported": true,
+                "supported_card_types": [
+                  "SDXC UHS-I",
+                  "SDXC UHS-II"
+                ],
+                "minimum_sustained_write_speed_mbps": 30,
+                "storage_gb_per_hour": 48,
+                "maximum_card_capacity_gb": 512
+              }
+            ],
+            "supported_card_types": [
+              "SDXC UHS-I",
+              "SDXC UHS-II"
+            ]
+          },
+          "waiting_speech_target": "正在查看註冊相機兩種四K模式的容量、寫速與支援卡種。",
+          "case_insensitive_arguments": [
+            "requested_profiles"
+          ],
+          "order_insensitive_arguments": [
+            "requested_profiles"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "memory_card_inventory",
+          "tool_name": "batch_get_memory_card_inventory",
+          "tool_input": {
+            "supported_card_types": [
+              "SDXC UHS-I",
+              "SDXC UHS-II"
+            ]
+          },
+          "mocked_result": {
+            "inventory_by_card_type": [
+              {
+                "card_type": "SDXC UHS-I",
+                "cards": [
+                  {
+                    "product_name": "Standard 256",
+                    "capacity_gb": 256,
+                    "sustained_write_speed_mbps": 60,
+                    "price_twd": 900,
+                    "on_hand": 1,
+                    "reserved": 0
+                  },
+                  {
+                    "product_name": "Standard 128",
+                    "capacity_gb": 128,
+                    "sustained_write_speed_mbps": 60,
+                    "price_twd": 550,
+                    "on_hand": 2,
+                    "reserved": 0
+                  }
+                ]
+              },
+              {
+                "card_type": "SDXC UHS-II",
+                "cards": [
+                  {
+                    "product_name": "Fast 128",
+                    "capacity_gb": 128,
+                    "sustained_write_speed_mbps": 100,
+                    "price_twd": 800,
+                    "on_hand": 1,
+                    "reserved": 0
+                  },
+                  {
+                    "product_name": "Fast 256",
+                    "capacity_gb": 256,
+                    "sustained_write_speed_mbps": 100,
+                    "price_twd": 2000,
+                    "on_hand": 1,
+                    "reserved": 0
+                  },
+                  {
+                    "product_name": "Fast 512",
+                    "capacity_gb": 512,
+                    "sustained_write_speed_mbps": 120,
+                    "price_twd": 3500,
+                    "on_hand": 1,
+                    "reserved": 0
+                  }
+                ]
+              }
+            ]
+          },
+          "waiting_speech_target": "正在一次查看兩個支援卡種的容量、寫速、價格與可售量。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "supported_card_types",
+              "argument_name": "supported_card_types"
+            }
+          ],
+          "input_adaptive_response": {
+            "mode": "filter_result_array_by_input_keys",
+            "input_argument": "supported_card_types",
+            "result_field": "inventory_by_card_type",
+            "input_key_fields": [
+              "$value"
+            ],
+            "result_key_fields": [
+              "card_type"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "For 4K high quality, buy Fast 256 plus Fast 128 for 2,800 TWD; they provide 384 GB and meet the 90 MB/s requirement, while Fast 512 exceeds that mode's per-card capacity limit. For 4K standard, one Standard 256 card for 900 TWD covers the 144 GB requirement. Switching saves 1,900 TWD.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The user explicitly supplies both requested resolution-and-quality pairs. The API publishes four resolution values and three quality values, so the model composes two structured profiles without guessing private identifiers.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "兩個模式要各自做一次最低成本組合，不能把標準模式的便宜卡錯套到高畫質。",
+          "steps": [
+            "高畫質需96×3＝288GB、至少90MB/s、單卡最多256GB且最多兩張；Fast256＋Fast128共384GB、2800元最便宜。Fast512雖快但違反單卡上限。",
+            "標準模式需48×3＝144GB、至少30MB/s；一張Standard256即可，價格900元，低於兩張Standard128的1100元。",
+            "兩個最低成本相減：2800－900＝1900元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_registered_camera_recording_profiles",
+            "input_example_zh": "從公開 enum 組成兩筆：4K＋high quality、4K＋standard。",
+            "output_example_zh": "回傳兩個 profile 的每小時容量、最低寫速、單卡上限、是否支援，以及完整卡種聯集。"
+          },
+          {
+            "step": 2,
+            "tool_name": "batch_get_memory_card_inventory",
+            "input_example_zh": "原樣傳入SDXC UHS-I與UHS-II完整聯集。",
+            "output_example_zh": "按卡種回傳所有卡片容量、持續寫速、價格及可售量。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_inventory_2step_manual_filter_packs_005",
+      "category": "product_inventory",
+      "step_count": 2,
+      "user_prompt": "I replaced the filter in my registered bedroom air purifier on September 7, 2026. Check how often the manual says to replace it and which filter family it uses. What is the lowest-cost in-stock pack combination that would cover every scheduled replacement through September 7, 2027, including that end date?",
+      "flow_summary": "第一步以bedroom與filter replacement查註冊設備說明書，取得正式濾網系列與四個月間隔；第二步用系列查包裝庫存。模型產生含終點的一年時程並找最低價足量組合。",
+      "tools": [
+        {
+          "name": "search_registered_appliance_manual",
+          "description": "Search the manual for the signed-in user's registered appliance in a room and return only the requested topic, including the human-readable appliance name, recommended filter family, and replacement interval. It does not generate future dates or quantities.",
+          "parameters": {
+            "room_name": {
+              "type": "string",
+              "description": "The natural room name spoken by the user."
+            },
+            "manual_topic": {
+              "type": "string",
+              "description": "The requested manual topic.",
+              "enum": [
+                "filter replacement",
+                "cleaning",
+                "error codes"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "appliance_name": {
+                "type": "string",
+                "description": "Returned appliance name."
+              },
+              "returned_manual_topic": {
+                "type": "string",
+                "description": "Returned returned manual topic."
+              },
+              "recommended_filter_family": {
+                "type": "string",
+                "description": "Returned recommended filter family."
+              },
+              "replacement_interval_months": {
+                "type": "integer",
+                "description": "Returned replacement interval months."
+              }
+            },
+            "required": [
+              "appliance_name",
+              "returned_manual_topic",
+              "recommended_filter_family",
+              "replacement_interval_months"
+            ]
+          }
+        },
+        {
+          "name": "list_filter_pack_inventory",
+          "description": "Return every pack for exactly the human-readable filter family supplied, including filters per pack, TWD price, on-hand, and reserved quantities. It does not calculate required filters, construct a bundle, or recommend a purchase.",
+          "parameters": {
+            "filter_family": {
+              "type": "string",
+              "description": "The complete filter-family name returned by the manual search."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "packs": {
+                "type": "array",
+                "description": "Returned packs.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "pack_name": {
+                      "type": "string",
+                      "description": "Returned pack name."
+                    },
+                    "filters_per_pack": {
+                      "type": "integer",
+                      "description": "Returned filters per pack."
+                    },
+                    "price_twd": {
+                      "type": "integer",
+                      "description": "Returned price twd."
+                    },
+                    "on_hand": {
+                      "type": "integer",
+                      "description": "Returned on hand."
+                    },
+                    "reserved": {
+                      "type": "integer",
+                      "description": "Returned reserved."
+                    }
+                  },
+                  "required": [
+                    "pack_name",
+                    "filters_per_pack",
+                    "price_twd",
+                    "on_hand",
+                    "reserved"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "packs"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "manual_filter_rule",
+          "tool_name": "search_registered_appliance_manual",
+          "tool_input": {
+            "room_name": "bedroom",
+            "manual_topic": "filter replacement"
+          },
+          "mocked_result": {
+            "appliance_name": "BreatheWell bedroom air purifier",
+            "returned_manual_topic": "filter replacement",
+            "recommended_filter_family": "BreatheWell PureAir P4",
+            "replacement_interval_months": 4
+          },
+          "waiting_speech_target": "正在查臥室空氣清淨機說明書的濾網更換章節。",
+          "case_insensitive_arguments": [
+            "room_name",
+            "manual_topic"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "filter_pack_inventory",
+          "tool_name": "list_filter_pack_inventory",
+          "tool_input": {
+            "filter_family": "BreatheWell PureAir P4"
+          },
+          "mocked_result": {
+            "packs": [
+              {
+                "pack_name": "single pack",
+                "filters_per_pack": 1,
+                "price_twd": 30,
+                "on_hand": 3,
+                "reserved": 0
+              },
+              {
+                "pack_name": "double pack",
+                "filters_per_pack": 2,
+                "price_twd": 52,
+                "on_hand": 2,
+                "reserved": 0
+              },
+              {
+                "pack_name": "triple pack",
+                "filters_per_pack": 3,
+                "price_twd": 80,
+                "on_hand": 1,
+                "reserved": 0
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 BreatheWell PureAir P4 濾網的包裝、價格與可售量。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "recommended_filter_family",
+              "argument_name": "filter_family"
+            }
+          ]
+        }
+      ],
+      "expected_final_answer": "The manual says to replace the BreatheWell PureAir P4 filter every four months. The scheduled replacements through the inclusive end date are January 7, May 7, and September 7, 2027, so you need three filters. Buy one triple pack for 80 TWD; it is cheaper than three singles at 90 TWD or a double plus a single at 82 TWD.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "Bedroom plus the small manual-topic enum selects a real registered appliance document section without a model number. The returned filter family is copied exactly to inventory.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先從說明書取得間隔與正式耗材系列，再從明確起訖日產生更換時程，最後解最小成本包裝。",
+          "steps": [
+            "9月7日剛換新，每4個月一次，因此含終點的一年內為2027年1月7日、5月7日、9月7日，共3片。",
+            "單入三包90元；雙入一包加單入一包82元；三入一包80元。",
+            "三入包庫存扣保留後仍有一包，最低價為80元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "search_registered_appliance_manual",
+            "input_example_zh": "輸入bedroom與filter replacement。",
+            "output_example_zh": "回傳BreatheWell PureAir P4及每4個月更換，不回未來日期。"
+          },
+          {
+            "step": 2,
+            "tool_name": "list_filter_pack_inventory",
+            "input_example_zh": "原樣傳入BreatheWell PureAir P4。",
+            "output_example_zh": "回傳單入30、雙入52、三入80元及各自庫存。"
+          }
+        ]
+      }
+    }
+  ]
+}

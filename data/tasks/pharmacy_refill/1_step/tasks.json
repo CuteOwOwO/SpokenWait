@@ -1,0 +1,491 @@
+{
+  "category": "pharmacy_refill",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "pharmacy_1step_trip_supply_shortfall",
+      "category": "pharmacy_refill",
+      "step_count": 1,
+      "user_prompt": "After taking my morning dose on September 10, I have 17 tablets left. If I keep following the label exactly, will they last through my morning dose on September 19? If not, how many tablets short will I be, and when will I take the last one I have?",
+      "flow_summary": "查詢目前補藥的藥袋用法，依明確的起訖餐次計算需要的劑量；只判斷是否足夠，不建議更改用量。",
+      "tools": [
+        {
+          "name": "get_prescription_directions_for_date",
+          "description": "Return the dosage unit, units per dose, and named local dose times printed for the signed-in user's prescription on the requested local date. This service does not calculate depletion dates or recommend changing the directions.",
+          "parameters": {
+            "as_of_date": {
+              "type": "string",
+              "description": "The local calendar date whose active printed directions should be returned, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "dosage_unit": {
+                "type": "string",
+                "description": "Returned dosage unit."
+              },
+              "units_per_dose": {
+                "type": "number",
+                "description": "Returned units per dose."
+              },
+              "dose_times_local": {
+                "type": "array",
+                "description": "Returned dose times local.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "dosage_unit",
+              "units_per_dose",
+              "dose_times_local"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "printed_directions",
+          "tool_name": "get_prescription_directions_for_date",
+          "tool_input": {
+            "as_of_date": "2026-09-10"
+          },
+          "mocked_result": {
+            "dosage_unit": "tablet",
+            "units_per_dose": 1,
+            "dose_times_local": [
+              "morning",
+              "evening"
+            ]
+          },
+          "waiting_speech_target": "正在查看九月十日適用的藥袋服用時段。"
+        }
+      ],
+      "expected_final_answer": "No. Eighteen tablets are needed from the evening of September 10 through the morning of September 19, so the supply is one tablet short. The last available tablet is for the evening dose on September 18.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The explicit September 10 date selects which printed directions were active; no medication name or prescription identifier must be reconstructed from speech.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "把剩餘顆數和藥袋上的每日服用時段放到同一條日期軸上。",
+          "steps": [
+            "Step 1 查到每天早、晚各一顆；9 月 10 日早上的那顆已經吃過，所以從當天晚上開始算。",
+            "9 月 10 日晚間需要 1 顆，9 月 11–18 日共 8 天、每天 2 顆需要 16 顆，9 月 19 日早上再需要 1 顆，合計 18 顆。",
+            "手上只有 17 顆，因此少 1 顆；第 17 顆會在 9 月 18 日晚間吃完。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_1step_authorized_fill_option",
+      "category": "pharmacy_refill",
+      "step_count": 1,
+      "user_prompt": "I need at least 30 tablets and must collect them before 2 PM on September 13. Among the authorized options for my current refill, choose the lowest out-of-pocket cost; if the cost is tied, choose the option with fewer extra tablets. Which option should I use?",
+      "flow_summary": "查詢所有已核准的補藥數量方案，先依最低數量與領取期限篩選，再套用最低自付額及少拿多餘藥量的排序規則。",
+      "tools": [
+        {
+          "name": "list_current_refill_options",
+          "description": "Return every authorized option for the refill currently open in the signed-in account. Each option contains quantity, local ready time, copay amount, currency, and authorization status. The service does not apply the user's deadline or recommend an option.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "options": {
+                "type": "array",
+                "description": "Returned options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "quantity": {
+                      "type": "number",
+                      "description": "Returned quantity."
+                    },
+                    "ready_at_local": {
+                      "type": "string",
+                      "description": "Returned ready at local."
+                    },
+                    "copay_amount": {
+                      "type": "number",
+                      "description": "Returned copay amount."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Returned currency."
+                    },
+                    "authorization_status": {
+                      "type": "string",
+                      "description": "Returned authorization status."
+                    }
+                  },
+                  "required": [
+                    "quantity",
+                    "ready_at_local",
+                    "copay_amount",
+                    "currency",
+                    "authorization_status"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "options"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "authorized_options",
+          "tool_name": "list_current_refill_options",
+          "tool_input": {},
+          "mocked_result": {
+            "options": [
+              {
+                "quantity": 30,
+                "ready_at_local": "2026-09-13T15:00:00+08:00",
+                "copay_amount": 120,
+                "currency": "TWD",
+                "authorization_status": "authorized"
+              },
+              {
+                "quantity": 45,
+                "ready_at_local": "2026-09-12T17:00:00+08:00",
+                "copay_amount": 160,
+                "currency": "TWD",
+                "authorization_status": "authorized"
+              },
+              {
+                "quantity": 60,
+                "ready_at_local": "2026-09-13T12:00:00+08:00",
+                "copay_amount": 160,
+                "currency": "TWD",
+                "authorization_status": "authorized"
+              },
+              {
+                "quantity": 90,
+                "ready_at_local": "2026-09-12T10:00:00+08:00",
+                "copay_amount": 220,
+                "currency": "TWD",
+                "authorization_status": "authorized"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看目前補藥可使用的數量方案。"
+        }
+      ],
+      "expected_final_answer": "Use the 45-tablet option. It is ready before the deadline and has a 160 TWD copay; the 60-tablet option has the same copay but more extra tablets.",
+      "input_reference_mode": "account_context",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The currently open refill is the natural account-scoped object. Adding the user's deadline as a tool argument would only pre-filter the reasoning target rather than select a different record.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先套硬性條件，再依使用者指定的兩層排序規則挑選。",
+          "steps": [
+            "排除 30 顆方案：雖然最便宜，但 9 月 13 日下午 3 點才備妥，晚於下午 2 點期限。",
+            "45、60、90 顆方案都數量足夠且準時；最低自付額是 45 與 60 顆方案並列的 160 元。",
+            "同價時選多餘顆數較少者，所以選 45 顆方案。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_1step_partial_fill_cumulative_ready",
+      "category": "pharmacy_refill",
+      "step_count": 1,
+      "user_prompt": "I need at least 24 tablets from my current prescription before my train at 5 PM on September 12. What is the earliest time the pharmacy can give me enough, and how much time will I have before the train?",
+      "flow_summary": "查詢分批到貨的新增數量，依時間累加，找出在火車出發前第一次達到需求數量的時點。",
+      "tools": [
+        {
+          "name": "get_current_refill_supply_lots",
+          "description": "Return each additional supply lot scheduled for the signed-in user's current partial fill. Every row contains the local availability time and newly added quantity; quantities are not cumulative and the service does not identify when a target is met.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "supply_lots": {
+                "type": "array",
+                "description": "Returned supply lots.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "available_at_local": {
+                      "type": "string",
+                      "description": "Returned available at local."
+                    },
+                    "additional_quantity": {
+                      "type": "number",
+                      "description": "Returned additional quantity."
+                    }
+                  },
+                  "required": [
+                    "available_at_local",
+                    "additional_quantity"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "supply_lots"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "supply_lots",
+          "tool_name": "get_current_refill_supply_lots",
+          "tool_input": {},
+          "mocked_result": {
+            "supply_lots": [
+              {
+                "available_at_local": "2026-09-10T12:00:00+08:00",
+                "additional_quantity": 9
+              },
+              {
+                "available_at_local": "2026-09-11T15:00:00+08:00",
+                "additional_quantity": 8
+              },
+              {
+                "available_at_local": "2026-09-12T15:40:00+08:00",
+                "additional_quantity": 7
+              },
+              {
+                "available_at_local": "2026-09-12T16:35:00+08:00",
+                "additional_quantity": 6
+              },
+              {
+                "available_at_local": "2026-09-12T17:20:00+08:00",
+                "additional_quantity": 12
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看這張補藥單各批藥品的到貨時間。"
+        }
+      ],
+      "expected_final_answer": "The pharmacy first has enough at 3:40 PM on September 12, leaving 1 hour and 20 minutes before the 5 PM train.",
+      "input_reference_mode": "account_context",
+      "first_stage_difficulty": "medium",
+      "first_stage_input_rationale": "The current partial fill is already identified by account context. Passing the requested quantity or train date would be decorative and risk making the tool pre-solve the threshold reasoning.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "工具回的是每批新增量，不是累計量；要依時間一路相加。",
+          "steps": [
+            "前兩批到貨後累積為 9、17 顆，仍未達使用者需要的 24 顆。",
+            "第三批在 9 月 12 日下午 3:40 增加 7 顆，累積剛好 24 顆，這是第一次足夠。",
+            "後面下午 4:35 與 5:20 的批次都是干擾資料；不能因為它們排在後面就繼續等。",
+            "下午 3:40 到 5:00 相差 1 小時 20 分鐘。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_1step_ready_hold_baseline",
+      "category": "pharmacy_refill",
+      "step_count": 1,
+      "user_prompt": "Is my current refill ready? If it is, where do I collect it and what is the latest local time I can pick it up before it is returned to stock?",
+      "flow_summary": "直接查詢目前補藥是否備妥、領取地點、領取方式與保留期限，作為低難度的資訊完整性控制題。",
+      "tools": [
+        {
+          "name": "get_current_refill_status",
+          "description": "Return the status, local ready time, pickup location, local hold deadline, and fulfillment method for the signed-in user's current refill.",
+          "parameters": {},
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "status": {
+                "type": "string",
+                "description": "Returned status."
+              },
+              "ready_at_local": {
+                "type": "string",
+                "description": "Returned ready at local."
+              },
+              "pickup_location": {
+                "type": "string",
+                "description": "Returned pickup location."
+              },
+              "hold_until_local": {
+                "type": "string",
+                "description": "Returned hold until local."
+              },
+              "fulfillment_method": {
+                "type": "string",
+                "description": "Returned fulfillment method."
+              }
+            },
+            "required": [
+              "status",
+              "ready_at_local",
+              "pickup_location",
+              "hold_until_local",
+              "fulfillment_method"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "refill_status",
+          "tool_name": "get_current_refill_status",
+          "tool_input": {},
+          "mocked_result": {
+            "status": "ready",
+            "ready_at_local": "2026-09-11T14:20:00+08:00",
+            "pickup_location": "Consultation Counter, Main Pharmacy",
+            "hold_until_local": "2026-09-13T18:00:00+08:00",
+            "fulfillment_method": "in_person_pickup"
+          },
+          "waiting_speech_target": "正在確認目前補藥單的備妥與保留狀態。"
+        }
+      ],
+      "expected_final_answer": "Yes. It is ready at the Consultation Counter at Main Pharmacy and must be collected by 6 PM on September 13.",
+      "input_reference_mode": "account_context",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "This is intentionally account-scoped and simple; it measures basic retrieval completeness rather than ASR entity spelling or arithmetic.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "這題是刻意保留的簡單 control：不做計算，只檢查模型有沒有把三個必要欄位說完整。",
+          "steps": [
+            "status 是 ready，所以先回答現在可以領；若不是 ready，後面的領取說明就不能照搬。",
+            "pickup_location 告訴使用者要到 Main Pharmacy 的 Consultation Counter。",
+            "hold_until_local 是退回庫存前的最後領取期限：9 月 13 日下午 6 點。ready_at_local 只是何時備妥，不是最晚領取時間。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pharmacy_1step_printed_morning_sequence",
+      "category": "pharmacy_refill",
+      "step_count": 1,
+      "user_prompt": "I eat breakfast at 8 AM. I plan to take the White tablet at 7:10 AM, the Green capsule at 8 AM, and the Oral liquid at 8:45 AM. Using only the printed instructions for my current morning medicines, do all three times follow the labels? If not, which one is too early or too late, and what is its earliest valid time?",
+      "flow_summary": "查詢目前藥袋上既有的結構化服用時間規則，檢查使用者提出的時間是否符合；不推測藥物交互作用。",
+      "tools": [
+        {
+          "name": "get_current_medication_labels_by_anchor",
+          "description": "Return the prescribed amount and structured timing rule printed on every current medication label using the requested meal anchor. Negative offsets mean before the meal and positive offsets mean after it. The service does not create a schedule or infer additional interactions.",
+          "parameters": {
+            "timing_anchor": {
+              "type": "string",
+              "description": "The meal anchor named by the user.",
+              "enum": [
+                "breakfast",
+                "lunch",
+                "dinner"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "medications": {
+                "type": "array",
+                "description": "Returned medications.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "medication_display_name": {
+                      "type": "string",
+                      "description": "Returned medication display name."
+                    },
+                    "prescribed_amount": {
+                      "type": "string",
+                      "description": "Returned prescribed amount."
+                    },
+                    "timing_anchor": {
+                      "type": "string",
+                      "description": "Returned timing anchor."
+                    },
+                    "earliest_offset_minutes": {
+                      "type": "number",
+                      "description": "Returned earliest offset minutes."
+                    },
+                    "latest_offset_minutes": {
+                      "type": "number",
+                      "description": "Returned latest offset minutes."
+                    }
+                  },
+                  "required": [
+                    "medication_display_name",
+                    "prescribed_amount",
+                    "timing_anchor",
+                    "earliest_offset_minutes",
+                    "latest_offset_minutes"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "medications"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "printed_label_rules",
+          "tool_name": "get_current_medication_labels_by_anchor",
+          "tool_input": {
+            "timing_anchor": "breakfast"
+          },
+          "mocked_result": {
+            "medications": [
+              {
+                "medication_display_name": "White tablet",
+                "prescribed_amount": "one tablet",
+                "timing_anchor": "breakfast",
+                "earliest_offset_minutes": -60,
+                "latest_offset_minutes": -45
+              },
+              {
+                "medication_display_name": "Green capsule",
+                "prescribed_amount": "one capsule",
+                "timing_anchor": "breakfast",
+                "earliest_offset_minutes": 0,
+                "latest_offset_minutes": 0
+              },
+              {
+                "medication_display_name": "Oral liquid",
+                "prescribed_amount": "one prescribed dose",
+                "timing_anchor": "breakfast",
+                "earliest_offset_minutes": 60,
+                "latest_offset_minutes": 180
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看目前早晨藥物藥袋上印的時間指示。"
+        }
+      ],
+      "expected_final_answer": "No. The White tablet at 7:10 AM and the Green capsule at 8 AM follow their printed timing rules, but the Oral liquid at 8:45 AM is too early. Its earliest valid time is 9 AM.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "low",
+      "first_stage_input_rationale": "The user explicitly names breakfast and the public enum makes normalization stable. No drug name is spoken as a tool key, and the model may only apply the returned printed instructions.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "把早餐 8:00 當成基準，逐項檢查使用者提出的時間是否落在藥袋區間內。",
+          "steps": [
+            "White tablet 可在早餐前 60–45 分鐘服用，也就是 7:00–7:15；7:10 合格。",
+            "Green capsule 的 offset 是 0，必須隨早餐在 8:00 服用；8:00 合格。",
+            "Oral liquid 最早是早餐後 60 分鐘，也就是 9:00；8:45 太早，因此只需指出這一項與最早合法時間。"
+          ]
+        }
+      }
+    }
+  ]
+}

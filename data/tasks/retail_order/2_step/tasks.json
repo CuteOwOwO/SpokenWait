@@ -1,0 +1,1494 @@
+{
+  "category": "retail_order",
+  "step_count": 2,
+  "tasks": [
+    {
+      "id": "retail_order_2step_exchange_true_cost_001",
+      "category": "retail_order",
+      "step_count": 2,
+      "user_prompt": "The coat from my September 2 order is too small. I want the blue one in medium, and I can pick it up in Xinyi or Nangang at or after 6:30 tonight. Which store has it and leaves me paying the least after any discount clawback?",
+      "flow_summary": "先查這件外套可換範圍、原實付與滿額折扣保留規則，再用正式系列名稱查目標款式門市庫存；模型比較表面價差與退貨重買造成的折扣追回。",
+      "tools": [
+        {
+          "name": "get_my_exchange_terms",
+          "description": "Return the signed-in user's matching purchased item, human-readable exchange collection, original net paid amount, allowed attribute changes, and raw treatment of the original order discount for a local purchase date and natural item description. It does not search inventory or calculate a store's effective exchange cost.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "item_description": {
+              "type": "string",
+              "description": "The ordinary item description spoken by the user; exact catalogue wording is not required."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "current_date": {
+                "type": "string",
+                "description": "Returned current date."
+              },
+              "matched_item": {
+                "type": "object",
+                "description": "Returned matched item.",
+                "properties": {
+                  "item_name": {
+                    "type": "string",
+                    "description": "Returned item name."
+                  },
+                  "purchased_color": {
+                    "type": "string",
+                    "description": "Returned purchased color."
+                  },
+                  "purchased_size": {
+                    "type": "string",
+                    "description": "Returned purchased size."
+                  }
+                },
+                "required": [
+                  "item_name",
+                  "purchased_color",
+                  "purchased_size"
+                ]
+              },
+              "exchange_collection": {
+                "type": "string",
+                "description": "Returned exchange collection."
+              },
+              "original_net_paid_twd": {
+                "type": "integer",
+                "description": "Returned original net paid twd."
+              },
+              "permitted_changes": {
+                "type": "object",
+                "description": "Returned permitted changes.",
+                "properties": {
+                  "color": {
+                    "type": "boolean",
+                    "description": "Returned color."
+                  },
+                  "size": {
+                    "type": "boolean",
+                    "description": "Returned size."
+                  },
+                  "collection_must_match": {
+                    "type": "boolean",
+                    "description": "Returned collection must match."
+                  }
+                },
+                "required": [
+                  "color",
+                  "size",
+                  "collection_must_match"
+                ]
+              },
+              "exchange_deadline": {
+                "type": "string",
+                "description": "Returned exchange deadline."
+              },
+              "original_order_discount": {
+                "type": "object",
+                "description": "Returned original order discount.",
+                "properties": {
+                  "discount_name": {
+                    "type": "string",
+                    "description": "Returned discount name."
+                  },
+                  "amount_twd": {
+                    "type": "integer",
+                    "description": "Returned amount twd."
+                  }
+                },
+                "required": [
+                  "discount_name",
+                  "amount_twd"
+                ]
+              },
+              "cost_rules": {
+                "type": "object",
+                "description": "Returned cost rules.",
+                "properties": {
+                  "original_order_exchange": {
+                    "type": "string",
+                    "description": "Returned original order exchange."
+                  },
+                  "return_and_repurchase": {
+                    "type": "string",
+                    "description": "Returned return and repurchase."
+                  }
+                },
+                "required": [
+                  "original_order_exchange",
+                  "return_and_repurchase"
+                ]
+              }
+            },
+            "required": [
+              "current_date",
+              "matched_item",
+              "exchange_collection",
+              "original_net_paid_twd",
+              "permitted_changes",
+              "exchange_deadline",
+              "original_order_discount",
+              "cost_rules"
+            ]
+          }
+        },
+        {
+          "name": "search_exchange_inventory",
+          "description": "Return raw exchange stock, ready time, current price, and processing method for the exact human-readable exchange collection and target variant in all requested districts. It does not apply the user's pickup time, calculate price difference or discount clawback, or recommend a store.",
+          "parameters": {
+            "exchange_collection": {
+              "type": "string",
+              "description": "The complete human-readable exchange collection returned by the exchange-terms service."
+            },
+            "target_variant": {
+              "type": "string",
+              "description": "The natural target colour-and-size phrase spoken by the user, such as blue medium."
+            },
+            "preferred_districts": {
+              "type": "array",
+              "description": "Every acceptable district named by the user, sent together. Order is irrelevant.",
+              "items": {
+                "type": "string",
+                "description": "A district name spoken by the user."
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "options": {
+                "type": "array",
+                "description": "Returned options.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "store_name": {
+                      "type": "string",
+                      "description": "Returned store name."
+                    },
+                    "district": {
+                      "type": "string",
+                      "description": "Returned district."
+                    },
+                    "exchange_stock": {
+                      "type": "integer",
+                      "description": "Returned exchange stock."
+                    },
+                    "ready_at_local": {
+                      "type": "string",
+                      "description": "Returned ready at local."
+                    },
+                    "current_price_twd": {
+                      "type": "integer",
+                      "description": "Returned current price twd."
+                    },
+                    "processing_method": {
+                      "type": "string",
+                      "description": "Returned processing method."
+                    }
+                  },
+                  "required": [
+                    "store_name",
+                    "district",
+                    "exchange_stock",
+                    "ready_at_local",
+                    "current_price_twd",
+                    "processing_method"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "currency",
+              "options"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "exchange_terms",
+          "tool_name": "get_my_exchange_terms",
+          "tool_input": {
+            "order_date": "2026-09-02",
+            "item_description": "coat"
+          },
+          "mocked_result": {
+            "current_date": "2026-09-07",
+            "matched_item": {
+              "item_name": "CloudShell water-resistant coat",
+              "purchased_color": "black",
+              "purchased_size": "small"
+            },
+            "exchange_collection": "CloudShell water-resistant coat",
+            "original_net_paid_twd": 2480,
+            "permitted_changes": {
+              "color": true,
+              "size": true,
+              "collection_must_match": true
+            },
+            "exchange_deadline": "2026-09-20",
+            "original_order_discount": {
+              "discount_name": "spend 5,000 save 300",
+              "amount_twd": 300
+            },
+            "cost_rules": {
+              "original_order_exchange": "Pay target store current price minus original net paid; retain the original order discount.",
+              "return_and_repurchase": "Pay target store current price minus original net paid, then add the full original order discount clawback of 300 TWD."
+            }
+          },
+          "waiting_speech_target": "正在查看九月二日那件外套的換貨範圍與原訂單折扣規則。",
+          "case_insensitive_arguments": [
+            "item_description"
+          ],
+          "public_argument_requirements": {
+            "item_description": {
+              "required_token_groups": [
+                [
+                  "coat"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "index": 2,
+          "label": "exchange_inventory",
+          "tool_name": "search_exchange_inventory",
+          "tool_input": {
+            "exchange_collection": "CloudShell water-resistant coat",
+            "target_variant": "blue medium",
+            "preferred_districts": [
+              "Xinyi",
+              "Nangang"
+            ]
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "options": [
+              {
+                "store_name": "Xinyi A13 Store",
+                "district": "Xinyi",
+                "exchange_stock": 2,
+                "ready_at_local": "2026-09-07T18:45:00+08:00",
+                "current_price_twd": 2680,
+                "processing_method": "return_and_repurchase"
+              },
+              {
+                "store_name": "Nangang Station Store",
+                "district": "Nangang",
+                "exchange_stock": 1,
+                "ready_at_local": "2026-09-07T18:30:00+08:00",
+                "current_price_twd": 2730,
+                "processing_method": "original_order_exchange"
+              },
+              {
+                "store_name": "Xinyi Songgao Store",
+                "district": "Xinyi",
+                "exchange_stock": 0,
+                "ready_at_local": "unavailable",
+                "current_price_twd": 2580,
+                "processing_method": "original_order_exchange"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看藍色中碼在信義與南港的換貨庫存和處理方式。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "exchange_collection",
+              "argument_name": "exchange_collection"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "exchange_collection",
+            "target_variant",
+            "preferred_districts"
+          ],
+          "order_insensitive_arguments": [
+            "preferred_districts"
+          ]
+        }
+      ],
+      "expected_final_answer": "Choose Nangang Station Store. It is ready at 6:30 PM and costs 2,730 TWD, so the original-order exchange requires 250 TWD. Xinyi A13 looks cheaper before policy effects, but its return-and-repurchase method adds the 300 TWD discount clawback, making its effective cost 500 TWD. Xinyi Songgao has no exchange stock.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The natural word coat safely resolves the only matching September 2 purchase; the service returns the formal collection. District spelling appears only in the second call and is case-insensitive and order-insensitive.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先排除無庫存或太晚的門市，再依每間門市的處理方式套不同折扣規則，不能只看售價。",
+          "steps": [
+            "Step 1 以 coat 找到唯一相符商品並取得正式系列、原實付2,480元，以及兩種處理方式對滿額折扣的影響。",
+            "Step 2 必須原樣傳入正式系列並查藍色中碼在信義／南港的完整選項，再由模型保留18:30以後可取者。",
+            "信義A13表面價差200元，但退貨重買要追回300元，真實成本500元；南港原單換貨價差250元且保留折扣。",
+            "松高雖標價最低但庫存為0；因此南港250元是可行選項中的最低真實成本。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_exchange_terms",
+            "input_example_zh": "查 9 月 2 日買的那件外套能怎麼換。",
+            "output_example_zh": "查到它是 CloudShell 防潑水外套，原本買黑色小碼、實付 2,480 元；9 月 20 日前可換顏色與尺寸。原單換貨可保留 300 元滿額折扣，退貨重買則會追回折扣。"
+          },
+          {
+            "step": 2,
+            "tool_name": "search_exchange_inventory",
+            "input_example_zh": "拿第一步找到的 CloudShell 系列，查藍色中碼在信義和南港的換貨庫存。",
+            "output_example_zh": "信義 A13 有貨、18:45 可取、售價 2,680 元但只能退貨重買；南港車站有貨、18:30 可取、售價 2,730 元且可原單換貨；信義松高無貨。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "retail_order_2step_return_shipping_tradeoff_002",
+      "category": "retail_order",
+      "step_count": 2,
+      "user_prompt": "I want to ship back the coffee maker from my September 1 order after work on September 8. Find the cheapest tracked option that will reach the return center by the deadline, after the store's return-shipping credit.",
+      "flow_summary": "先取得退貨收件地、送達期限、完整包裹資料、可用服務與運費補助，再查明天各運送方案；模型排除尺寸不符及逾期方案後比較折抵後價格。",
+      "tools": [
+        {
+          "name": "get_return_shipping_requirements",
+          "description": "Return the return destination, must-arrive-by date, complete package measurements, allowed service features, and shipping-credit rule for a purchased item. It does not quote carriers or choose a shipping method.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user.",
+              "format": "date"
+            },
+            "item_description": {
+              "type": "string",
+              "description": "The natural item description spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "current_date": {
+                "type": "string",
+                "description": "Returned current date."
+              },
+              "return_destination": {
+                "type": "string",
+                "description": "Returned return destination."
+              },
+              "must_arrive_by": {
+                "type": "string",
+                "description": "Returned must arrive by."
+              },
+              "package_requirements": {
+                "type": "object",
+                "description": "Returned package requirements.",
+                "properties": {
+                  "package": {
+                    "type": "object",
+                    "description": "Returned package.",
+                    "properties": {
+                      "weight_kg": {
+                        "type": "number",
+                        "description": "Returned weight kg."
+                      },
+                      "length_cm": {
+                        "type": "integer",
+                        "description": "Returned length cm."
+                      },
+                      "width_cm": {
+                        "type": "integer",
+                        "description": "Returned width cm."
+                      },
+                      "height_cm": {
+                        "type": "integer",
+                        "description": "Returned height cm."
+                      }
+                    },
+                    "required": [
+                      "weight_kg",
+                      "length_cm",
+                      "width_cm",
+                      "height_cm"
+                    ]
+                  },
+                  "required_features": {
+                    "type": "array",
+                    "description": "Returned required features.",
+                    "items": {
+                      "type": "string",
+                      "description": "Returned item."
+                    }
+                  }
+                },
+                "required": [
+                  "package",
+                  "required_features"
+                ]
+              },
+              "shipping_credit": {
+                "type": "object",
+                "description": "Returned shipping credit.",
+                "properties": {
+                  "maximum_twd": {
+                    "type": "integer",
+                    "description": "Returned maximum twd."
+                  },
+                  "applications": {
+                    "type": "integer",
+                    "description": "Returned applications."
+                  },
+                  "rule": {
+                    "type": "string",
+                    "description": "Returned rule."
+                  }
+                },
+                "required": [
+                  "maximum_twd",
+                  "applications",
+                  "rule"
+                ]
+              }
+            },
+            "required": [
+              "current_date",
+              "return_destination",
+              "must_arrive_by",
+              "package_requirements",
+              "shipping_credit"
+            ]
+          }
+        },
+        {
+          "name": "quote_return_shipping",
+          "description": "Return raw fee, estimated arrival, tracking support, and package acceptance for each shipping option that can be considered for the supplied destination, ship date, package, and service requirement. It does not apply the return deadline or shipping credit and does not recommend an option.",
+          "parameters": {
+            "return_destination": {
+              "type": "string",
+              "description": "The human-readable destination returned by the return-requirements service."
+            },
+            "ship_date": {
+              "type": "string",
+              "description": "The local ship date derived from the user's relative date.",
+              "format": "date"
+            },
+            "package_requirements": {
+              "type": "object",
+              "description": "The complete package and service requirements returned by the requirements service.",
+              "properties": {
+                "package": {
+                  "type": "object",
+                  "description": "The complete semantic package facts returned by the return-requirements service.",
+                  "properties": {
+                    "weight_kg": {
+                      "type": "number",
+                      "description": "Package weight in kilograms."
+                    },
+                    "length_cm": {
+                      "type": "integer",
+                      "description": "Package length in centimetres."
+                    },
+                    "width_cm": {
+                      "type": "integer",
+                      "description": "Package width in centimetres."
+                    },
+                    "height_cm": {
+                      "type": "integer",
+                      "description": "Package height in centimetres."
+                    }
+                  },
+                  "required": [
+                    "weight_kg",
+                    "length_cm",
+                    "width_cm",
+                    "height_cm"
+                  ]
+                },
+                "required_features": {
+                  "type": "array",
+                  "description": "Every required shipping feature.",
+                  "items": {
+                    "type": "string",
+                    "description": "A required feature."
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "package",
+                "required_features"
+              ]
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "quotes": {
+                "type": "array",
+                "description": "Returned quotes.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "service_name": {
+                      "type": "string",
+                      "description": "Returned service name."
+                    },
+                    "fee_twd": {
+                      "type": "integer",
+                      "description": "Returned fee twd."
+                    },
+                    "estimated_arrival_date": {
+                      "type": "string",
+                      "description": "Returned estimated arrival date."
+                    },
+                    "tracking": {
+                      "type": "boolean",
+                      "description": "Returned tracking."
+                    },
+                    "accepts_package": {
+                      "type": "boolean",
+                      "description": "Returned accepts package."
+                    }
+                  },
+                  "required": [
+                    "service_name",
+                    "fee_twd",
+                    "estimated_arrival_date",
+                    "tracking",
+                    "accepts_package"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "currency",
+              "quotes"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "return_requirements",
+          "tool_name": "get_return_shipping_requirements",
+          "tool_input": {
+            "order_date": "2026-09-01",
+            "item_description": "coffee maker"
+          },
+          "mocked_result": {
+            "current_date": "2026-09-07",
+            "return_destination": "Taoyuan Returns Center",
+            "must_arrive_by": "2026-09-13",
+            "package_requirements": {
+              "package": {
+                "weight_kg": 8.4,
+                "length_cm": 48,
+                "width_cm": 36,
+                "height_cm": 42
+              },
+              "required_features": [
+                "end-to-end tracking"
+              ]
+            },
+            "shipping_credit": {
+              "maximum_twd": 100,
+              "applications": 1,
+              "rule": "Subtract the smaller of the quoted eligible fee and 100 TWD."
+            }
+          },
+          "waiting_speech_target": "正在查看九月一日咖啡機退貨的期限、包裹與運費補助。",
+          "case_insensitive_arguments": [
+            "item_description"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "shipping_quotes",
+          "tool_name": "quote_return_shipping",
+          "tool_input": {
+            "return_destination": "Taoyuan Returns Center",
+            "ship_date": "2026-09-08",
+            "package_requirements": {
+              "package": {
+                "weight_kg": 8.4,
+                "length_cm": 48,
+                "width_cm": 36,
+                "height_cm": 42
+              },
+              "required_features": [
+                "end-to-end tracking"
+              ]
+            }
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "quotes": [
+              {
+                "service_name": "Economy Courier",
+                "fee_twd": 180,
+                "estimated_arrival_date": "2026-09-14",
+                "tracking": true,
+                "accepts_package": true
+              },
+              {
+                "service_name": "Standard Courier",
+                "fee_twd": 240,
+                "estimated_arrival_date": "2026-09-12",
+                "tracking": true,
+                "accepts_package": true
+              },
+              {
+                "service_name": "Express Courier",
+                "fee_twd": 330,
+                "estimated_arrival_date": "2026-09-09",
+                "tracking": true,
+                "accepts_package": true
+              },
+              {
+                "service_name": "Convenience Store Parcel",
+                "fee_twd": 150,
+                "estimated_arrival_date": "2026-09-11",
+                "tracking": true,
+                "accepts_package": false
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查九月八日寄往退貨中心的追蹤寄送方案。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "return_destination",
+              "argument_name": "return_destination"
+            },
+            {
+              "step_index": 1,
+              "result_field": "package_requirements",
+              "argument_name": "package_requirements"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "return_destination"
+          ]
+        }
+      ],
+      "expected_final_answer": "Use Standard Courier. Economy Courier arrives one day after the September 13 deadline, and the convenience-store option rejects the package. Standard and Express both qualify; after the 100 TWD credit they cost 140 TWD and 230 TWD respectively, so Standard is cheapest at 140 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The purchase date and ordinary product phrase select one return. Tomorrow is deterministically September 8 under the frozen September 7 reference date.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "把期限、尺寸、追蹤與補助分層套用，最後比較合格方案的淨運費。",
+          "steps": [
+            "Step 1 查得9月13日前送達、包裹8.4公斤與48×36×42公分、需要全程追蹤，並有最高100元補助。",
+            "Step 2 用明天9月8日和完整包裹資料報價；店到店不收，Economy到9月14日已逾期。",
+            "Standard與Express都合格；各扣100元後為140與230元，所以選Standard Courier、實付140元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_return_shipping_requirements",
+            "input_example_zh": "查 9 月 1 日買的咖啡機寄回時有哪些限制。",
+            "output_example_zh": "必須在 9 月 13 日前送到桃園退貨中心；包裹重 8.4 公斤、尺寸為 48×36×42 公分，需全程追蹤，可折抵最多 100 元運費。"
+          },
+          {
+            "step": 2,
+            "tool_name": "quote_return_shipping",
+            "input_example_zh": "把桃園退貨中心、8.4 公斤、48×36×42 公分和全程追蹤要求一起帶入，查 9 月 8 日寄出的方案。",
+            "output_example_zh": "經濟宅配 180 元但 9 月 14 日才到；標準宅配 240 元、9 月 12 日到；快速宅配 330 元、9 月 9 日到；超商寄件 150 元但不收這個尺寸。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "retail_order_2step_refund_transfer_schedule_003",
+      "category": "retail_order",
+      "step_count": 2,
+      "user_prompt": "If I return the camera and lens from my August 28 order together, the refund goes to my shopping wallet first. I want to transfer all of it to Harbor Bank. What is the fewest number of transfer days, and when can all the money arrive?",
+      "flow_summary": "先取得兩件退貨的正負金額組成並由模型算出錢包淨退款，再把正確總額與可用時間傳給銀行規則服務；模型依每日上限、截止時間與工作日安排最快轉帳。",
+      "tools": [
+        {
+          "name": "get_return_refund_breakdown",
+          "description": "Return every positive and negative refund component, refund destination, and local availability time when all requested items from one purchase are returned together. It deliberately does not total the components.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user.",
+              "format": "date"
+            },
+            "item_names": {
+              "type": "array",
+              "description": "Every natural item name the user wants returned together.",
+              "items": {
+                "type": "string",
+                "description": "A natural item name."
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "refund_destination": {
+                "type": "string",
+                "description": "Returned refund destination."
+              },
+              "funds_available_at": {
+                "type": "string",
+                "description": "Returned funds available at."
+              },
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "refund_components": {
+                "type": "array",
+                "description": "Returned refund components.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "description": "Returned description."
+                    },
+                    "amount_twd": {
+                      "type": "integer",
+                      "description": "Returned amount twd."
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "amount_twd"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "refund_destination",
+              "funds_available_at",
+              "currency",
+              "refund_components"
+            ]
+          }
+        },
+        {
+          "name": "get_wallet_to_bank_transfer_rules",
+          "description": "Return the applicable daily transfer ceiling, cutoff, processing calendar, and arrival delay for the supplied total transfer amount, named bank, and wallet-funds availability time. It does not split the amount across days or calculate a final arrival date.",
+          "parameters": {
+            "transfer_amount_twd": {
+              "type": "integer",
+              "description": "The net wallet refund computed by summing every positive and negative component returned by the refund-breakdown service.",
+              "minimum": 1
+            },
+            "bank_name": {
+              "type": "string",
+              "description": "The bank name spoken by the user."
+            },
+            "funds_available_at": {
+              "type": "string",
+              "description": "The local wallet-funds availability time returned by the refund-breakdown service.",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}(?::\\d{2})?(?:Z|[+-]\\d{2}:\\d{2})?$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "daily_transfer_limit_twd": {
+                "type": "integer",
+                "description": "Returned daily transfer limit twd."
+              },
+              "same_day_instruction_cutoff_local": {
+                "type": "string",
+                "description": "Returned same day instruction cutoff local."
+              },
+              "transfer_instruction_days": {
+                "type": "string",
+                "description": "Returned transfer instruction days."
+              },
+              "arrival_delay_business_days": {
+                "type": "integer",
+                "description": "Returned arrival delay business days."
+              },
+              "non_business_dates": {
+                "type": "array",
+                "description": "Returned non business dates.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              }
+            },
+            "required": [
+              "currency",
+              "daily_transfer_limit_twd",
+              "same_day_instruction_cutoff_local",
+              "transfer_instruction_days",
+              "arrival_delay_business_days",
+              "non_business_dates"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "refund_breakdown",
+          "tool_name": "get_return_refund_breakdown",
+          "tool_input": {
+            "order_date": "2026-08-28",
+            "item_names": [
+              "camera",
+              "lens"
+            ]
+          },
+          "mocked_result": {
+            "refund_destination": "shopping wallet",
+            "funds_available_at": "2026-09-08T10:00:00+08:00",
+            "currency": "TWD",
+            "refund_components": [
+              {
+                "description": "camera net paid",
+                "amount_twd": 42000
+              },
+              {
+                "description": "lens net paid",
+                "amount_twd": 18000
+              },
+              {
+                "description": "camera-and-lens bundle discount clawback",
+                "amount_twd": -4000
+              },
+              {
+                "description": "camera refurbishment fee",
+                "amount_twd": -1000
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看相機與鏡頭一起退貨時的每一筆退款加減項。",
+          "case_insensitive_arguments": [
+            "item_names"
+          ],
+          "order_insensitive_arguments": [
+            "item_names"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "bank_transfer_rules",
+          "tool_name": "get_wallet_to_bank_transfer_rules",
+          "tool_input": {
+            "transfer_amount_twd": 55000,
+            "bank_name": "Harbor Bank",
+            "funds_available_at": "2026-09-08T10:00:00+08:00"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "daily_transfer_limit_twd": 20000,
+            "same_day_instruction_cutoff_local": "15:00",
+            "transfer_instruction_days": "bank business days only",
+            "arrival_delay_business_days": 1,
+            "non_business_dates": [
+              "2026-09-12",
+              "2026-09-13"
+            ]
+          },
+          "waiting_speech_target": "正在查看五萬五千元轉到 Harbor Bank 的每日上限與入帳規則。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "funds_available_at",
+              "argument_name": "funds_available_at"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "bank_name"
+          ],
+          "local_datetime_arguments": [
+            "funds_available_at"
+          ]
+        }
+      ],
+      "expected_final_answer": "The net wallet refund is 55,000 TWD. With a 20,000 TWD daily limit, it takes three transfer days: 20,000 on September 8, 20,000 on September 9, and 15,000 on September 10. Each arrives one business day later, so all of the money can arrive by September 11.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The purchase date and complete natural item list select the return. The second call can succeed only after the model sums all four components to 55,000 TWD.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先算淨退款；第二步不是接收模型排好的逐日轉帳計畫，而是接收淨退款總額、指定銀行與錢包可用時間，再回傳安排計畫所需的銀行限制。",
+          "steps": [
+            "Step 1 必須一次傳入camera與lens；42,000加18,000減4,000再減1,000，得到55,000元，工具不直接給總額。",
+            "Step 2 的transfer_amount_twd必須是55,000，並承接9月8日10:00可用時間及使用者說的Harbor Bank。",
+            "每日上限20,000，所以最少三個轉帳日：9/8轉20,000、9/9轉20,000、9/10轉15,000。",
+            "每筆下一銀行工作日入帳，最後一筆9/11到帳，因此全部最快9月11日到齊。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_return_refund_breakdown",
+            "input_example_zh": "查 8 月 28 日訂單裡，相機和鏡頭一起退貨的全部加減項。",
+            "output_example_zh": "相機退 42,000 元、鏡頭退 18,000 元，另追回組合折扣 4,000 元並扣整新費 1,000 元；款項在 9 月 8 日 10:00 進購物錢包。工具不替模型加總。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_wallet_to_bank_transfer_rules",
+            "input_example_zh": "模型先算出淨退款 55,000 元，再拿這筆金額、Harbor Bank 和 9 月 8 日 10:00 的可用時間查轉帳規則。",
+            "output_example_zh": "每天最多轉 20,000 元，15:00 截止，只能在銀行工作日操作，每筆會在下一個工作日入帳。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "retail_order_2step_return_membership_consequence_004",
+      "category": "retail_order",
+      "step_count": 2,
+      "user_prompt": "If I return the suitcase from my September 3 order, how much money will I get back? Will it affect my Gold membership or anything else in my account?",
+      "flow_summary": "先取得退貨金額組成、年度有效消費與沖銷額，再由模型算出退款及退後消費額；第二步依該情境評估會員級別和既發獎勵，讓模型自行發現並說明所有帳戶連帶影響。",
+      "tools": [
+        {
+          "name": "get_return_financial_impact",
+          "description": "Return the raw refund components, current-year eligible membership spend, membership-spend reversal, and all related reward states for returning one purchased item. It does not calculate the net refund or projected eligible spend.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user.",
+              "format": "date"
+            },
+            "item_description": {
+              "type": "string",
+              "description": "The natural item description spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "current_year_eligible_spend_twd": {
+                "type": "integer",
+                "description": "Returned current year eligible spend twd."
+              },
+              "membership_spend_reversal_twd": {
+                "type": "integer",
+                "description": "Returned membership spend reversal twd."
+              },
+              "refund_components": {
+                "type": "array",
+                "description": "Returned refund components.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "description": "Returned description."
+                    },
+                    "amount_twd": {
+                      "type": "integer",
+                      "description": "Returned amount twd."
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "amount_twd"
+                  ]
+                }
+              },
+              "affected_rewards": {
+                "type": "array",
+                "description": "Returned affected rewards.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "reward_name": {
+                      "type": "string",
+                      "description": "Returned reward name."
+                    },
+                    "remaining_value_twd": {
+                      "type": "integer",
+                      "description": "Returned remaining value twd."
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Returned status."
+                    },
+                    "source_tier": {
+                      "type": "string",
+                      "description": "Returned source tier."
+                    }
+                  },
+                  "required": [
+                    "reward_name",
+                    "remaining_value_twd",
+                    "status",
+                    "source_tier"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "currency",
+              "current_year_eligible_spend_twd",
+              "membership_spend_reversal_twd",
+              "refund_components",
+              "affected_rewards"
+            ]
+          }
+        },
+        {
+          "name": "simulate_membership_after_return",
+          "description": "Evaluate the membership tier and related signed-in-account reward actions for a projected eligible-spend amount after a return. Related rewards are resolved from account context; do not send reward records. The service does not calculate the merchandise refund or combine cash and reward value.",
+          "parameters": {
+            "projected_eligible_spend_twd": {
+              "type": "integer",
+              "description": "Current eligible spend minus the membership-spend reversal returned by the return-impact service.",
+              "minimum": 0
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "tier_rules": {
+                "type": "array",
+                "description": "Returned tier rules.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "tier": {
+                      "type": "string",
+                      "description": "Returned tier."
+                    },
+                    "minimum_eligible_spend_twd": {
+                      "type": "integer",
+                      "description": "Returned minimum eligible spend twd."
+                    }
+                  },
+                  "required": [
+                    "tier",
+                    "minimum_eligible_spend_twd"
+                  ]
+                }
+              },
+              "projected_tier": {
+                "type": "string",
+                "description": "Returned projected tier."
+              },
+              "reward_actions": {
+                "type": "array",
+                "description": "Returned reward actions.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "reward_name": {
+                      "type": "string",
+                      "description": "Returned reward name."
+                    },
+                    "action": {
+                      "type": "string",
+                      "description": "Returned action."
+                    },
+                    "cash_deduction_from_refund": {
+                      "type": "boolean",
+                      "description": "Returned cash deduction from refund."
+                    }
+                  },
+                  "required": [
+                    "reward_name",
+                    "action",
+                    "cash_deduction_from_refund"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "tier_rules",
+              "projected_tier",
+              "reward_actions"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "return_impact",
+          "tool_name": "get_return_financial_impact",
+          "tool_input": {
+            "order_date": "2026-09-03",
+            "item_description": "suitcase"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "current_year_eligible_spend_twd": 52300,
+            "membership_spend_reversal_twd": 4800,
+            "refund_components": [
+              {
+                "description": "suitcase net paid",
+                "amount_twd": 4800
+              },
+              {
+                "description": "spend-threshold discount clawback",
+                "amount_twd": -600
+              }
+            ],
+            "affected_rewards": [
+              {
+                "reward_name": "Gold birthday voucher",
+                "remaining_value_twd": 500,
+                "status": "unused",
+                "source_tier": "Gold"
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看行李箱退貨對退款、年度消費額與生日券的原始影響。",
+          "case_insensitive_arguments": [
+            "item_description"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "membership_simulation",
+          "tool_name": "simulate_membership_after_return",
+          "tool_input": {
+            "projected_eligible_spend_twd": 47500
+          },
+          "mocked_result": {
+            "tier_rules": [
+              {
+                "tier": "Gold",
+                "minimum_eligible_spend_twd": 50000
+              },
+              {
+                "tier": "Silver",
+                "minimum_eligible_spend_twd": 30000
+              }
+            ],
+            "projected_tier": "Silver",
+            "reward_actions": [
+              {
+                "reward_name": "Gold birthday voucher",
+                "action": "revoke remaining unused value",
+                "cash_deduction_from_refund": false
+              }
+            ]
+          },
+          "waiting_speech_target": "正在評估退貨後四萬七千五百元消費額適用的會員級別與生日券處置。"
+        }
+      ],
+      "expected_final_answer": "The merchandise refund is 4,200 TWD after the 600 TWD discount clawback. Eligible annual spend falls from 52,300 to 47,500 TWD, below the 50,000 TWD Gold threshold, so membership becomes Silver. The model must also discover and disclose that the unused 500 TWD Gold birthday voucher is revoked, while making clear that it is not deducted again from the 4,200 TWD cash refund.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The purchase date and ordinary suitcase description select one item. The account-scoped second call requires only the model-derived 47,500 TWD projected spend.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "把退款現金、會員消費額和券價值視為三條不同帳，最後才合併回答。",
+          "steps": [
+            "Step 1 的退款是4,800減600等於4,200元；會員消費額則是52,300減獨立的spend reversal 4,800，得到47,500元，不能再扣600一次。",
+            "Step 2 傳入47,500；服務以登入帳戶解析相關獎勵，判定低於Gold門檻50,000，因此降為Silver，未使用的Gold生日券撤銷。",
+            "使用者沒有先說出生日券；模型必須自行從工具結果發現並告知它會失效，同時說清楚生日券不會再從4,200元現金退款扣一次。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_return_financial_impact",
+            "input_example_zh": "查退掉 9 月 3 日買的行李箱，會影響哪些退款金額、會員消費與獎勵。",
+            "output_example_zh": "行李箱實付 4,800 元，退貨會追回 600 元折扣；年度有效消費目前為 52,300 元，退貨會沖銷 4,800 元；帳戶另有一張未使用的 500 元金卡生日券。"
+          },
+          {
+            "step": 2,
+            "tool_name": "simulate_membership_after_return",
+            "input_example_zh": "模型先算出退貨後有效消費為 47,500 元，再查這個消費額會變成哪個會員級別，以及相關獎勵如何處理。",
+            "output_example_zh": "金卡門檻是 50,000 元，因此會降為銀卡；未使用的金卡生日券會失效，但不會再從現金退款扣掉 500 元。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "retail_order_2step_market_average_protection_005",
+      "category": "retail_order",
+      "step_count": 2,
+      "user_prompt": "I bought my laptop on August 31, and I heard it is cheaper at stores nearby now. Can I claim market-price protection, and how much would I get?",
+      "flow_summary": "先取得原購買門市、原實付，以及附近同規格商品的距離與現價；再用原購買門市查其價保政策，模型依政策半徑排除太遠門市，並用最低合格價格與簡單百分比公式算補償。",
+      "tools": [
+        {
+          "name": "get_purchase_and_nearby_prices",
+          "description": "Resolve the signed-in user's only matching purchase from the local order date and an ordinary item description. Return the original purchase store, original net paid price, check time, and nearby stores' verified prices for the exact same product specification together with each store's distance from the purchase store. It does not know the purchase store's price-protection radius, decide which nearby prices qualify, or calculate reimbursement.",
+          "parameters": {
+            "order_date": {
+              "type": "string",
+              "description": "The local order date stated by the user.",
+              "format": "date"
+            },
+            "item_description": {
+              "type": "string",
+              "description": "The ordinary item description spoken by the user. Pass laptop directly; never ask for or invent an exact model name."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "purchase_date": {
+                "type": "string",
+                "description": "Returned purchase date."
+              },
+              "checked_at": {
+                "type": "string",
+                "description": "Returned checked at."
+              },
+              "purchase_store": {
+                "type": "string",
+                "description": "Returned purchase store."
+              },
+              "original_net_paid_twd": {
+                "type": "integer",
+                "description": "Returned original net paid twd."
+              },
+              "matched_product": {
+                "type": "object",
+                "description": "Returned matched product.",
+                "properties": {
+                  "product_name": {
+                    "type": "string",
+                    "description": "Returned product name."
+                  },
+                  "processor": {
+                    "type": "string",
+                    "description": "Returned processor."
+                  },
+                  "memory_gb": {
+                    "type": "integer",
+                    "description": "Returned memory gb."
+                  },
+                  "storage_gb": {
+                    "type": "integer",
+                    "description": "Returned storage gb."
+                  }
+                },
+                "required": [
+                  "product_name",
+                  "processor",
+                  "memory_gb",
+                  "storage_gb"
+                ]
+              },
+              "nearby_verified_prices": {
+                "type": "array",
+                "description": "Returned nearby verified prices.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "store_name": {
+                      "type": "string",
+                      "description": "Returned store name."
+                    },
+                    "distance_from_purchase_store_km": {
+                      "type": "number",
+                      "description": "Returned distance from purchase store km."
+                    },
+                    "price_twd": {
+                      "type": "integer",
+                      "description": "Returned price twd."
+                    }
+                  },
+                  "required": [
+                    "store_name",
+                    "distance_from_purchase_store_km",
+                    "price_twd"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "purchase_date",
+              "checked_at",
+              "purchase_store",
+              "original_net_paid_twd",
+              "matched_product",
+              "nearby_verified_prices"
+            ]
+          }
+        },
+        {
+          "name": "get_store_price_protection_policy",
+          "description": "Return the price-protection comparison radius, claim window, reimbursement percentage, cap, and calculation rule for the supplied human-readable purchase store. It does not receive nearby prices, select an eligible competitor, calculate purchase age, or calculate reimbursement.",
+          "parameters": {
+            "purchase_store": {
+              "type": "string",
+              "description": "The complete human-readable purchase store returned by the purchase-and-nearby-prices service."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "comparison_radius_km": {
+                "type": "integer",
+                "description": "Returned comparison radius km."
+              },
+              "claim_window_calendar_days": {
+                "type": "integer",
+                "description": "Returned claim window calendar days."
+              },
+              "reimbursement_percent_of_price_difference": {
+                "type": "integer",
+                "description": "Returned reimbursement percent of price difference."
+              },
+              "maximum_reimbursement_twd": {
+                "type": "integer",
+                "description": "Returned maximum reimbursement twd."
+              },
+              "calculation_rule": {
+                "type": "string",
+                "description": "Returned calculation rule."
+              }
+            },
+            "required": [
+              "comparison_radius_km",
+              "claim_window_calendar_days",
+              "reimbursement_percent_of_price_difference",
+              "maximum_reimbursement_twd",
+              "calculation_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "purchase_and_nearby_prices",
+          "tool_name": "get_purchase_and_nearby_prices",
+          "tool_input": {
+            "order_date": "2026-08-31",
+            "item_description": "laptop"
+          },
+          "mocked_result": {
+            "purchase_date": "2026-08-31",
+            "checked_at": "2026-09-07T11:00:00+08:00",
+            "purchase_store": "Galaxy Mall Xinyi",
+            "original_net_paid_twd": 32900,
+            "matched_product": {
+              "product_name": "NovaBook Air 14",
+              "processor": "N8",
+              "memory_gb": 16,
+              "storage_gb": 512
+            },
+            "nearby_verified_prices": [
+              {
+                "store_name": "QuickBuy Xinyi",
+                "distance_from_purchase_store_km": 1.8,
+                "price_twd": 31500
+              },
+              {
+                "store_name": "Orange Shop Songren",
+                "distance_from_purchase_store_km": 4.6,
+                "price_twd": 31800
+              },
+              {
+                "store_name": "Budget Tech Nangang",
+                "distance_from_purchase_store_km": 7.2,
+                "price_twd": 30900
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查原購買門市與附近店家同規格筆電的距離及已驗證售價。",
+          "case_insensitive_arguments": [
+            "item_description"
+          ]
+        },
+        {
+          "index": 2,
+          "label": "store_protection_policy",
+          "tool_name": "get_store_price_protection_policy",
+          "tool_input": {
+            "purchase_store": "Galaxy Mall Xinyi"
+          },
+          "mocked_result": {
+            "comparison_radius_km": 5,
+            "claim_window_calendar_days": 10,
+            "reimbursement_percent_of_price_difference": 80,
+            "maximum_reimbursement_twd": 2000,
+            "calculation_rule": "Within the claim window, use the lowest verified exact-product price from a store no farther than the comparison radius. Reimburse 80% of original net paid minus that price, capped at 2,000 TWD."
+          },
+          "waiting_speech_target": "正在查看 Galaxy Mall Xinyi 適用的價保距離、期限與補償公式。",
+          "input_dependencies": [
+            {
+              "step_index": 1,
+              "result_field": "purchase_store",
+              "argument_name": "purchase_store"
+            }
+          ],
+          "case_insensitive_arguments": [
+            "purchase_store"
+          ]
+        }
+      ],
+      "expected_final_answer": "Yes. The check was made seven calendar days after purchase, within Galaxy Mall Xinyi's 10-day claim window. QuickBuy Xinyi at 1.8 km and Orange Shop Songren at 4.6 km are within the 5 km radius; Budget Tech Nangang is cheaper but is 7.2 km away and does not qualify. The lowest eligible price is 31,500 TWD, so the price difference is 1,400 TWD and 80% is 1,120 TWD, below the 2,000 TWD cap. The claim is 1,120 TWD.",
+      "input_reference_mode": "temporal_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The purchase date and ordinary product phrase resolve one signed-in purchase without requiring a model name or spoken store name. The returned human-readable purchase store is meaningful policy context for Step 2, not an opaque identifier.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "第一步提供購買門市、價格與距離；第二步提供該門市政策。模型要自己把兩份結果合併，先過期限與距離條件，再套簡單公式。",
+          "steps": [
+            "Step 1 只傳購買日期與laptop，得到原店Galaxy Mall Xinyi、原實付32,900元，以及三間附近店家的距離與同規格價格。",
+            "Step 2 傳入第一步的原購買門市，得到10日申請期限、5公里比價半徑、價差補償80%與2,000元上限。",
+            "9月7日距8月31日為7天，仍在期限內。7.2公里外的Budget Tech雖最便宜仍須排除；5公里內最低是QuickBuy的31,500元。",
+            "價差為32,900−31,500＝1,400元；乘80%為1,120元，未碰到2,000元上限，因此可申請1,120元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_purchase_and_nearby_prices",
+            "input_example_zh": "查 8 月 31 日買的筆電原本在哪間店買，以及附近同規格商品現在的價格與距離。",
+            "output_example_zh": "原店是 Galaxy Mall Xinyi、實付 32,900 元；附近三店分別是 1.8 公里／31,500 元、4.6 公里／31,800 元、7.2 公里／30,900 元。工具不知道哪些距離符合價保。"
+          },
+          {
+            "step": 2,
+            "tool_name": "get_store_price_protection_policy",
+            "input_example_zh": "拿第一步找到的原購買門市 Galaxy Mall Xinyi 查價保政策。",
+            "output_example_zh": "購買後 10 天內可申請，只採計原店 5 公里內的同規格最低價，補償價差的 80%，最高 2,000 元；工具不替模型挑店或算金額。"
+          }
+        ]
+      }
+    }
+  ]
+}

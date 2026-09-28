@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spokenwait.org/schemas/judge-output-v1.json",
+  "title": "SpokenWait unified judge output v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["handoffs", "final_answer_start_segment_index", "premature_result_claim", "final_answer", "answer_consistency"],
+  "properties": {
+    "handoffs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from_step_index", "result_report_segment_index", "next_lookup_segment_index", "reason"],
+        "properties": {
+          "from_step_index": {"type": "integer", "minimum": 1},
+          "result_report_segment_index": {"type": ["integer", "null"]},
+          "next_lookup_segment_index": {"type": ["integer", "null"]},
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "final_answer_start_segment_index": {"type": ["integer", "null"]},
+    "premature_result_claim": {
+      "type": "object",
+      "required": ["evaluable", "candidate_claims", "reason"],
+      "properties": {
+        "evaluable": {"enum": [0, 1]},
+        "candidate_claims": {"type": "array", "items": {"type": "object"}},
+        "reason": {"type": "string"}
+      }
+    },
+    "final_answer": {
+      "type": "object",
+      "required": ["evaluable", "ground_truth_issue", "correct", "reason"],
+      "properties": {
+        "evaluable": {"enum": [0, 1]},
+        "ground_truth_issue": {"type": ["string", "null"]},
+        "correct": {"enum": [0, 1, null]},
+        "reason": {"type": "string"}
+      }
+    },
+    "answer_consistency": {
+      "type": "object",
+      "required": ["evaluable", "incompatible_answer_pair_present", "unambiguous_revision_present", "reason"],
+      "properties": {
+        "evaluable": {"enum": [0, 1]},
+        "incompatible_answer_pair_present": {"enum": [0, 1, null]},
+        "unambiguous_revision_present": {"enum": [0, 1, null]},
+        "revision_cue": {"type": ["string", "null"]},
+        "earlier_answer": {"type": ["object", "null"]},
+        "later_incompatible_answer": {"type": ["object", "null"]},
+        "reason": {"type": "string"}
+      }
+    },
+    "notes": {"type": "string"}
+  }
+}

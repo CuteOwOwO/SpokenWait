@@ -1,0 +1,886 @@
+{
+  "category": "subscription_billing",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "subscription_billing_1step_payment_ledger_001",
+      "category": "subscription_billing",
+      "step_count": 1,
+      "user_prompt": "I see several 390-dollar entries around my September subscription renewal. After every pending entry and reversal has finished settling, did I end up paying for the renewal more than once, and what net amount remained charged?",
+      "flow_summary": "取得九月續訂前後的原始付款事件與事件語意；模型排除失效預授權，將請款和沖銷配對後重建有效扣款次數與淨入帳金額。",
+      "tools": [
+        {
+          "name": "get_my_subscription_payment_ledger",
+          "description": "Return all payment-ledger events around the signed-in user's subscription renewal for a billing month, together with the accounting effect of each event type. It does not determine whether the user was effectively charged more than once, count effective charges, or calculate the net settled amount.",
+          "parameters": {
+            "billing_month": {
+              "type": "string",
+              "description": "The local subscription billing month stated by the user, in YYYY-MM format.",
+              "pattern": "^\\d{4}-\\d{2}$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "renewal_description": {
+                "type": "string",
+                "description": "Returned renewal description."
+              },
+              "ledger_events": {
+                "type": "array",
+                "description": "Returned ledger events.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "occurred_at": {
+                      "type": "string",
+                      "description": "Returned occurred at."
+                    },
+                    "entry_label": {
+                      "type": "string",
+                      "description": "Returned entry label."
+                    },
+                    "statement_description": {
+                      "type": "string",
+                      "description": "Returned statement description."
+                    },
+                    "event_type": {
+                      "type": "string",
+                      "description": "Returned event type."
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Returned status."
+                    },
+                    "amount_twd": {
+                      "type": "integer",
+                      "description": "Returned amount twd."
+                    },
+                    "related_entry_label": {
+                      "type": "string",
+                      "description": "Returned related entry label."
+                    }
+                  },
+                  "required": [
+                    "occurred_at",
+                    "entry_label",
+                    "statement_description",
+                    "event_type",
+                    "status",
+                    "amount_twd",
+                    "related_entry_label"
+                  ]
+                }
+              },
+              "ledger_semantics": {
+                "type": "object",
+                "description": "Returned ledger semantics.",
+                "properties": {
+                  "authorization": {
+                    "type": "string",
+                    "description": "Returned authorization."
+                  },
+                  "capture": {
+                    "type": "string",
+                    "description": "Returned capture."
+                  },
+                  "reversal": {
+                    "type": "string",
+                    "description": "Returned reversal."
+                  }
+                },
+                "required": [
+                  "authorization",
+                  "capture",
+                  "reversal"
+                ]
+              }
+            },
+            "required": [
+              "currency",
+              "renewal_description",
+              "ledger_events",
+              "ledger_semantics"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "subscription_billing_facts",
+          "tool_name": "get_my_subscription_payment_ledger",
+          "tool_input": {
+            "billing_month": "2026-09"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "renewal_description": "September Pro subscription renewal",
+            "ledger_events": [
+              {
+                "occurred_at": "2026-09-01T08:58:00+08:00",
+                "entry_label": "temporary card authorization",
+                "statement_description": "Pro renewal pending authorization",
+                "event_type": "authorization",
+                "status": "expired",
+                "amount_twd": 390,
+                "related_entry_label": "none"
+              },
+              {
+                "occurred_at": "2026-09-01T09:01:00+08:00",
+                "entry_label": "first renewal capture",
+                "statement_description": "Pro renewal payment",
+                "event_type": "capture",
+                "status": "settled",
+                "amount_twd": 390,
+                "related_entry_label": "none"
+              },
+              {
+                "occurred_at": "2026-09-01T09:02:00+08:00",
+                "entry_label": "duplicate renewal capture",
+                "statement_description": "Pro renewal payment duplicate",
+                "event_type": "capture",
+                "status": "settled",
+                "amount_twd": 390,
+                "related_entry_label": "none"
+              },
+              {
+                "occurred_at": "2026-09-02T10:00:00+08:00",
+                "entry_label": "duplicate-capture reversal",
+                "statement_description": "Reversal of duplicate Pro renewal payment",
+                "event_type": "reversal",
+                "status": "settled",
+                "amount_twd": 390,
+                "related_entry_label": "duplicate renewal capture"
+              }
+            ],
+            "ledger_semantics": {
+              "authorization": "An authorization does not change the settled balance; an expired authorization contributes zero.",
+              "capture": "A settled capture adds its amount to the settled balance.",
+              "reversal": "A settled reversal subtracts its amount and neutralizes the related settled capture."
+            }
+          },
+          "waiting_speech_target": "正在核對九月續訂前後的預授權、請款與沖銷紀錄。"
+        }
+      ],
+      "expected_final_answer": "No, there is only one effective charge. The expired 390 TWD authorization contributes zero. The two settled captures add 780 TWD, but the settled 390 TWD reversal neutralizes the duplicate capture, leaving a net settled amount of 390 TWD.",
+      "input_reference_mode": "natural_account_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The billing month is a natural statement from the user; all private ledger entries are retrieved from the signed-in account without a transaction ID.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "不能數畫面上有幾筆390元；必須按事件類型與狀態重建settled balance，並將沖銷和對應請款配對。",
+          "steps": [
+            "Expired authorization不影響實際入帳，先排除390元。",
+            "兩筆settled capture合計780元；settled reversal沖回duplicate capture的390元。",
+            "淨入帳為390元，且第二筆請款已被完整中和，因此只有一次有效扣款。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_subscription_payment_ledger",
+            "input_example_zh": "查我九月訂閱續訂前後所有 390 元的付款紀錄。",
+            "output_example_zh": "依時間回傳四筆 390 元：9/1 08:58 已失效預授權、09:01 正常請款、09:02 重複請款，以及 9/2 10:00 明確指向重複請款的沖銷；另說明各事件如何影響實際入帳。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_1step_tiered_overage_002",
+      "category": "subscription_billing",
+      "step_count": 1,
+      "user_prompt": "How much data-export overage fee did I incur in August 2026 after my included usage and any courtesy waiver?",
+      "flow_summary": "取得最終用量、內含額度、一次性寬免、套用順序與累進費率；模型算出實際超量，再跨兩個級距計費。",
+      "tools": [
+        {
+          "name": "get_my_usage_charge_inputs",
+          "description": "Return the signed-in user's finalized usage, included allowance, applicable courtesy waiver, application order, and progressive overage tiers for one billing period and natural usage type. It does not calculate billable overage or the overage fee.",
+          "parameters": {
+            "billing_period": {
+              "type": "string",
+              "description": "The billing month stated by the user, in YYYY-MM format.",
+              "pattern": "^\\d{4}-\\d{2}$"
+            },
+            "usage_type": {
+              "type": "string",
+              "description": "The natural usage type spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "usage_amount": {
+                "type": "integer",
+                "description": "Returned usage amount."
+              },
+              "usage_unit": {
+                "type": "string",
+                "description": "Returned usage unit."
+              },
+              "included_amount": {
+                "type": "integer",
+                "description": "Returned included amount."
+              },
+              "courtesy_waiver_amount": {
+                "type": "integer",
+                "description": "Returned courtesy waiver amount."
+              },
+              "application_order": {
+                "type": "string",
+                "description": "Returned application order."
+              },
+              "overage_tiers": {
+                "type": "array",
+                "description": "Returned overage tiers.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "tier_order": {
+                      "type": "integer",
+                      "description": "Returned tier order."
+                    },
+                    "quantity_limit_gb": {
+                      "description": "Returned numeric tier limit, or a phrase indicating that the tier covers all remaining billable overage.",
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "rate_twd_per_gb": {
+                      "type": "integer",
+                      "description": "Returned rate twd per gb."
+                    }
+                  },
+                  "required": [
+                    "tier_order",
+                    "quantity_limit_gb",
+                    "rate_twd_per_gb"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "currency",
+              "usage_amount",
+              "usage_unit",
+              "included_amount",
+              "courtesy_waiver_amount",
+              "application_order",
+              "overage_tiers"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "subscription_billing_facts",
+          "tool_name": "get_my_usage_charge_inputs",
+          "tool_input": {
+            "billing_period": "2026-08",
+            "usage_type": "data export"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "usage_amount": 188,
+            "usage_unit": "GB",
+            "included_amount": 100,
+            "courtesy_waiver_amount": 8,
+            "application_order": "Subtract the courtesy waiver from finalized usage, then subtract the included allowance, then apply the progressive tiers to the remaining billable overage.",
+            "overage_tiers": [
+              {
+                "tier_order": 1,
+                "quantity_limit_gb": 50,
+                "rate_twd_per_gb": 2
+              },
+              {
+                "tier_order": 2,
+                "quantity_limit_gb": "all remaining billable overage",
+                "rate_twd_per_gb": 1
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看八月資料匯出的最終用量、免費額度與累進費率。",
+          "case_insensitive_arguments": [
+            "usage_type"
+          ]
+        }
+      ],
+      "expected_final_answer": "The billable overage is 80 GB: 188 minus the 8 GB waiver and 100 GB included allowance. The first 50 GB costs 100 TWD and the remaining 30 GB costs 30 TWD, so the total overage fee is 130 TWD.",
+      "input_reference_mode": "natural_account_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The user supplies a billing period and ordinary usage name; the service resolves the signed-in subscription and any account-specific waiver.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先依服務規定的順序套寬免與內含額度，再把剩餘超量用量分段套累進費率。",
+          "steps": [
+            "188GB先扣8GB courtesy waiver，再扣100GB included allowance，剩80GB billable overage。",
+            "第一級50GB乘每GB 2元，為100元；其餘30GB乘每GB 1元，為30元。",
+            "總超量費為130元，不能把全部80GB套第二級費率。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_my_usage_charge_inputs",
+            "input_example_zh": "查我 2026 年 8 月資料匯出的用量、免費額度、寬免與超量費率。",
+            "output_example_zh": "回傳使用 188 GB、內含 100 GB、本月寬免 8 GB；超量前 50 GB 每 GB 2 元，其餘每 GB 1 元，但不直接算費用。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_1step_addon_cancellation_savings_003",
+      "category": "subscription_billing",
+      "step_count": 1,
+      "user_prompt": "If I cancel my video add-on, how much will my next monthly subscription bill actually decrease?",
+      "flow_summary": "取得目前主方案、附加服務與組合折扣，以及取消後仍適用的單方案優惠；模型重建取消前後月費並計算真正減少額。",
+      "tools": [
+        {
+          "name": "get_addon_cancellation_bill_inputs",
+          "description": "Return the signed-in user's current recurring subscription components and the raw discount rules that apply with and without the named add-on. It does not calculate the current bill, projected bill, or actual savings.",
+          "parameters": {
+            "add_on_name": {
+              "type": "string",
+              "description": "The natural add-on name the user wants to cancel."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "billing_interval": {
+                "type": "string",
+                "description": "Returned billing interval."
+              },
+              "recurring_components": {
+                "type": "array",
+                "description": "Returned recurring components.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "component_name": {
+                      "type": "string",
+                      "description": "Returned component name."
+                    },
+                    "monthly_price_twd": {
+                      "type": "integer",
+                      "description": "Returned monthly price twd."
+                    }
+                  },
+                  "required": [
+                    "component_name",
+                    "monthly_price_twd"
+                  ]
+                }
+              },
+              "discount_rules": {
+                "type": "array",
+                "description": "Returned discount rules.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "rule_name": {
+                      "type": "string",
+                      "description": "Returned rule name."
+                    },
+                    "condition": {
+                      "type": "string",
+                      "description": "Returned condition."
+                    },
+                    "monthly_discount_twd": {
+                      "type": "integer",
+                      "description": "Returned monthly discount twd."
+                    }
+                  },
+                  "required": [
+                    "rule_name",
+                    "condition",
+                    "monthly_discount_twd"
+                  ]
+                }
+              },
+              "cancellation_timing": {
+                "type": "string",
+                "description": "Returned cancellation timing."
+              }
+            },
+            "required": [
+              "currency",
+              "billing_interval",
+              "recurring_components",
+              "discount_rules",
+              "cancellation_timing"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "subscription_billing_facts",
+          "tool_name": "get_addon_cancellation_bill_inputs",
+          "tool_input": {
+            "add_on_name": "video add-on"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "billing_interval": "monthly",
+            "recurring_components": [
+              {
+                "component_name": "Core plan",
+                "monthly_price_twd": 390
+              },
+              {
+                "component_name": "Video add-on",
+                "monthly_price_twd": 120
+              }
+            ],
+            "discount_rules": [
+              {
+                "rule_name": "Core plus video bundle discount",
+                "condition": "Core plan and Video add-on are both active",
+                "monthly_discount_twd": 100
+              },
+              {
+                "rule_name": "Core-only loyalty discount",
+                "condition": "Core plan remains active without the Video add-on",
+                "monthly_discount_twd": 20
+              }
+            ],
+            "cancellation_timing": "Cancellation takes effect before the next monthly invoice; no partial-month charge or credit appears on that invoice."
+          },
+          "waiting_speech_target": "正在查看影音附加服務取消前後會適用的月費與折扣規則。",
+          "case_insensitive_arguments": [
+            "add_on_name"
+          ]
+        }
+      ],
+      "expected_final_answer": "The current monthly bill is 410 TWD: 390 plus 120 minus the 100 TWD bundle discount. After cancellation it becomes 370 TWD: 390 minus the 20 TWD core-only loyalty discount. The next bill therefore decreases by only 40 TWD.",
+      "input_reference_mode": "natural_account_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The ordinary add-on name is sufficient account context; no subscription or component ID is required.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "不能把120元附加服務價格直接當成節省額；取消同時改變折扣，必須重建前後兩張帳單。",
+          "steps": [
+            "取消前月費是390加120減100，等於410元。",
+            "取消後只剩390元主方案，但改套20元單方案優惠，所以新月費370元。",
+            "410減370等於40元；取消標價120元的服務，實際只少40元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_addon_cancellation_bill_inputs",
+            "input_example_zh": "查取消我帳戶的影音附加服務時，取消前後分別會套用哪些月費和折扣。",
+            "output_example_zh": "回傳主方案 390 元、影音附加服務 120 元、兩者並存折 100 元；取消後主方案改折 20 元，但不直接算新帳單或省多少。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_1step_member_day_billing_004",
+      "category": "subscription_billing",
+      "step_count": 1,
+      "user_prompt": "I manage our company workspace and I am checking the September 2026 bill. A few coworkers joined and left during the month. What should the subscription subtotal be before tax?",
+      "flow_summary": "取得工作區方案、內含成員數、額外成員月費與月內有效成員區間；模型將不同區間換算成額外member-days後重建稅前小計。",
+      "tools": [
+        {
+          "name": "get_workspace_member_billing_inputs",
+          "description": "Return the signed-in workspace's base subscription fee, included-member allowance, extra-member monthly price, billing-period day count, and effective active-member intervals for one billing month. It does not calculate extra member-days, proration, or the subtotal.",
+          "parameters": {
+            "billing_month": {
+              "type": "string",
+              "description": "The workspace billing month stated by the user, in YYYY-MM format.",
+              "pattern": "^\\d{4}-\\d{2}$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Returned currency."
+              },
+              "billing_period": {
+                "type": "object",
+                "description": "Returned billing period.",
+                "properties": {
+                  "start_inclusive": {
+                    "type": "string",
+                    "description": "Returned start inclusive."
+                  },
+                  "end_exclusive": {
+                    "type": "string",
+                    "description": "Returned end exclusive."
+                  },
+                  "day_count": {
+                    "type": "integer",
+                    "description": "Returned day count."
+                  }
+                },
+                "required": [
+                  "start_inclusive",
+                  "end_exclusive",
+                  "day_count"
+                ]
+              },
+              "base_monthly_fee_twd": {
+                "type": "integer",
+                "description": "Returned base monthly fee twd."
+              },
+              "included_active_members": {
+                "type": "integer",
+                "description": "Returned included active members."
+              },
+              "extra_member_monthly_fee_twd": {
+                "type": "integer",
+                "description": "Returned extra member monthly fee twd."
+              },
+              "active_member_intervals": {
+                "type": "array",
+                "description": "Returned active member intervals.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "start_inclusive": {
+                      "type": "string",
+                      "description": "Returned start inclusive."
+                    },
+                    "end_exclusive": {
+                      "type": "string",
+                      "description": "Returned end exclusive."
+                    },
+                    "active_members": {
+                      "type": "integer",
+                      "description": "Returned active members."
+                    }
+                  },
+                  "required": [
+                    "start_inclusive",
+                    "end_exclusive",
+                    "active_members"
+                  ]
+                }
+              },
+              "proration_rule": {
+                "type": "string",
+                "description": "Returned proration rule."
+              }
+            },
+            "required": [
+              "currency",
+              "billing_period",
+              "base_monthly_fee_twd",
+              "included_active_members",
+              "extra_member_monthly_fee_twd",
+              "active_member_intervals",
+              "proration_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "subscription_billing_facts",
+          "tool_name": "get_workspace_member_billing_inputs",
+          "tool_input": {
+            "billing_month": "2026-09"
+          },
+          "mocked_result": {
+            "currency": "TWD",
+            "billing_period": {
+              "start_inclusive": "2026-09-01",
+              "end_exclusive": "2026-10-01",
+              "day_count": 30
+            },
+            "base_monthly_fee_twd": 900,
+            "included_active_members": 3,
+            "extra_member_monthly_fee_twd": 300,
+            "active_member_intervals": [
+              {
+                "start_inclusive": "2026-09-01",
+                "end_exclusive": "2026-09-10",
+                "active_members": 3
+              },
+              {
+                "start_inclusive": "2026-09-10",
+                "end_exclusive": "2026-09-21",
+                "active_members": 5
+              },
+              {
+                "start_inclusive": "2026-09-21",
+                "end_exclusive": "2026-10-01",
+                "active_members": 4
+              }
+            ],
+            "proration_rule": "For each interval, charge only active members above the included allowance. Convert the extra-member monthly price to a daily price using the billing period's day count. Sum exact member-days, add the base fee, then round the final subtotal to the nearest whole TWD, half up."
+          },
+          "waiting_speech_target": "正在核對公司工作區九月的成員人數變動與按日計費規則。"
+        }
+      ],
+      "expected_final_answer": "There are 22 extra member-days from September 10 through 20 and 10 extra member-days from September 21 through 30, for 32 total. At 300 divided by 30, each extra member-day costs 10 TWD, so the extra charge is 320 TWD. Adding the 900 TWD base fee gives a pre-tax subtotal of 1,220 TWD.",
+      "input_reference_mode": "natural_account_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The billing month is spoken naturally; the signed-in workspace supplies its private membership history without requiring employee names or member IDs.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "把公司成員變動轉成各區間超出內含人數的member-days，再以月費除帳期天數計價。",
+          "steps": [
+            "9/1至9/9只有3人，沒有額外成員；9/10至9/20共11天、每天多2人，為22 member-days。",
+            "9/21至9/30共10天、每天多1人，為10 member-days；總共32。",
+            "每位額外成員每日300÷30＝10元；32×10＝320元，加基本費900元，稅前1,220元。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_workspace_member_billing_inputs",
+            "input_example_zh": "查公司工作區 2026 年 9 月的方案費用、內含人數和整個月的有效成員變動。",
+            "output_example_zh": "回傳基本費 900 元、內含 3 人、額外成員每月 300 元，以及三段有效成員人數區間，但不直接算按日費用。"
+          }
+        ]
+      }
+    },
+    {
+      "id": "subscription_billing_1step_storage_downgrade_006",
+      "category": "subscription_billing",
+      "step_count": 1,
+      "user_prompt": "I want to downgrade my cloud storage to Basic at my next renewal. How much space do I need to clear to stay within the limit, and if I do nothing, when will uploads be blocked?",
+      "flow_summary": "取得目前各類儲存占用、降級前已排定的系統清理、Basic容量及超額寬限政策；模型先預測生效時占用，再算手動清理量與封鎖日期。",
+      "tools": [
+        {
+          "name": "get_storage_downgrade_inputs",
+          "description": "Return the signed-in user's next-renewal downgrade date, current storage breakdown, scheduled system cleanup before that date, target-plan quota, quota-counting rule, and over-quota grace policy. It does not calculate projected usage, required manual cleanup, or the upload-block date.",
+          "parameters": {
+            "target_plan": {
+              "type": "string",
+              "description": "The natural target plan name spoken by the user."
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "timezone": {
+                "type": "string",
+                "description": "Returned timezone."
+              },
+              "downgrade_effective_at": {
+                "type": "string",
+                "description": "Returned downgrade effective at."
+              },
+              "target_plan": {
+                "type": "object",
+                "description": "Returned target plan.",
+                "properties": {
+                  "plan_name": {
+                    "type": "string",
+                    "description": "Returned plan name."
+                  },
+                  "storage_quota_gb": {
+                    "type": "integer",
+                    "description": "Returned storage quota gb."
+                  }
+                },
+                "required": [
+                  "plan_name",
+                  "storage_quota_gb"
+                ]
+              },
+              "current_storage": {
+                "type": "array",
+                "description": "Returned current storage.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "storage_category": {
+                      "type": "string",
+                      "description": "Returned storage category."
+                    },
+                    "amount_gb": {
+                      "type": "integer",
+                      "description": "Returned amount gb."
+                    }
+                  },
+                  "required": [
+                    "storage_category",
+                    "amount_gb"
+                  ]
+                }
+              },
+              "quota_counting_rule": {
+                "type": "string",
+                "description": "Returned quota counting rule."
+              },
+              "scheduled_system_actions": {
+                "type": "array",
+                "description": "Returned scheduled system actions.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "executes_at": {
+                      "type": "string",
+                      "description": "Returned executes at."
+                    },
+                    "action": {
+                      "type": "string",
+                      "description": "Returned action."
+                    },
+                    "amount_removed_gb": {
+                      "type": "integer",
+                      "description": "Returned amount removed gb."
+                    }
+                  },
+                  "required": [
+                    "executes_at",
+                    "action",
+                    "amount_removed_gb"
+                  ]
+                }
+              },
+              "over_quota_policy": {
+                "type": "object",
+                "description": "Returned over quota policy.",
+                "properties": {
+                  "grace_period_full_calendar_days": {
+                    "type": "integer",
+                    "description": "Returned grace period full calendar days."
+                  },
+                  "grace_starts_on": {
+                    "type": "string",
+                    "description": "Returned grace starts on."
+                  },
+                  "access_during_grace": {
+                    "type": "string",
+                    "description": "Returned access during grace."
+                  },
+                  "enforcement_rule": {
+                    "type": "string",
+                    "description": "Returned enforcement rule."
+                  }
+                },
+                "required": [
+                  "grace_period_full_calendar_days",
+                  "grace_starts_on",
+                  "access_during_grace",
+                  "enforcement_rule"
+                ]
+              }
+            },
+            "required": [
+              "timezone",
+              "downgrade_effective_at",
+              "target_plan",
+              "current_storage",
+              "quota_counting_rule",
+              "scheduled_system_actions",
+              "over_quota_policy"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "subscription_billing_facts",
+          "tool_name": "get_storage_downgrade_inputs",
+          "tool_input": {
+            "target_plan": "Basic"
+          },
+          "mocked_result": {
+            "timezone": "Asia/Taipei",
+            "downgrade_effective_at": "2026-10-01T00:00:00+08:00",
+            "target_plan": {
+              "plan_name": "Basic",
+              "storage_quota_gb": 200
+            },
+            "current_storage": [
+              {
+                "storage_category": "active files",
+                "amount_gb": 186
+              },
+              {
+                "storage_category": "version history",
+                "amount_gb": 28
+              },
+              {
+                "storage_category": "trash",
+                "amount_gb": 14
+              }
+            ],
+            "quota_counting_rule": "Active files, version history, and trash all count toward quota until the relevant data is permanently removed.",
+            "scheduled_system_actions": [
+              {
+                "executes_at": "2026-09-30T00:00:00+08:00",
+                "action": "permanently purge all current trash",
+                "amount_removed_gb": 14
+              }
+            ],
+            "over_quota_policy": {
+              "grace_period_full_calendar_days": 7,
+              "grace_starts_on": "downgrade effective local date",
+              "access_during_grace": "uploads, downloads, and deletions remain available",
+              "enforcement_rule": "If usage is still above quota, block uploads at 00:00 local time on the calendar day immediately after all grace days have elapsed."
+            }
+          },
+          "waiting_speech_target": "正在查看下次續訂降級前的儲存占用、系統清理與超額寬限規則。",
+          "case_insensitive_arguments": [
+            "target_plan"
+          ]
+        }
+      ],
+      "expected_final_answer": "The scheduled trash purge removes 14 GB before the downgrade, leaving 214 GB: 186 GB of active files plus 28 GB of version history. To meet Basic's 200 GB quota, you must manually clear another 14 GB. If you do nothing, the seven full grace days are October 1 through October 7, so uploads are blocked at 12:00 AM on October 8, 2026.",
+      "input_reference_mode": "natural_account_query",
+      "first_stage_difficulty": "high",
+      "first_stage_input_rationale": "The user only needs to name the human-readable target plan. Current usage, system cleanup, renewal timing, and account policy are private facts returned by the service.",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "使用者沒有先提垃圾桶；模型必須自己發現降級前會自動清除，不能把它重複算進手動需求，之後再套七個完整寬限日。",
+          "steps": [
+            "目前總量228GB，但9月30日系統會自動永久清掉14GB垃圾桶；10月1日生效時預計剩214GB。",
+            "Basic上限200GB，因此使用者還需手動移除14GB，而不是28GB。",
+            "若不處理，10月1日至10月7日為七個完整寬限日；10月8日00:00開始禁止上傳。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "tool_name": "get_storage_downgrade_inputs",
+            "input_example_zh": "拿使用者想降級的 Basic 方案，查下次續訂時間、目前儲存組成、已排定系統清理與超額政策。",
+            "output_example_zh": "回傳一般檔案 186 GB、版本紀錄 28 GB、垃圾桶 14 GB；垃圾桶會在降級前自動清除，Basic 上限 200 GB，超標後有七個完整寬限日。"
+          }
+        ]
+      }
+    }
+  ]
+}

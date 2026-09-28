@@ -1,0 +1,846 @@
+{
+  "category": "weather",
+  "step_count": 1,
+  "tasks": [
+    {
+      "id": "weather_1step_rotating_windbreak_001",
+      "category": "weather",
+      "step_count": 1,
+      "user_prompt": "The Riverside Market is open from 2 to 6 PM on September 12. Our square canopy can close two adjacent sides at a time. Which sides should we close at the start, and when should we rotate them so we follow the market's wind-safety rule throughout?",
+      "flow_summary": "查市場場地與活動期間的逐時風向及防風牆規則；模型把風向分段，決定起始關閉面與唯一一次換向時間。",
+      "tools": [
+        {
+          "name": "get_market_wind_safety_forecast",
+          "description": "Return the venue's canopy orientation, hourly incoming wind direction and gusts, plus the raw windbreak rule for the supplied market date. It does not choose sides or a rotation time.",
+          "parameters": {
+            "venue_name": {
+              "type": "string",
+              "description": "The public market venue named by the user.",
+              "enum": [
+                "Riverside Market",
+                "Harbor Market",
+                "Hilltop Market",
+                "Station Market"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local market date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "event_window_local": {
+                "type": "object",
+                "description": "Returned event window local.",
+                "properties": {
+                  "starts_at": {
+                    "type": "string",
+                    "description": "Returned starts at."
+                  },
+                  "ends_at": {
+                    "type": "string",
+                    "description": "Returned ends at."
+                  }
+                },
+                "required": [
+                  "starts_at",
+                  "ends_at"
+                ]
+              },
+              "canopy_sides": {
+                "type": "array",
+                "description": "Returned canopy sides.",
+                "items": {
+                  "type": "string",
+                  "description": "Returned item."
+                }
+              },
+              "hourly_wind": {
+                "type": "array",
+                "description": "Returned hourly wind.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "starts_at": {
+                      "type": "string",
+                      "description": "Returned starts at."
+                    },
+                    "wind_from": {
+                      "type": "string",
+                      "description": "Returned wind from."
+                    },
+                    "gust_kph": {
+                      "type": "integer",
+                      "description": "Returned gust kph."
+                    }
+                  },
+                  "required": [
+                    "starts_at",
+                    "wind_from",
+                    "gust_kph"
+                  ]
+                }
+              },
+              "windbreak_rule": {
+                "type": "string",
+                "description": "Returned windbreak rule."
+              }
+            },
+            "required": [
+              "event_window_local",
+              "canopy_sides",
+              "hourly_wind",
+              "windbreak_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "weather_facts",
+          "tool_name": "get_market_wind_safety_forecast",
+          "tool_input": {
+            "venue_name": "Riverside Market",
+            "event_date": "2026-09-12"
+          },
+          "mocked_result": {
+            "event_window_local": {
+              "starts_at": "2026-09-12T14:00:00+08:00",
+              "ends_at": "2026-09-12T18:00:00+08:00"
+            },
+            "canopy_sides": [
+              "north",
+              "east",
+              "south",
+              "west"
+            ],
+            "hourly_wind": [
+              {
+                "starts_at": "2026-09-12T14:00:00+08:00",
+                "wind_from": "west",
+                "gust_kph": 31
+              },
+              {
+                "starts_at": "2026-09-12T15:00:00+08:00",
+                "wind_from": "west",
+                "gust_kph": 34
+              },
+              {
+                "starts_at": "2026-09-12T16:00:00+08:00",
+                "wind_from": "north",
+                "gust_kph": 32
+              },
+              {
+                "starts_at": "2026-09-12T17:00:00+08:00",
+                "wind_from": "north",
+                "gust_kph": 29
+              }
+            ],
+            "windbreak_rule": "When gusts are at least 25 kph, close the side the wind comes from and the next side clockwise. Reconfigure at the beginning of the first hourly interval with a different incoming direction."
+          },
+          "waiting_speech_target": "正在查看 Riverside Market 下午活動期間的風向變化與場地方向規則。",
+          "case_insensitive_arguments": [
+            "venue_name"
+          ],
+          "argument_aliases": {
+            "venue_name": [
+              "Riverside market",
+              "the Riverside Market"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "Close the west and north sides at 2 PM. At 4 PM, rotate to close the north and east sides, because that is when the incoming wind changes from west to north.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "依逐時風向套用順時針相鄰面規則，找出需要更換配置的邊界。",
+          "steps": [
+            "14:00與15:00皆為西風且陣風超過25公里，關西側及其順時針下一側北側。",
+            "16:00起轉為北風，配置改為北側與東側。",
+            "17:00仍為北風，因此只需在16:00更換一次。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "input_example_zh": "查 Riverside Market 在 2026-09-12 的場地風向安全預報。",
+            "output_example_zh": "回傳14至16時西風、16至18時北風，以及強風時關閉上風面與順時針相鄰面的規則。"
+          }
+        ]
+      },
+      "first_stage_input_rationale": "The user states a public venue and explicit date; a four-choice enum prevents a spoken place name from becoming an opaque lookup challenge."
+    },
+    {
+      "id": "weather_1step_two_load_drying_windows_002",
+      "category": "weather",
+      "step_count": 1,
+      "user_prompt": "I want to dry two laundry loads on my home rooftop on September 9 between 9 AM and 3 PM. Each load needs 90 uninterrupted minutes, and the rack holds only one load. What is the earliest I can finish both?",
+      "flow_summary": "查住家屋頂逐半小時可晾曬狀態；模型為兩批各找90分鐘連續區間且不可重疊，算出最早完成時間。",
+      "tools": [
+        {
+          "name": "get_home_rooftop_drying_forecast",
+          "description": "Return half-hour rooftop drying conditions for the signed-in home and the raw definition of a usable drying interval. It does not schedule laundry loads or calculate a finish time.",
+          "parameters": {
+            "event_date": {
+              "type": "string",
+              "description": "The local rooftop drying date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            },
+            "time_start": {
+              "type": "string",
+              "description": "Start of the requested local-time search window in 24-hour HH:MM format.",
+              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+            },
+            "time_end": {
+              "type": "string",
+              "description": "End of the requested local-time search window in 24-hour HH:MM format.",
+              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "interval_minutes": {
+                "type": "integer",
+                "description": "Returned interval minutes."
+              },
+              "usable_interval_rule": {
+                "type": "string",
+                "description": "Returned usable interval rule."
+              },
+              "intervals": {
+                "type": "array",
+                "description": "Returned intervals.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "time_start": {
+                      "type": "string",
+                      "description": "Returned time start."
+                    },
+                    "precipitation_mm": {
+                      "type": "number",
+                      "description": "Returned precipitation mm."
+                    },
+                    "relative_humidity_percent": {
+                      "type": "integer",
+                      "description": "Returned relative humidity percent."
+                    }
+                  },
+                  "required": [
+                    "time_start",
+                    "precipitation_mm",
+                    "relative_humidity_percent"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "interval_minutes",
+              "usable_interval_rule",
+              "intervals"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "weather_facts",
+          "tool_name": "get_home_rooftop_drying_forecast",
+          "tool_input": {
+            "event_date": "2026-09-09",
+            "time_start": "09:00",
+            "time_end": "15:00"
+          },
+          "mocked_result": {
+            "interval_minutes": 30,
+            "usable_interval_rule": "An interval is usable only when precipitation is zero and relative humidity is at most 70 percent. A load cannot span an unusable interval.",
+            "intervals": [
+              {
+                "time_start": "09:00",
+                "precipitation_mm": 0.4,
+                "relative_humidity_percent": 78
+              },
+              {
+                "time_start": "09:30",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 68
+              },
+              {
+                "time_start": "10:00",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 64
+              },
+              {
+                "time_start": "10:30",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 66
+              },
+              {
+                "time_start": "11:00",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 72
+              },
+              {
+                "time_start": "11:30",
+                "precipitation_mm": 0.2,
+                "relative_humidity_percent": 75
+              },
+              {
+                "time_start": "12:00",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 68
+              },
+              {
+                "time_start": "12:30",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 65
+              },
+              {
+                "time_start": "13:00",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 63
+              },
+              {
+                "time_start": "13:30",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 62
+              },
+              {
+                "time_start": "14:00",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 66
+              },
+              {
+                "time_start": "14:30",
+                "precipitation_mm": 0,
+                "relative_humidity_percent": 69
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看九月九日住家屋頂每半小時的降雨與濕度。",
+          "local_datetime_arguments": []
+        }
+      ],
+      "expected_final_answer": "The earliest finish is 1:30 PM. Dry the first load from 9:30 to 11:00, then the second from noon to 1:30 PM; the rain and humidity between those windows prevent an earlier second slot.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "把每三個連續可用半小時視為一個90分鐘時段，並考慮單一曬衣架不可重疊。",
+          "steps": [
+            "09:30、10:00、10:30連續可用，第一批最早為09:30至11:00。",
+            "11:00濕度超標且11:30有雨，第二批不能緊接。",
+            "12:00至13:30是下一個完整90分鐘，所以兩批最早13:30完成。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "input_example_zh": "查 2026-09-09 09:00 至15:00 的住家屋頂晾曬預報。",
+            "output_example_zh": "每半小時回傳雨量與濕度；可用條件為零降雨且濕度不超過70%。"
+          }
+        ]
+      },
+      "first_stage_input_rationale": "The signed-in home avoids a fragile address parameter; the date and bounded time window are explicit in speech."
+    },
+    {
+      "id": "weather_1step_heat_work_rest_003",
+      "category": "weather",
+      "step_count": 1,
+      "user_prompt": "My paving crew will work at Harbor Yard from 1 to 4 PM on September 10. Under the site's heat policy, how many minutes can they work and how many minutes of break are required in total?",
+      "flow_summary": "查工地逐時熱指數與分級工作休息規則；模型逐小時選級距後加總工作與休息分鐘。",
+      "tools": [
+        {
+          "name": "get_worksite_heat_safety_forecast",
+          "description": "Return the hourly worksite heat index and the site's raw hourly work-rest table for the supplied date. It does not total work or break minutes.",
+          "parameters": {
+            "worksite_name": {
+              "type": "string",
+              "description": "The public worksite named by the user.",
+              "enum": [
+                "Harbor Yard",
+                "North Depot",
+                "River Lot",
+                "Central Works"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local work date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "hourly_heat_index_c": {
+                "type": "array",
+                "description": "Returned hourly heat index c.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "hour_start": {
+                      "type": "string",
+                      "description": "Returned hour start."
+                    },
+                    "heat_index_c": {
+                      "type": "integer",
+                      "description": "Returned heat index c."
+                    }
+                  },
+                  "required": [
+                    "hour_start",
+                    "heat_index_c"
+                  ]
+                }
+              },
+              "hourly_work_rest_policy": {
+                "type": "array",
+                "description": "Returned hourly work rest policy.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "minimum_heat_index_c": {
+                      "type": "integer",
+                      "description": "Returned minimum heat index c."
+                    },
+                    "maximum_heat_index_c": {
+                      "type": "integer",
+                      "description": "Returned maximum heat index c."
+                    },
+                    "work_minutes": {
+                      "type": "integer",
+                      "description": "Returned work minutes."
+                    },
+                    "break_minutes": {
+                      "type": "integer",
+                      "description": "Returned break minutes."
+                    }
+                  },
+                  "required": [
+                    "minimum_heat_index_c",
+                    "maximum_heat_index_c",
+                    "work_minutes",
+                    "break_minutes"
+                  ]
+                }
+              },
+              "boundary_rule": {
+                "type": "string",
+                "description": "Returned boundary rule."
+              }
+            },
+            "required": [
+              "hourly_heat_index_c",
+              "hourly_work_rest_policy",
+              "boundary_rule"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "weather_facts",
+          "tool_name": "get_worksite_heat_safety_forecast",
+          "tool_input": {
+            "worksite_name": "Harbor Yard",
+            "event_date": "2026-09-10"
+          },
+          "mocked_result": {
+            "hourly_heat_index_c": [
+              {
+                "hour_start": "13:00",
+                "heat_index_c": 29
+              },
+              {
+                "hour_start": "14:00",
+                "heat_index_c": 31
+              },
+              {
+                "hour_start": "15:00",
+                "heat_index_c": 30
+              }
+            ],
+            "hourly_work_rest_policy": [
+              {
+                "minimum_heat_index_c": 0,
+                "maximum_heat_index_c": 29,
+                "work_minutes": 45,
+                "break_minutes": 15
+              },
+              {
+                "minimum_heat_index_c": 30,
+                "maximum_heat_index_c": 31,
+                "work_minutes": 30,
+                "break_minutes": 30
+              },
+              {
+                "minimum_heat_index_c": 32,
+                "maximum_heat_index_c": 99,
+                "work_minutes": 15,
+                "break_minutes": 45
+              }
+            ],
+            "boundary_rule": "Both the minimum and maximum heat-index values in a row are inclusive."
+          },
+          "waiting_speech_target": "正在查看 Harbor Yard 下午三個小時的熱指數與工地休息規則。",
+          "case_insensitive_arguments": [
+            "worksite_name"
+          ],
+          "argument_aliases": {
+            "worksite_name": [
+              "Harbour Yard",
+              "the Harbor Yard"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "They can work 105 minutes and must take 75 minutes of breaks in total: 45/15 minutes for the 1 PM hour, then 30/30 for each of the next two hours.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "每個整點依含端點級距取一組工作／休息分鐘，再分別加總。",
+          "steps": [
+            "13時為29度，落在0至29度級距：工作45、休息15分鐘。",
+            "14時31度、15時30度都落在30至31度級距，各工作30、休息30分鐘。",
+            "工作共45＋30＋30＝105分鐘；休息共15＋30＋30＝75分鐘。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "input_example_zh": "查 Harbor Yard 在 2026-09-10 的熱安全預報。",
+            "output_example_zh": "回傳13至16時熱指數29、31、30度及三段含端點的每小時工作休息表。"
+          }
+        ]
+      },
+      "first_stage_input_rationale": "The worksite is selected from four public names and the date is explicit; no employee or internal job identifier is required."
+    },
+    {
+      "id": "weather_1step_rain_tank_overflow_004",
+      "category": "weather",
+      "step_count": 1,
+      "user_prompt": "The rain tank at Pine Workshop has 240 liters of free space. From the September 8 forecast, how much water should the roof collect, how much can the tank keep, and how much will overflow?",
+      "flow_summary": "查建物屋頂面積、集水效率與逐時雨量；模型換算總集水量，再依剩餘容量拆分儲存與溢流。",
+      "tools": [
+        {
+          "name": "get_building_rain_harvest_forecast",
+          "description": "Return roof collection facts and hourly forecast rainfall for the supplied building and date. It does not calculate captured, stored or overflow volume.",
+          "parameters": {
+            "building_name": {
+              "type": "string",
+              "description": "The public building name stated by the user.",
+              "enum": [
+                "Pine Workshop",
+                "Harbor Studio",
+                "Maple Garage",
+                "River Shed"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local rainfall forecast date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "collection_roof_area_square_meters": {
+                "type": "integer",
+                "description": "Returned collection roof area square meters."
+              },
+              "collection_efficiency_percent": {
+                "type": "integer",
+                "description": "Returned collection efficiency percent."
+              },
+              "conversion_rule": {
+                "type": "string",
+                "description": "Returned conversion rule."
+              },
+              "forecast_rainfall": {
+                "type": "array",
+                "description": "Returned forecast rainfall.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "time_start": {
+                      "type": "string",
+                      "description": "Returned time start."
+                    },
+                    "rainfall_mm": {
+                      "type": "integer",
+                      "description": "Returned rainfall mm."
+                    }
+                  },
+                  "required": [
+                    "time_start",
+                    "rainfall_mm"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "collection_roof_area_square_meters",
+              "collection_efficiency_percent",
+              "conversion_rule",
+              "forecast_rainfall"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "weather_facts",
+          "tool_name": "get_building_rain_harvest_forecast",
+          "tool_input": {
+            "building_name": "Pine Workshop",
+            "event_date": "2026-09-08"
+          },
+          "mocked_result": {
+            "collection_roof_area_square_meters": 40,
+            "collection_efficiency_percent": 80,
+            "conversion_rule": "One millimeter of rain on one square meter of roof equals one liter before applying collection efficiency.",
+            "forecast_rainfall": [
+              {
+                "time_start": "06:00",
+                "rainfall_mm": 2
+              },
+              {
+                "time_start": "09:00",
+                "rainfall_mm": 4
+              },
+              {
+                "time_start": "12:00",
+                "rainfall_mm": 3
+              },
+              {
+                "time_start": "15:00",
+                "rainfall_mm": 3
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 Pine Workshop 九月八日的屋頂集水條件與預報雨量。",
+          "case_insensitive_arguments": [
+            "building_name"
+          ],
+          "argument_aliases": {
+            "building_name": [
+              "Pine workshop",
+              "the Pine Workshop"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "The roof should collect 384 liters. The tank can keep 240 liters, so 144 liters will overflow.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "先加總雨量，再用屋頂面積與效率換算，最後受剩餘容量限制。",
+          "steps": [
+            "總雨量為2＋4＋3＋3＝12毫米。",
+            "集水量為12×40×0.8＝384公升。",
+            "剩餘容量240公升，因此可存240公升，溢流384－240＝144公升。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "input_example_zh": "查 Pine Workshop 在 2026-09-08 的雨水收集預報。",
+            "output_example_zh": "回傳40平方公尺屋頂、80%效率、共12毫米逐時雨量及毫米平方公尺轉公升規則。"
+          }
+        ]
+      },
+      "first_stage_input_rationale": "A four-choice public building enum makes the spoken selector bounded; the free tank capacity remains user-provided reasoning input rather than an API argument."
+    },
+    {
+      "id": "weather_1step_coating_cure_window_005",
+      "category": "weather",
+      "step_count": 1,
+      "user_prompt": "I need two hours to apply exterior sealant at Harbor House on September 11, and I want to finish by 2 PM. It must remain rain-free with humidity no higher than 75 percent during application and for four full hours afterward. What is the latest time I can start?",
+      "flow_summary": "查施工日逐時降雨與濕度；模型同時覆蓋兩小時施工及完工後四個完整小時，倒推出最晚開工時間。",
+      "tools": [
+        {
+          "name": "get_exterior_coating_weather_forecast",
+          "description": "Return hourly rain and humidity for a named project site on the supplied date. It does not choose an application or curing window.",
+          "parameters": {
+            "project_site": {
+              "type": "string",
+              "description": "The public project-site name stated by the user.",
+              "enum": [
+                "Harbor House",
+                "Pine Cottage",
+                "River Annex",
+                "Garden Studio"
+              ]
+            },
+            "event_date": {
+              "type": "string",
+              "description": "The local coating date stated by the user, in YYYY-MM-DD format.",
+              "format": "date"
+            }
+          },
+          "response": {
+            "type": "object",
+            "description": "Returned result.",
+            "properties": {
+              "interval_definition": {
+                "type": "string",
+                "description": "Returned interval definition."
+              },
+              "hourly_forecast": {
+                "type": "array",
+                "description": "Returned hourly forecast.",
+                "items": {
+                  "type": "object",
+                  "description": "Returned item.",
+                  "properties": {
+                    "hour_start": {
+                      "type": "string",
+                      "description": "Returned hour start."
+                    },
+                    "rainfall_mm": {
+                      "type": "number",
+                      "description": "Returned rainfall mm."
+                    },
+                    "relative_humidity_percent": {
+                      "type": "integer",
+                      "description": "Returned relative humidity percent."
+                    }
+                  },
+                  "required": [
+                    "hour_start",
+                    "rainfall_mm",
+                    "relative_humidity_percent"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "interval_definition",
+              "hourly_forecast"
+            ]
+          }
+        }
+      ],
+      "steps": [
+        {
+          "index": 1,
+          "label": "weather_facts",
+          "tool_name": "get_exterior_coating_weather_forecast",
+          "tool_input": {
+            "project_site": "Harbor House",
+            "event_date": "2026-09-11"
+          },
+          "mocked_result": {
+            "interval_definition": "Each row covers the complete hour beginning at hour_start.",
+            "hourly_forecast": [
+              {
+                "hour_start": "08:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 72
+              },
+              {
+                "hour_start": "09:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 70
+              },
+              {
+                "hour_start": "10:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 68
+              },
+              {
+                "hour_start": "11:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 69
+              },
+              {
+                "hour_start": "12:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 71
+              },
+              {
+                "hour_start": "13:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 73
+              },
+              {
+                "hour_start": "14:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 74
+              },
+              {
+                "hour_start": "15:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 75
+              },
+              {
+                "hour_start": "16:00",
+                "rainfall_mm": 0,
+                "relative_humidity_percent": 82
+              },
+              {
+                "hour_start": "17:00",
+                "rainfall_mm": 1.2,
+                "relative_humidity_percent": 88
+              }
+            ]
+          },
+          "waiting_speech_target": "正在查看 Harbor House 施工當天以及完工後養護期間的逐時濕度與降雨。",
+          "case_insensitive_arguments": [
+            "project_site"
+          ],
+          "argument_aliases": {
+            "project_site": [
+              "Harbour House",
+              "the Harbor House"
+            ]
+          }
+        }
+      ],
+      "expected_final_answer": "The latest safe start is 10 AM. Application would run from 10 AM to noon, and the four full curing hours from noon through 4 PM stay rain-free at or below 75 percent humidity. Starting at 11 would make the curing period include the 4–5 PM hour at 82 percent humidity.",
+      "input_reference_mode": "natural_entity",
+      "first_stage_difficulty": "medium",
+      "future_hooks": {
+        "solution_process": {
+          "summary": "對每個可能開工時間檢查2小時施工加4個完整養護小時，並受14時完工上限約束。",
+          "steps": [
+            "10時開工、12時完工，需檢查10至16時六個完整小時；皆無雨且濕度不超過75%。",
+            "11時開工雖可在13時完工，但四小時養護延伸到17時，包含16至17時濕度82%的區間。",
+            "所以最晚可在10:00開工。"
+          ]
+        },
+        "tool_io_examples": [
+          {
+            "step": 1,
+            "input_example_zh": "查 Harbor House 在 2026-09-11 的外牆塗層天氣。",
+            "output_example_zh": "逐時回傳08至18時降雨與濕度；16時開始濕度升至82%，17時開始下雨。"
+          }
+        ]
+      },
+      "first_stage_input_rationale": "The four-choice public site enum and explicit date are speech-safe; the two-hour application, finish deadline and four-hour curing rule remain in the user request."
+    }
+  ]
+}
