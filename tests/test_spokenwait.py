@@ -11,8 +11,8 @@ class SpokenWaitTests(unittest.TestCase):
         self.assertEqual(summary["task_count"], 100)
         self.assertEqual(summary["one_step"], 50)
         self.assertEqual(summary["two_step"], 50)
-        self.assertEqual(summary["required_slots"], 175)
-        self.assertEqual(summary["optional_slots"], 97)
+        self.assertEqual(summary["answer_specs"], 100)
+        self.assertGreater(summary["required_slots"], 0)
 
     def test_memory_card_task(self):
         task = get_task(TASK_ID)

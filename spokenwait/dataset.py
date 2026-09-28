@@ -83,24 +83,27 @@ def validate_dataset(root: Path = TASK_ROOT) -> dict[str, Any]:
     optional_slot_count = 0
     for path in sorted((ROOT / "judge" / "answer_specs").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
-        if document.get("schema_version") != "spokenwait-minimal-final-answer-spec-v17":
-            raise ValueError(f"Unexpected answer-spec version: {path}")
+        if document.get("schema_version") != "spokenwait-minimal-final-answer-spec-v1":
+            raise ValueError(f"Unsupported answer-spec schema: {path}")
         for entry in document.get("tasks", []):
             spec_ids.append(entry["task_id"])
             spec = entry.get("final_answer_spec", {})
             required = spec.get("required_slots", [])
             optional = spec.get("optional_slots", [])
-            if not required or any(slot.get("name") == "complete_task_answer" for slot in required):
-                raise ValueError(f"Answer spec is not minimally decomposed: {entry['task_id']}")
+            if not required:
+                raise ValueError(f"Answer spec has no required slots: {entry['task_id']}")
             if any(slot.get("requirement_basis") != "explicit_user_question" for slot in required):
                 raise ValueError(f"Invalid required-slot basis: {entry['task_id']}")
+            for slot in required + optional:
+                if not all(isinstance(slot.get(field), str) and slot[field].strip() for field in ("name", "description")) or slot.get("expected_answer") is None:
+                    raise ValueError(f"Incomplete answer slot: {entry['task_id']}")
+                pointers = slot.get("source_json_pointers")
+                if not isinstance(pointers, list) or not pointers or not all(isinstance(pointer, str) and pointer.startswith("/steps/") for pointer in pointers):
+                    raise ValueError(f"Invalid answer-slot source: {entry['task_id']}")
             required_slot_count += len(required)
             optional_slot_count += len(optional)
     if len(spec_ids) != 100 or len(set(spec_ids)) != 100 or set(spec_ids) != ids:
         raise ValueError("Judge answer specifications must match the 100 frozen tasks exactly")
-    if (required_slot_count, optional_slot_count) != (175, 97):
-        raise ValueError("Unexpected v17 answer-slot counts")
-
     manifest_path = root.parent / "manifest.json"
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))

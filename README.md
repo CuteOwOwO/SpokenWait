@@ -27,7 +27,7 @@ spokenwait show product_inventory_2step_camera_mode_savings_004
 ```text
 data/tasks/          frozen paper-v1 tasks (100)
 spokenwait/          dependency-free validator, demo, and temporal scorer
-judge/               frozen judge policy, output schema, and v17 answer specs
+judge/               frozen judge policy, output schema, and answer specs
 docs/                task format and evaluation protocol
 assets/              paper task figure
 ```
@@ -67,7 +67,7 @@ Task-macro means from the paper. Coverage is descriptive, not a quality score.
 | Answer accuracy (%) | 78.5 | 97.3 | **98.3** | 95.5 | 56.1 |
 | Premature hallucination (%) | 3.5 | **0.0** | **0.0** | **0.0** | **0.0** |
 
-Answer accuracy uses the v17 minimal-required answer specifications and the strict interaction-level consistency criterion. Supporting details marked optional are not required for correctness.
+Answer accuracy uses the published minimal-required answer specifications and the strict interaction-level consistency criterion. Supporting details marked optional are not required for correctness.
 
 ## Integrating an agent
 

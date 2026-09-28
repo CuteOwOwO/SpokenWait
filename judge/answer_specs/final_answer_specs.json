@@ -1,5 +1,5 @@
 {
-  "schema_version": "spokenwait-minimal-final-answer-spec-v17",
+  "schema_version": "spokenwait-minimal-final-answer-spec-v1",
   "policy": {
     "required": "Only facts needed to answer the user's explicit question; all required slots must be correct.",
     "optional": "Useful supporting calculations, explanations, alternatives, or verification; omission never makes an answer incorrect.",
